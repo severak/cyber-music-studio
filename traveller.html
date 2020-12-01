@@ -204,7 +204,7 @@ function Traveller(ac) {
 	var me = {};
 	me.vol = 0.25;
 	me.wave = 'sawtooth';
-	me.attack = 0.5;
+	me.attack = 0.2;
 	me.decay = 0.5;
 	me.hold = true;
 	me.bite = false;
@@ -224,38 +224,42 @@ function Traveller(ac) {
 	me._vca = me._ac.createGain();
 	me._vca.gain.setValueAtTime(0, me._ac.currentTime);
 	
-	me._osc.connect(me._vca);
-	// me._vcf.connect(me._vca);
+	me._osc.connect(me._vcf);
+	me._vcf.connect(me._vca);
 	me._vca.connect(me._ac.destination); // TODO - output
 	
 	me.noteOn = function(nn) {
+		me.lastN = nn;
 		var freq = midi2cps(nn);
 		
 		console.log("ON", me, nn);
 		
 		// stop envelope movement
+		var currGain = me._vca.gain.value;
 		me._vca.gain.cancelScheduledValues(me._ac.currentTime);
-		
-		
-		me._vca.gain.setValueAtTime(0, me._ac.currentTime);
-		
+		me._vca.gain.setValueAtTime(currGain, me._ac.currentTime);
 		// VCA up 
-		me._vca.gain.linearRampToValueAtTime(me.vol, me._ac.currentTime + me.attack + 0.01);
-		console.log("VCA up", me.vol, me._ac.currentTime + me.attack + 0.01, me._ac.currentTime);
+		me._vca.gain.linearRampToValueAtTime(me.vol, me._ac.currentTime + me.attack );
+		console.log("VCA up", me.vol, me._ac.currentTime + me.attack, me._ac.currentTime);
+		
+		// Q
+		me._vcf.Q.value = me.bite ? 10 : 1;
 		
 		// VCF up
 		if (me.quack) {
-			me._vcf.frequency.linearRampToValueAtTime(0, me._ac.currentTime + me.attack + 0.01);
+			var currFreq = me._vcf.frequency.value;
+			me._vcf.frequency.cancelScheduledValues(me._ac.currentTime);
+			me._vcf.frequency.linearRampToValueAtTime(0, me._ac.currentTime + 0.01);
 			me._vcf.frequency.linearRampToValueAtTime(me.traveller, me._ac.currentTime + me.attack);
 		} else {
 			me._vcf.frequency.cancelScheduledValues(me._ac.currentTime);
-			me._vcf.frequency.setValueAtTime(me.traveller, me._ac.currentTime + 0.01);
+			me._vcf.frequency.setValueAtTime(me.traveller, me._ac.currentTime);
 		}
 		
 		
 		// switch OSC
 		me._osc.type = me.wave;
-		me._osc.frequency.setValueAtTime(freq, me._ac.currentTime); // TODO - portamento
+		me._osc.frequency.setValueAtTime(freq, me._ac.currentTime + (me.attack / 2)); // TODO - portamento
 		
 		// TODO VCF
 		
@@ -271,7 +275,11 @@ function Traveller(ac) {
 	me.noteOff = function(nn) {
 		console.log("OFF", me, nn);
 		if (me.hold) {
-			// me._vca.gain.cancelScheduledValues(me._ac.currentTime);
+			if (nn!=me.lastN) return; // release only if last note was dropped
+		
+			var currGain = me._vca.gain.value;
+			me._vca.gain.cancelScheduledValues(me._ac.currentTime);
+			me._vca.gain.setValueAtTime(currGain, me._ac.currentTime);
 			// VCA down
 			me._vca.gain.linearRampToValueAtTime(0, me._ac.currentTime + me.decay);
 			
@@ -284,7 +292,7 @@ function Traveller(ac) {
 	};
 	
 	me.panic = function() {
-		// me._vca.gain.setValueAtTime(0, me._ac.currentTime);
+		me._vca.gain.setValueAtTime(0, me._ac.currentTime);
 	};
 	
 	
@@ -317,7 +325,7 @@ ub.on("power","click",  function(){
 	
 	window.traveller = Traveller(ac);
 	traveller.noteOn(60);
-	setTimeout(function() {traveller.noteOff(0);}, 500);
+	setTimeout(function() {traveller.noteOff(60);}, 500);
 	
 	chnget(traveller, "vol");
 	chnget(traveller, "wave");
