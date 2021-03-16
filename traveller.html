@@ -249,7 +249,8 @@ function Traveller(ac) {
 		if (me.quack) {
 			var currFreq = me._vcf.frequency.value;
 			me._vcf.frequency.cancelScheduledValues(me._ac.currentTime);
-			me._vcf.frequency.linearRampToValueAtTime(0, me._ac.currentTime + 0.01);
+			me._vcf.frequency.setValueAtTime(currFreq, me._ac.currentTime);
+			// me._vcf.frequency.linearRampToValueAtTime(0, me._ac.currentTime + 0.01);
 			me._vcf.frequency.linearRampToValueAtTime(me.traveller, me._ac.currentTime + me.attack);
 		} else {
 			me._vcf.frequency.cancelScheduledValues(me._ac.currentTime);
