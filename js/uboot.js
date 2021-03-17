@@ -103,6 +103,11 @@ ub.on = function(elem, eventName, fun, fun2) {
 }
 // sub variant with on(elem, eventName, subselector, fun)
 
+ub.stop = function(ev) {
+	ev.preventDefault()
+	ev.stopPropagation();
+}
+
 ub.hasClass = function(elem, className) {
 	if (ub.type(elem)=='String') elem = ub.gebi(elem);
 	return elem.classList ? elem.classList.contains(className) : new RegExp('\\b'+ className+'\\b').test(elem.className);

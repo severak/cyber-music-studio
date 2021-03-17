@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>heart beat</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="css/uboot.css">
+	
+	<script src="js/uboot.js"></script>
+<script src="js/JZZ.js"></script>
+<script src="js/JZZ.input.Kbd.js"></script>
+<script src="js/JZZ.gui.Select.js"></script>
+<script src="js/JZZ.synth.Severak.js"></script>
+<script src="js/heartbeat.js"></script>
+</head>
+<body>
+
+<div class="ub-container">
+<h1>hb</h1>
+
+<div class="ub-cols">
+<div style="background-color: red;" class="ub-same">R</div>
+<div style="background-color: green;"  class="ub-same">G</div>
+<div style="background-color: blue;"  class="ub-same">B</div>
+</div>
+
+
+
+<h2>traveller</h2>
+
+<form class="ub-form">
+<div class="wrap">
+<div class="ub-cols">
+<button id="power">⏻ (power)</button>
+</div>
+<div class="ub-cols">
+<div class="ub-50">
+
+<div class="ub-cols">
+<div class="ub-50">
+vol <input type="range" min="0" max="0.5" step="0.01" value="0.25" id="vol">
+</div>
+<div class="ub-50">
+waveform:
+<select id="wave">
+<option name="sine">sine</option>
+<option name="triangle">triangle</option>
+<option name="square">square</option>
+<option name="sawtooth" selected>sawtooth</option>
+<option name="arp" disabled>arp</option>
+<option name="pwm" disabled>pwm</option>
+<option name="noise" disabled>noise</option>
+<option name="tonal noise" disabled>tonal noise</option>
+</select>
+</div>
+</div>
+<div class="ub-cols">
+<div class="ub-33">
+<label><input type="checkbox" id="hold" checked> hold</label>
+</div>
+<div class="ub-33">
+<label><input type="checkbox" id="bite"> bite</label>
+</div>
+<div class="ub-33">
+<label><input type="checkbox" id="quack"> quack</label>
+</div>
+</div>
+<div class="ub-cols">
+TRAVELLER
+</div>
+
+</div>
+<div class="ub-50">
+
+<div class="ub-cols">
+<div class="ub-50">
+attack
+<input type="range" min="0.01" max="1" step="0.1" value="0.2" id="attack">
+</div>
+<div class="ub-50">
+decay
+<input type="range" min="0.01" max="1" step="0.1" value="0.5" id="decay">
+</div>
+</div>
+
+</div>
+</div>
+<div class="ub-cols">
+<input type="range" min="0" max="22000" value="22000" id="traveller">
+</div>
+
+<div class="ub-cols">
+<div id="keyboard"></div>
+</div>
+<div class="ub-cols">
+MIDI input: <select id="select_midi_in"></select> | <button id="record">record</button>
+</div>
+</div>
+</form>
+
+
+<script>
+
+var kbd = JZZ.input.Kbd({ at:'keyboard', pos:'N', wl: 50, ww:21, bl: 25, bw:12, from:'F4', to:'C7' });
+
+var midiIn = JZZ.gui.SelectMidiIn({ at: 'select_midi_in' });
+
+midiIn.onSelect = function(name) {
+  console.log('MIDI-In selected:', name);
+ midiIn.connect(kbd);
+};
+
+var init = false;
+ub.on("power","click",  function(ev){
+	ub.stop(ev);
+	if (init) return;
+	init = true;
+	var AudioContext = window.AudioContext || window.webkitAudioContext;
+	var ac= new AudioContext();
+	
+	window.traveller = hb.Traveller();
+	traveller.noteOn(60);
+	setTimeout(function() {traveller.noteOff(60);}, 500);
+	
+	hb.chnget(traveller, "vol");
+	hb.chnget(traveller, "wave");
+	hb.chnget(traveller, "attack");
+	hb.chnget(traveller, "decay");
+	hb.chnget(traveller, "hold");
+	hb.chnget(traveller, "bite");
+	hb.chnget(traveller, "quack");
+	hb.chnget(traveller, "traveller");
+	
+	wrap = JZZ.synth.Severak();
+	wrap.setSynth(traveller);
+	kbd.connect(wrap);
+});
+</script>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+.ub-container {
+	max-width: 30em;
+	margin: auto;
+}
+
+.ub-cols {
+	display: flex;
+}
+
+.ub-same {
+	flex: 1 1 0;
+}
+
+.ub-50 { width: 50%; } 
+.ub-33 { width: 33%; } 
+
+
+/* dočasné hacky: */
+
+.ub-cols input[type=range] {
+	width: 90%;
+}
