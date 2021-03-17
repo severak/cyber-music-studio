@@ -92,7 +92,12 @@ hb.Traveller = function(out) {
 	
 	me.param = function(name, val) {
 		me[name] = val;
-		// TODO - filtr chceme měnit za jízdy vol a traveller
+		
+		if (!me.quack && name=='traveller') {
+			me._vcf.frequency.setValueAtTime(me.traveller, me._ac.currentTime)
+		}
+		
+		// TODO - filtr chceme měnit za jízdy vol
 	}
 	
 	me._getEnv = function(max) {
@@ -128,6 +133,8 @@ hb.Traveller = function(out) {
 	};
 	
 	me.noteOff = function(nn) {
+		if (!me.hold) return;
+		if (nn!=me.lastN) return;
 		hb.adsr_stop(me._vca.gain, me._getEnv(me.vol));
 		if (me.quack) {
 			hb.adsr_stop(me._vcf.frequency, me._getEnv(me.traveller));
@@ -168,6 +175,12 @@ if (window.ub && ub.on) {
 				synth.param(param, ub.tonumber(ub.gebi(param).value));
 			});
 			synth.param(param, ub.tonumber(ub.gebi(param).value));
+			if (ub.gebi(param).getAttribute("type")=="range") {
+				// slider is adjustable in real time
+				ub.on(param, 'input', function(){
+					synth.param(param, ub.tonumber(ub.gebi(param).value));
+				});
+			}
 		}
 	}
 }
