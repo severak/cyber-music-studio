@@ -1,2 +1,5 @@
-# cyber-music-studio
-not your usual DAW
+# Cyber Music Studio™
+
+not your usual DAW. Work in progress.
+
+![](img/preview.png)
