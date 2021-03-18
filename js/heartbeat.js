@@ -160,35 +160,153 @@ hb.Traveller = function(out) {
 	return me;
 }
 
+hb.AnalogNomad = function(out) {
+	var me = {};
+	me.vol = 0.25;
+	
+	me.attack = 0.1;
+	me.decay = 0.1;
+	me.sustain = 0.8;
+	me.release = 0.5;
+	
+	me.saw = 0.3;
+	me.pulse = 0.2;
+	me.sub = 0.1;
+	me.noise = 0.1;
+	
+	// pulse width - https://github.com/pendragon-andyh/WebAudio-PulseOscillator
+	
+	me.filter = 22000;
+	me.resonance = 5;
+	me.quack = true;
+	
+	me._ac = hb.ac;
+	if (!out) out = hb.ac;
+	me._out = out;
+	
+	me._vol = me._ac.createGain();
+	me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
+	me._vol.connect(me._out.destination);	
+	
+	// me._notes = [];
+	me._voices = {};
+	
+	me.param = function(name, val) {
+		me[name] = val;
+		// TODO - realtime params
+	}
+	
+	me._getEnv = function(max) {
+		return {
+			max: max,
+			attack: me.attack,
+			decay: me.decay,
+			sustain: me.sustain,
+			release: me.release
+		};
+	}
+	
+	me._makeVoice = function(nn) {
+		var ac = hb.ac;
+		var freq = hb.midi2cps(nn);
+		var vox = {};
+		vox._saw = ac.createOscillator();
+		vox._saw.type = 'sawtooth';
+		vox._saw.frequency.setValueAtTime(freq, ac.currentTime);
+		vox._saw.start();
+		vox._pulse = ac.createOscillator();
+		vox._pulse.type = 'square';
+		vox._pulse.frequency.setValueAtTime(freq, ac.currentTime);
+		vox._pulse.start();
+		vox._sub = ac.createOscillator();
+		vox._sub.type = 'square';
+		vox._sub.frequency.setValueAtTime(freq / 2, ac.currentTime);
+		vox._sub.start();
+		// TODO - zkrátit vytváření a spouštění oscilátorů
+		// TODO - přidat noise
+
+		vox._saw_gain = ac.createGain();
+		vox._saw_gain.gain.setValueAtTime(me.saw, ac.currentTime);
+		vox._pulse_gain = ac.createGain();
+		vox._pulse_gain.gain.setValueAtTime(me.pulse, ac.currentTime);
+		vox._sub_gain = ac.createGain();
+		vox._sub_gain.gain.setValueAtTime(me.sub, ac.currentTime);
+
+		vox._env = ac.createGain();
+
+		// TODO - filtr
+
+		vox._saw.connect(vox._saw_gain);
+		vox._pulse.connect(vox._pulse_gain);
+		vox._sub.connect(vox._sub_gain);
+		vox._saw_gain.connect(vox._env);
+		vox._pulse_gain.connect(vox._env);
+		vox._sub_gain.connect(vox._env);
+
+		hb.adsr_start(vox._env.gain, me._getEnv(0.5));
+
+		vox._env.connect(me._vol);
+
+		vox.noteOff = function () {
+			var env = me._getEnv(1);
+			hb.adsr_stop(vox._env.gain, env);
+			vox._saw.stop(hb.ac.currentTime + env.release);
+			vox._pulse.stop(hb.ac.currentTime + env.release);
+			vox._sub.stop(hb.ac.currentTime + env.release);
+
+			// TODO - GC
+		};
+
+		return vox;
+	};
+	
+	me.noteOn = function(nn) {
+		me._voices[nn] = me._makeVoice(nn);
+	};
+	
+	me.noteOff = function(nn) {
+		if (!me._voices[nn]) return; // už není
+		me._voices[nn].noteOff();
+		delete me._voices[nn];
+	};
+	
+	me.panic = function() {
+		
+		me._vol.gain.setValueAtTime(0, me._ac.currentTime);
+	};
+	
+	return me;	
+}
+
 window.hb = hb;
 
 // bonus - hb.chnget
 
 if (window.ub && ub.on) {
-	hb.chnget= function(synth, param) {
-		// TODO - výchozí hodnoty
-		if (ub.gebi(param).tagName=="SELECT") {
+	hb.chnget= function(synth, param, elem) {
+		if (!elem) elem = param;
+		if (ub.gebi(elem).tagName=="SELECT") {
 			// select -> string
-			ub.on(param, 'change', function(){
+			ub.on(elem, 'change', function(){
 				synth.param(param, ub.gebi(param).value);
 			});
 			synth.param(param, ub.gebi(param).value);
-		} else if (ub.gebi(param).getAttribute("type")=="checkbox") {
+		} else if (ub.gebi(elem).getAttribute("type")=="checkbox") {
 			// checkbox -> bool
-			ub.on(param, 'change', function(){
+			ub.on(elem, 'change', function(){
 				synth.param(param, ub.gebi(param).checked);
 			});
-			synth.param(param, ub.gebi(param).checked);
+			synth.param(param, ub.gebi(elem).checked);
 		} else {
 			// numeric
-			ub.on(param, 'change', function(){
-				synth.param(param, ub.tonumber(ub.gebi(param).value));
+			ub.on(elem, 'change', function(){
+				synth.param(param, ub.tonumber(ub.gebi(elem).value));
 			});
-			synth.param(param, ub.tonumber(ub.gebi(param).value));
-			if (ub.gebi(param).getAttribute("type")=="range") {
+			synth.param(elem, ub.tonumber(ub.gebi(elem).value));
+			if (ub.gebi(elem).getAttribute("type")=="range") {
 				// slider is adjustable in real time
-				ub.on(param, 'input', function(){
-					synth.param(param, ub.tonumber(ub.gebi(param).value));
+				ub.on(elem, 'input', function(){
+					synth.param(param, ub.tonumber(ub.gebi(elem).value));
 				});
 			}
 		}
