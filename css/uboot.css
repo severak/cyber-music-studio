@@ -7,6 +7,10 @@
 	margin: auto;
 }
 
+.ub-fit-img {
+  max-width: 100%;
+}
+
 .ub-cols {
 	display: flex;
 	box-sizing: border-box;

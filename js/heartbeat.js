@@ -7,9 +7,12 @@
 var hb = {};
 
 // audio context
+hb.start = function() {
+	// needs to be started from interaction with page
+	var AudioContext = window.AudioContext || window.webkitAudioContext;
+	hb.ac= new AudioContext();
+};
 
-var AudioContext = window.AudioContext || window.webkitAudioContext;
-hb.ac= new AudioContext();
 
 // common functions
  
@@ -86,9 +89,14 @@ hb.Traveller = function(out) {
 	me._vca = me._ac.createGain();
 	me._vca.gain.setValueAtTime(0, me._ac.currentTime);
 	
+	me._vol = me._ac.createGain();
+	me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
+	
+	
 	me._osc.connect(me._vcf);
 	me._vcf.connect(me._vca);
-	me._vca.connect(me._out.destination);
+	me._vca.connect(me._vol);
+	me._vol.connect(me._out.destination);	
 	
 	me.param = function(name, val) {
 		me[name] = val;
@@ -97,7 +105,9 @@ hb.Traveller = function(out) {
 			me._vcf.frequency.setValueAtTime(me.traveller, me._ac.currentTime)
 		}
 		
-		// TODO - filtr chceme měnit za jízdy vol
+		if (name=='vol') {
+			me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime)
+		}
 	}
 	
 	me._getEnv = function(max) {
@@ -123,7 +133,7 @@ hb.Traveller = function(out) {
 		// switch OSC
 		me._osc.type = me.wave;
 		me._osc.frequency.setValueAtTime(freq, me._ac.currentTime + (me.attack / 2)); // TODO - portamento
-		hb.adsr_start(me._vca.gain, me._getEnv(me.vol)); // VCA ENV
+		hb.adsr_start(me._vca.gain, me._getEnv(1)); // VCA ENV
 		me._vcf.Q.value = me.bite ? 10 : 1;
 		if (me.quack) { // VCF ENV:
 			hb.adsr_start(me._vcf.frequency, me._getEnv(me.traveller));
@@ -135,7 +145,7 @@ hb.Traveller = function(out) {
 	me.noteOff = function(nn) {
 		if (!me.hold) return;
 		if (nn!=me.lastN) return;
-		hb.adsr_stop(me._vca.gain, me._getEnv(me.vol));
+		hb.adsr_stop(me._vca.gain, me._getEnv(1));
 		if (me.quack) {
 			hb.adsr_stop(me._vcf.frequency, me._getEnv(me.traveller));
 		} else {
