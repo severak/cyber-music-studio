@@ -20,23 +20,21 @@ hb.start = function() {
 	if (v < min) return min;
 	if (v > max) return max;
 	return v;
-}
+};
 
 hb.midi2cps = function(midi, A4) {
 	A4 = A4 || 440;
 	return A4 * Math.pow(2, (midi - 69) / 12);
-}
+};
 
-hb.cps2midi = function(cps, A4)
-{
+hb.cps2midi = function(cps, A4) {
 	A4 = A4 || 440;
 	return 69 + 12 * Math.log2(cps / A4);
-}
+};
 
 // ADSR
  
-hb.adsr_start = function(audioParam, env)
-{
+hb.adsr_start = function(audioParam, env) {
 	env.max = env.max || 1;
 	env.attack = env.attack || 0.05;
 	env.decay = env.decay || 0.01;
@@ -46,10 +44,9 @@ hb.adsr_start = function(audioParam, env)
 	audioParam.setValueAtTime(curr, hb.ac.currentTime); // stop ENV at current point
 	audioParam.linearRampToValueAtTime(env.max, hb.ac.currentTime + env.attack); // move to max
 	audioParam.linearRampToValueAtTime(env.sustain, hb.ac.currentTime + env.attack + env.decay); // move to sustain level
-}
+};
 
-hb.adsr_stop = function(audioParam, env)
-{
+hb.adsr_stop = function(audioParam, env) {
 	env.max = env.max || 1;
 	env.sustain = env.sustain || 0;
 	env.release = env.release || 0.05;
@@ -58,7 +55,22 @@ hb.adsr_stop = function(audioParam, env)
 	audioParam.cancelScheduledValues(hb.ac.currentTime);
 	audioParam.setValueAtTime(curr, hb.ac.currentTime); // stop ENV at current point
 	audioParam.linearRampToValueAtTime(0, hb.ac.currentTime + env.release); // move to 0
-}
+};
+
+hb.makeOsc = function(wave, freq, startAt) {
+    if (!startAt) startAt = hb.ac.currentTime;
+    var osc = hb.ac.createOscillator();
+    osc.type = wave;
+    osc.frequency.setValueAtTime(freq, startAt);
+    osc.start(freq);
+    return osc;
+};
+
+// TODO - hb.makeNoiseOsc, hb.makePwmOsc
+
+// TODO implement these components
+// - mixbus
+// - tape
 
 // Traveller
 // simple monophonic synth:
@@ -77,11 +89,8 @@ hb.Traveller = function(out) {
 	me._ac = hb.ac;
 	if (!out) out = hb.ac;
 	me._out = out;
-	
-	me._osc = me._ac.createOscillator();
-	me._osc.type = me.wave;
-	me._osc.frequency.setValueAtTime(440, me._ac.currentTime);
-	me._osc.start();
+
+	me._osc = hb.makeOsc(me.wave, 440);
 	
 	me._vcf = me._ac.createBiquadFilter();
 	me._vcf.type = 'lowpass';
@@ -108,23 +117,23 @@ hb.Traveller = function(out) {
 		if (name=='vol') {
 			me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime)
 		}
-	}
+	};
 	
 	me._getEnv = function(max) {
-		var env = {};
-		env.max = max;
-		env.attack = me.attack;
-		if (me.hold) {
-			env.sustain = env.max;
-			env.decay = 0.01;
-			env.release = me.decay;
-		} else {
-			env.sustain = 0;
-			env.decay = me.decay;
-			env.release = 0;
-		}
-		return env;
-	}
+        var env = {};
+        env.max = max;
+        env.attack = me.attack;
+        if (me.hold) {
+            env.sustain = env.max;
+            env.decay = 0.01;
+            env.release = me.decay;
+        } else {
+            env.sustain = 0;
+            env.decay = me.decay;
+            env.release = 0;
+        }
+        return env;
+    };
 	
 	me.noteOn = function(nn) {
 		me.lastN = nn;
@@ -158,7 +167,7 @@ hb.Traveller = function(out) {
 	};
 	
 	return me;
-}
+};
 
 hb.AnalogNomad = function(out) {
 	var me = {};
@@ -194,7 +203,7 @@ hb.AnalogNomad = function(out) {
 	me.param = function(name, val) {
 		me[name] = val;
 		if (name=='vol') me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
-	}
+	};
 	
 	me._getEnv = function(max) {
 		return {
@@ -204,7 +213,7 @@ hb.AnalogNomad = function(out) {
 			sustain: me.sustain,
 			release: me.release
 		};
-	}
+	};
 	
 	me._makeVoice = function(nn) {
 		var ac = hb.ac;
@@ -214,14 +223,11 @@ hb.AnalogNomad = function(out) {
 		vox._saw.type = 'sawtooth';
 		vox._saw.frequency.setValueAtTime(freq, ac.currentTime);
 		vox._saw.start();
-		vox._pulse = ac.createOscillator();
-		vox._pulse.type = 'square';
-		vox._pulse.frequency.setValueAtTime(freq, ac.currentTime);
-		vox._pulse.start();
-		vox._sub = ac.createOscillator();
-		vox._sub.type = 'square';
-		vox._sub.frequency.setValueAtTime(freq / 2, ac.currentTime);
-		vox._sub.start();
+
+		vox._saw = hb.makeOsc('saw', freq);
+		vox._pulse = hb.makeOsc('square', freq);
+		vox._sub = hb.makeOsc('square', freq);
+
 		// TODO - zkrátit vytváření a spouštění oscilátorů
 		// TODO - přidat noise
 
@@ -276,13 +282,14 @@ hb.AnalogNomad = function(out) {
 	};
 	
 	return me;	
-}
+};
 
 window.hb = hb;
 
 // bonus - hb.chnget
 
 if (window.ub && ub.on) {
+    // monitors elem element and updates param from it
 	hb.chnget= function(synth, param, elem) {
 		if (!elem) elem = param;
 		if (ub.gebi(elem).tagName=="SELECT") {
