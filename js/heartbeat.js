@@ -70,7 +70,7 @@ hb.makeOsc = function(wave, freq, startAt) {
 
 // TODO implement these components
 // - mixbus
-// - tape
+// - tape - https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioDestinationNode
 
 // Traveller
 // simple monophonic synth:
