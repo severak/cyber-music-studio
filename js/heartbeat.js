@@ -193,7 +193,7 @@ hb.AnalogNomad = function(out) {
 	
 	me.param = function(name, val) {
 		me[name] = val;
-		// TODO - realtime params
+		if (name=='vol') me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
 	}
 	
 	me._getEnv = function(max) {

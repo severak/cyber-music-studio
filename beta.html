@@ -32,8 +32,8 @@ button.on {
 }
 
 #scope {
-	margin: auto;
-	width: 100%;
+	padding: 0;
+    width: 100%;
 	height: 80px;
 	background-color: #000;
 }
@@ -43,13 +43,13 @@ button.on {
 <body>
 
 <div class="ub-container">
-<h1>Cyber Music Studio <small>beta</small></h1>
+<h1>Cyber Music Studio™ <small>beta</small></h1>
 
-<form class="ub-form">
+<form class="ub-form" id="form">
 
 <div class="ub-box" id="box_welcome">
 <img src="img/preview.png" class="ub-fit-img">
-<p>This is beta version of Cyber Music Studio. It's not finished yet and can be broken at any moment.</p>
+<p>This is beta version of Cyber Music Studio™. It's not finished yet and can be broken at any moment.</p>
 <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
 <center><button id="power"><big>OK</big></button></center>
 </div>
@@ -141,10 +141,10 @@ MIDI input: <select id="select_midi_in"></select> <!-- | <button id="record">rec
 
 <div class="ub-cols">
 <div class="ub-same">
-pulse <input type="range" min="0" max="0.3" step="0.01" value="0.25" id="pulse">
+pulse <input type="range" min="0" max="0.3" step="0.1" value="0.25" id="pulse">
 </div>
 <div class="ub-same">
-saw <input type="range" min="0" max="0.3" step="0.01" value="0.25" id="saw">
+saw <input type="range" min="0" max="0.3" step="0.1" value="0.25" id="saw">
 </div>
 <div class="ub-same">
 sub <input type="range" min="0" max="0.3" step="0.1" value="0.25" id="sub">
@@ -255,6 +255,7 @@ ub.on("power","click",  function(ev){
 	ub.delClass("box_nomad", 'ub-hidden');
 	ub.delClass("scope", 'ub-hidden');
 
+	ub.gebi('form').reset();
 	hb.start();
 	
 	window.traveller = hb.Traveller();
