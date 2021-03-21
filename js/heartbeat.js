@@ -66,6 +66,26 @@ hb.makeOsc = function(wave, freq, startAt) {
     return osc;
 };
 
+hb.makeNoiseOsc = function(startAt) {
+    if (!startAt) startAt = hb.ac.currentTime;
+    // adapted from https://noisehack.com/generate-noise-web-audio-api/
+    var bufferSize = 2 * hb.ac.sampleRate,
+        noiseBuffer = hb.ac.createBuffer(1, bufferSize, hb.ac.sampleRate),
+        output = noiseBuffer.getChannelData(0);
+    for (var i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+    }
+
+    var whiteNoise = hb.ac.createBufferSource();
+    whiteNoise.buffer = noiseBuffer;
+    whiteNoise.loop = true;
+    whiteNoise.start(0);
+
+    return whiteNoise;
+};
+
+
+
 // TODO - hb.makeNoiseOsc, hb.makePwmOsc
 
 // TODO implement these components
