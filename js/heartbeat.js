@@ -62,7 +62,7 @@ hb.makeOsc = function(wave, freq, startAt) {
     var osc = hb.ac.createOscillator();
     osc.type = wave;
     osc.frequency.setValueAtTime(freq, startAt);
-    osc.start(freq);
+    osc.start(startAt);
     return osc;
 };
 
