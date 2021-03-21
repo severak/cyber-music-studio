@@ -76,12 +76,31 @@ hb.makeNoiseOsc = function(startAt) {
         output[i] = Math.random() * 2 - 1;
     }
 
-    var whiteNoise = hb.ac.createBufferSource();
-    whiteNoise.buffer = noiseBuffer;
-    whiteNoise.loop = true;
-    whiteNoise.start(0);
+    var osc = hb.ac.createBufferSource();
+    osc.buffer = noiseBuffer;
+    osc.loop = true;
+    osc.start(startAt);
 
-    return whiteNoise;
+    return osc;
+};
+
+hb.makeSamplerOsc = function(buffer, freq, baseFreq, startAt) {
+	if (!startAt) startAt = hb.ac.currentTime;
+	if (!baseFreq) baseFreq = hb.midi2cps(60);
+
+	var osc = hb.ac.createBufferSource();
+	osc.buffer = buffer;
+	osc.loop = true;
+	osc.playbackRate.setValueAtTime(freq / baseFreq, startAt);
+	osc.start(startAt);
+
+	osc.frequency = {
+		setValueAtTime : function(freq, at) {
+			osc.playbackRate.setValueAtTime(freq / baseFreq, at);
+		}
+	};
+
+	return osc;
 };
 
 
