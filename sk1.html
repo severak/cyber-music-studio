@@ -94,6 +94,16 @@
                     <button id="noise">NOISE</button>
                     <button id="saw">SAW</button>
                     <button id="tri">TRIANGLE</button>
+                    <button id="triasin">TRIASIN</button>
+                    <button id="triasin2">TRIASIN 1/2</button>
+                    <button id="cirkule">CIRKULE</button>
+                    <button id="metalik">METALIK</button>
+                </div>
+            </div>
+            <div class="ub-cols">
+                <div class="ub-same">
+                    UNO
+                    <input type="range" id="unowave" min="0" max="127" step="1">
                 </div>
             </div>
 
@@ -129,13 +139,12 @@
         var ctx = ub.gebi('waveform').getContext("2d");
         ub.gebi('waveform').width = 440;
         ub.gebi('waveform').height = 40;
-        console.log(ctx.drawingBufferWidth, ctx.drawingBufferHeight);
         ctx.strokeStyle = '#00ff00';
         ctx.fillStyle = '#000';
 
         ctx.fillRect(0,0,440,80);
         ctx.beginPath();
-        ctx.moveTo(0, 20);
+        ctx.moveTo(0, (data[0] * 20 * amp) + 20);
         for (var n = 0; n < buffer.length; n++) {
             var y = (data[n] * 20 * amp) + 20;
             ctx.lineTo(n, y);
@@ -197,13 +206,13 @@
             var freq = hb.midi2cps(nn);
             var vox = {};
             vox._osc = hb.makeSamplerOsc(me.buffer, freq);
-            vox._env = ac.createGain()
+            vox._env = ac.createGain();
+            vox._env.gain.setValueAtTime(0, hb.ac.currentTime);
 
             vox._osc.connect(vox._env);
-
             hb.adsr_start(vox._env.gain, me._getEnv(1));
 
-            vox._env.connect(me._vol)
+            vox._env.connect(me._vol);
 
             vox.noteOff = function () {
                 var env = me._getEnv(1);
@@ -321,7 +330,7 @@
         });
 
         var sawfunc = function(n) {
-            return n;
+            return (n * 2) - 1;
         };
 
         ub.on('saw', 'click', function (ev) {
@@ -331,8 +340,11 @@
         });
 
         var trianglefunc = function(n) {
-            // return n * sinfunc(n) + (0.3 * noisefunc());
-            return hb.clamp(-0.9, ( sinfunc(n) + sinfunc(n * 6) ) / 2, 0.9);
+            if (n < 0.25) return n * 4;
+            if (n==0.25) return 1;
+            if (n > 0.25 && n < 0.75) return 1- ((n-0.25) * 4);
+            if (n==0.75) return -1;
+            if (n > 0.75) return ((n - 0.75) * 4) - 1;
         };
 
         ub.on('tri', 'click', function (ev) {
@@ -341,7 +353,76 @@
             showWave(sk.buffer);
         });
 
-        // showWave(makeSine());
+        var triasin = function(n) {
+            if (n < 0.25) return n * -4;
+            if (n==0.25) return 1;
+            return Math.sin(n * 6);
+        };
+
+        ub.on('triasin', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(triasin);
+            showWave(sk.buffer);
+        });
+
+        var triasin2 = function(n) {
+            if (n < 0.25) return n * -2;
+            if (n==0.25) return 1;
+            return Math.sin(n * 6);
+        };
+
+        ub.on('triasin2', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(triasin2);
+            showWave(sk.buffer);
+        });
+
+
+        var cirkule = function(n) {
+            return n * sinfunc(n) + (0.3 * noisefunc()); // ozubený sinus
+        };
+
+        ub.on('cirkule', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(cirkule);
+            showWave(sk.buffer);
+        });
+
+        var metalik = function(n) {
+            return hb.clamp(-0.9, ( sinfunc(n) + sinfunc(n * 6) ) / 2, 0.9); // ořezaná vícevlnka
+        };
+
+        ub.on('metalik', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(metalik);
+            showWave(sk.buffer);
+        });
+
+        var unowave = function(n) {
+            var p = ub.gebi('unowave').value;
+            // 0 = triangle
+            // 43 - saw
+            // 86 - square
+            // 127 - pulse 10%
+            if (p==0) return trianglefunc(n);
+            if (p > 1 && p < 43) return (trianglefunc(n) * (1-(p / 42))) + (sawfunc(n) * (p / 42));
+            if (p==43) return sawfunc(n);
+            if (p > 43 && p < 86) return (sawfunc(n) * (1-((p - 42) / 42))) + (sqrfunc(n) * ((p - 42) / 42));
+            if (p==86) return sqrfunc(n);
+            if (p > 86) {
+                var pw = 0.5 - ((p-86) / 86);
+                // console.log(pw);
+                if (n > pw) return -0.8;
+                return 0.8;
+            };
+        };
+
+        ub.on('unowave', 'input', function (ev) {
+
+            sk.buffer = ftgen(unowave);
+            showWave(sk.buffer);
+        });
+
 
     });
 </script>
