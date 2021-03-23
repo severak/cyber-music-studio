@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SK1</title>
+    <link rel="stylesheet" href="css/uboot.css">
+
+    <script src="js/uboot.js"></script>
+    <script src="js/JZZ.js"></script>
+    <script src="js/JZZ.input.Kbd.js"></script>
+    <script src="js/JZZ.gui.Select.js"></script>
+    <script src="js/JZZ.synth.Severak.js"></script>
+    <script src="js/wavy-jones.js"></script>
+    <script src="js/heartbeat.js"></script>
+    <style>
+        body {
+            font-family: "Lucida Console", monospace;
+            background-color: plum;
+        }
+
+        .ub-box {
+            background-color: lightyellow;
+        }
+
+        button.on {
+            background-color: yellow;
+        }
+
+        #scope {
+            padding: 0;
+            width: 100%;
+            height: 80px;
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="ub-container">
+
+    <h1>sample propulsion laboratory</h1>
+
+    <div class="ub-box" id="box_welcome">
+        <img src="img/preview.png" class="ub-fit-img">
+        <p>This is beta version of Cyber Music Studio™. It's not finished yet and can be broken at any moment.</p>
+        <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
+        <center><button id="power"><big>OK</big></button></center>
+    </div>
+    <br><br>
+
+
+
+    <form class="ub-form ub-hidden" id="form">
+        <div class="ub-box" id="box_traveller" style="background-color: lightseagreen">
+            <div class="ub-cols">
+                <div class="ub-same" style="text-align: center">
+                    <canvas style="width: 440px; height: 40px; background-color: white" id="waveform"></canvas>
+                </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same">
+                    A <input type="range" min="0.01" max="1" step="0.01" value="0.01" id="sk1_attack">
+                </div>
+                <div class="ub-same">
+                    D <input type="range" min="0.01" max="1" step="0.01" value="0.25" id="sk1_decay">
+                </div>
+                <div class="ub-same">
+                    S <input type="range" min="0" max="1" step="0.1" value="0.8" id="sk1_sustain">
+                </div>
+                <div class="ub-same">
+                    R <input type="range" min="0.01" max="1" step="0.1" value="0.5" id="sk1_release">
+                </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same"  style="text-align: center">
+                    <div id="keyboard3"></div>
+                </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same" style="text-align: center">
+                    MIDI input: <select id="select_midi_in3"></select> <!-- | <button id="record" disabled>record</button> -->
+                </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same">
+                    <button id="sin">SIN</button>
+                    <button id="sqr">SQR</button>
+                    <button id="pwm">PWM</button>
+                    <button id="noise">NOISE</button>
+                    <button id="saw">SAW</button>
+                    <button id="tri">TRIANGLE</button>
+                </div>
+            </div>
+
+        </div>
+
+    </form>
+</div>
+
+<script>
+    function keyboardMidiWrap(keyboardElemId, midiSelectorId, synth) {
+        // set up routing from external MIDI via HTML keyboard to synth itself
+        var kbd = JZZ.input.Kbd({ at:keyboardElemId, pos:'N', wl: 50, ww:21, bl: 25, bw:12, from:'F4', to:'C7' });
+        var midiIn = JZZ.gui.SelectMidiIn({ at: midiSelectorId });
+        var wrap = JZZ.synth.Severak();
+        wrap.setSynth(synth);
+        kbd.connect(wrap);
+
+        // handles all the selection stuff
+        midiIn.onSelect = function(name) {
+            JZZ().openMidiIn(name).and(function () {
+                if (kbd.currentExternal) kbd.currentExternal.disconnect(kbd);
+                this.connect(kbd);
+                kbd.currentExternal = this;
+            }).or(function () {
+                if (kbd.currentExternal) kbd.currentExternal.disconnect(kbd);
+            });
+        };
+    }
+
+    function showWave(buffer) {
+        var amp = 1;
+        var data = buffer.getChannelData(0);
+        var ctx = ub.gebi('waveform').getContext("2d");
+        ub.gebi('waveform').width = 440;
+        ub.gebi('waveform').height = 40;
+        console.log(ctx.drawingBufferWidth, ctx.drawingBufferHeight);
+        ctx.strokeStyle = '#00ff00';
+        ctx.fillStyle = '#000';
+
+        ctx.fillRect(0,0,440,80);
+        ctx.beginPath();
+        ctx.moveTo(0, 20);
+        for (var n = 0; n < buffer.length; n++) {
+            var y = (data[n] * 20 * amp) + 20;
+            ctx.lineTo(n, y);
+        }
+        ctx.stroke();
+    }
+
+    // TODO - single' Cycle Sampler
+    function _base64ToArrayBuffer(base64) {
+        var binary_string = window.atob(base64);
+        var len = binary_string.length;
+        var bytes = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {
+            bytes[i] = binary_string.charCodeAt(i);
+        }
+        return bytes.buffer;
+    }
+
+    sk1 = function(out) {
+        var me = {};
+
+        me.vol = 0.5;
+
+        me.attack = 0.1;
+        me.decay = 0.1;
+        me.sustain = 0.8;
+        me.release = 0.5;
+
+        me.buffer = hb.ac.createBuffer(1, hb.ac.sampleRate * 1, hb.ac.sampleRate);
+
+        me._ac = hb.ac;
+        if (!out) out = hb.ac;
+        me._out = out;
+
+        me._vol = me._ac.createGain();
+        me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
+        me._vol.connect(me._out.destination);
+
+        // me._notes = [];
+        me._voices = {};
+
+        me.param = function(name, val) {
+            me[name] = val;
+            if (name=='vol') me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
+        };
+
+        me._getEnv = function(max) {
+            return {
+                max: max,
+                attack: me.attack,
+                decay: me.decay,
+                sustain: me.sustain,
+                release: me.release
+            };
+        };
+
+        me._makeVoice = function(nn) {
+            var ac = hb.ac;
+            var freq = hb.midi2cps(nn);
+            var vox = {};
+            vox._osc = hb.makeSamplerOsc(me.buffer, freq);
+            vox._env = ac.createGain()
+
+            vox._osc.connect(vox._env);
+
+            hb.adsr_start(vox._env.gain, me._getEnv(1));
+
+            vox._env.connect(me._vol)
+
+            vox.noteOff = function () {
+                var env = me._getEnv(1);
+                hb.adsr_stop(vox._env.gain, env);
+                vox._osc.stop(hb.ac.currentTime + env.release);
+                // TODO - GC
+            };
+
+            return vox;
+        };
+
+        me.noteOn = function(nn) {
+            me._voices[nn] = me._makeVoice(nn);
+        };
+
+        me.noteOff = function(nn) {
+            if (!me._voices[nn]) return; // už není
+            me._voices[nn].noteOff();
+            delete me._voices[nn];
+        };
+
+        me.panic = function() {
+            me._vol.gain.setValueAtTime(0, me._ac.currentTime);
+        };
+
+        return me;
+    };
+
+    ub.on("power","click",  function(ev){
+        ub.stop(ev);
+        ub.addClass("box_welcome", 'ub-hidden');
+        ub.delClass("form", 'ub-hidden');
+
+        ub.gebi('form').reset();
+        hb.start();
+
+
+
+        window.sk = sk1();
+        hb.chnget(sk, 'attack', 'sk1_attack');
+        hb.chnget(sk, 'decay', 'sk1_decay');
+        hb.chnget(sk, 'sustain', 'sk1_sustain');
+        hb.chnget(sk, 'release', 'sk1_release');
+        keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
+
+        /*
+        var oscope = new WavyJones(hb.ac, 'scope');
+        oscope.lineColor = '#00ff00';
+        oscope.lineThickness = 2;
+        traveller._vol.connect(oscope);
+        nomad._vol.connect(oscope);
+        */
+
+
+        var violin = 'UklGRsACAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YZwCAABGAFAAZQBpAGsAYQBdAG4AXQBjABAAbgC4AL4AtgDEALUAsAC4AOQAJgErAf4AJwFWATsDfgThATD9d/gG9aXykPFL8T7xivEH8ofyQvPV8030GPXf9ZL2z/Yb95/3Wfjr+F75z/ks+sX69vpT+8r7Qvy9/CL9Qf2p/SP+hP64/hH/R/93/9n/YAB2AJ4AzQAhAZoBuQHSAS0CQQJnAq0CAwNhA6EDmwPCA+gDGwRKBGAEiAS8BKkE2AQ0BTcFRAVqBUIFkgXbBbcF1gXSBdcFAAYBBukF4QUEBrcEMwLrAxkKTBGlFjoaXRxxHbMdcx0FHXIcXBuqGvAZJhlbGJwX5RYQFmEVsBTfEyMTOxK0ESwRTxDDDzEPnw76DW8N9gw/DFQLNQuyClUK2AlBCb0IQgjSBzgHsQaHBiMGpQVWBf0ErQQbBKoDYwPcAo0CUQIQAq0BhgEtAdcArwAYALr/gP9p/1H/v/52/nf+NP7P/aH9m/1Q/e/82vzu/Jz8XfxA/O/7c/yA/Az73fgz9wT23PQu9LTziPOO87nzs/PX8wD0HvQ69Ev0uvTS9On0/PQ89Uv1ifWQ9cH1BfYg9k72SvaW9rr21vYA9xn3I/dB93/3s/fL99f32/f/9w/4X/iY+Nz49PjT+Pv4FflA+X35fvmt+dL5GvoV+vX5Gfo4+iL6Wfqx+rL6xfrm+vD6JPtJ+3b7lfua+5D7hvuH+5j75PsJ/BL8MvyY/I/8h/zT/Cj9K/3z/Gn9Sf1A/Uz9UP1p/Zj9i/2N/aP9zP0G/mb+H/4e/mX+Vv4X/hT+Kv5B/kz+q/6n/vf+7P7r/vD+Cv/+/jT/Nv8u/zX/cP96/4T/fP+q/8f/4f+u/4j/lv/A/9D/7/9BAG8ANgAFAA==';
+        hb.ac.decodeAudioData(_base64ToArrayBuffer(violin), function (buffer) {
+            sk.buffer = buffer;
+            showWave(buffer);
+        });
+
+        function ftgen(callback, cycles) {
+            if (!cycles) cycles = 1;
+            var len = hb.midi2cps(69) * cycles;
+            // console.log('len ' + len);
+            var abuf = hb.ac.createBuffer(1, len, hb.ac.sampleRate);
+            var chan = abuf.getChannelData(0);
+            for (var i = 0; i < len; i++) {
+                var p = i / len;
+                // console.log(Math.sin(p));
+                chan[i] = callback(p);
+            }
+            return abuf;
+        }
+
+        var sinfunc = function(n) {
+            return Math.sin(n * 6);
+        };
+
+        ub.on('sin', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(sinfunc);
+            showWave(sk.buffer);
+        });
+
+        var sqrfunc = function(n) {
+            if (n < 0.5) return 0.8;
+            return -0.8;
+        };
+
+        ub.on('sqr', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(sqrfunc);
+            showWave(sk.buffer);
+        });
+
+        var pwmfunc = function(n) {
+            if (n < 0.2) return 0.8;
+            return -0.8;
+        };
+
+        ub.on('pwm', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(pwmfunc);
+            showWave(sk.buffer);
+        });
+
+        var noisefunc = function(n) {
+            return Math.random() * 2 - 1;
+        };
+
+        ub.on('noise', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(noisefunc, 100);
+            showWave(sk.buffer);
+        });
+
+        var sawfunc = function(n) {
+            return n;
+        };
+
+        ub.on('saw', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(sawfunc);
+            showWave(sk.buffer);
+        });
+
+        var trianglefunc = function(n) {
+            // return n * sinfunc(n) + (0.3 * noisefunc());
+            return hb.clamp(-0.9, ( sinfunc(n) + sinfunc(n * 6) ) / 2, 0.9);
+        };
+
+        ub.on('tri', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(trianglefunc);
+            showWave(sk.buffer);
+        });
+
+        // showWave(makeSine());
+
+    });
+</script>
+
+</body>
+</html>
