@@ -103,9 +103,18 @@ hb.makeSamplerOsc = function(buffer, freq, baseFreq, startAt) {
 	return osc;
 };
 
+hb.makeDrumOsc = function(buffer, startAt) {
+	// TODO - implement
+};
 
+// TODO - hb.makePwmOsc
 
-// TODO - hb.makeNoiseOsc, hb.makePwmOsc
+hb.makeGain = function() {
+	var gain = hb.ac.createGain();
+	gain.gain.setValueAtTime(0, hb.ac.currentTime);
+	return gain;
+};
+
 
 // TODO implement these components
 // - mixbus

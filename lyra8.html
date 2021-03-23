@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lyra 8</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uboot.css">
+    <script src="js/uboot.js"></script>
+    <script src="js/JZZ.js"></script>
+    <script src="js/JZZ.input.Kbd.js"></script>
+    <script src="js/JZZ.gui.Select.js"></script>
+    <script src="js/JZZ.synth.Severak.js"></script>
+    <script src="js/wavy-jones.js"></script>
+    <script src="js/heartbeat.js"></script>
+    <style>
+        body {
+            font-family: "Lucida Console", monospace;
+            background-color: plum;
+        }
+
+        .ub-box {
+            background-color: lightyellow;
+        }
+
+        button.on {
+            background-color: yellow;
+        }
+
+        #tlacitka button {
+            width: 100%;
+            font-size: 30pt;
+        }
+    </style>
+<script>if(!sessionStorage.getItem("_swa")&&document.referrer.indexOf(location.protocol+"//"+location.host)!== 0){fetch("https://counter.dev/track?"+new URLSearchParams({referrer:document.referrer,screen:screen.width+"x"+screen.height,user:"severak",utcoffset:"1"}))};sessionStorage.setItem("_swa","1");</script>
+</head>
+<body>
+
+<div class="ub-container">
+
+    <h1>Lyra 8</h1>
+
+    <div class="ub-box" id="box_welcome">
+        <img src="img/preview.png" class="ub-fit-img">
+        <p>This is beta version of Cyber Music Studio™. It's not finished yet and can be broken at any moment.</p>
+        <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
+        <center><button id="power"><big>OK</big></button></center>
+    </div>
+    <br><br>
+
+
+
+    <form class="ub-form ub-hidden" id="form">
+        <div class="ub-box" id="box_traveller" style="background-color: lightseagreen">
+            <div class="ub-cols">
+                <div class="ub-same">
+                    master pitch
+                    <input type="range" min="200" max="8000" step="1" value="261" id="master_pitch">
+                </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same">pitch <input type="range" min="0" max="2" step="0.01" value="1" id="lower_pitch"> </div>
+                <div class="ub-same">pitch <input type="range" min="0" max="2" step="0.01" value="2" id="upper_pitch"> </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0" id="tune1"> </div>
+                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0.33" id="tune2"> </div>
+                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0.66" id="tune3"> </div>
+                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="1" id="tune4"> </div>
+                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0" id="tune5"> </div>
+                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0.33" id="tune6"> </div>
+                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0.66" id="tune7"> </div>
+                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="1" id="tune8"> </div>
+            </div>
+
+            <div class="ub-cols" id="tlacitka">
+                <div class="ub-same"><button data-midi="1">Q</button></div>
+                <div class="ub-same"><button data-midi="2">W</button></div>
+                <div class="ub-same"><button data-midi="3">E</button></div>
+                <div class="ub-same"><button data-midi="4">R</button></div>
+                <div class="ub-same"><button data-midi="5">T</button></div>
+                <div class="ub-same"><button data-midi="6">Y</button></div>
+                <div class="ub-same"><button data-midi="7">U</button></div>
+                <div class="ub-same"><button data-midi="8">I</button></div>
+            </div>
+
+        </div>
+
+    </form>
+</div>
+
+<script>
+    function keyboardMidiWrap(keyboardElemId, midiSelectorId, synth) {
+        // set up routing from external MIDI via HTML keyboard to synth itself
+        var kbd = JZZ.input.Kbd({ at:keyboardElemId, pos:'N', wl: 50, ww:21, bl: 25, bw:12, from:'F4', to:'C7' });
+        var midiIn = JZZ.gui.SelectMidiIn({ at: midiSelectorId });
+        var wrap = JZZ.synth.Severak();
+        wrap.setSynth(synth);
+        kbd.connect(wrap);
+
+        // handles all the selection stuff
+        midiIn.onSelect = function(name) {
+            JZZ().openMidiIn(name).and(function () {
+                if (kbd.currentExternal) kbd.currentExternal.disconnect(kbd);
+                this.connect(kbd);
+                kbd.currentExternal = this;
+            }).or(function () {
+                if (kbd.currentExternal) kbd.currentExternal.disconnect(kbd);
+            });
+        };
+    }
+
+    Lyra8 = function(out) {
+        var me = {};
+        me.vol = 0.5;
+        me.master_pitch = 261;
+        me.lower_pitch = 1;
+        me.upper_pitch = 2;
+        me.tune1 = 0;
+        me.tune2 = 0.33;
+        me.tune3 = 0.66;
+        me.tune4 = 1;
+        me.tune5 = 0;
+        me.tune6 = 0.33;
+        me.tune7 = 0.66;
+        me.tune8 = 1;
+
+        if (!out) out = hb.ac;
+        me._out = out;
+
+        me._vol = hb.ac.createGain();
+        me._vol.gain.setValueAtTime(me.vol, hb.ac.currentTime);
+        me._vol.connect(me._out.destination);
+
+        // me._notes = [];
+        me._voices = [];
+
+        var midi2buttons = {
+            60: 1,
+            62: 2,
+            64: 3,
+            65: 4,
+            67: 5,
+            69: 6,
+            71: 7,
+            72: 8
+        };
+
+        var tuning = {
+          1: hb.midi2cps(60),
+          2: hb.midi2cps(62),
+          3: hb.midi2cps(64),
+          4: hb.midi2cps(65),
+          5: hb.midi2cps(67),
+          6: hb.midi2cps(69),
+          7: hb.midi2cps(71),
+          8: hb.midi2cps(72)
+        };
+
+        for (var vid = 1; vid < 9; vid++) {
+            var osc = hb.makeOsc('sawtooth', tuning[vid]); // TODO - naladit
+            var env = hb.makeGain();
+            osc.connect(env);
+            env.connect(me._vol);
+            me._voices[vid] = {
+                osc : osc,
+                env : env
+            };
+        }
+
+        me.param = function(name, val) {
+            me[name] = val;
+            var matches = name.match(/tune([1-8])/)
+            if (matches && matches[1]) {
+                me.tune(matches[1], val);
+            }
+        };
+
+        me.tune = function(vid, freq) {
+            // console.log(vid, freq);
+            if (!me._voices[vid]) return;
+            var mod = (vid < 5 ? me.lower_pitch : me.upper_pitch);
+            me._voices[vid].osc.frequency.setValueAtTime(me.master_pitch * mod * hb.clamp(0.01, freq, 1), hb.ac.currentTime);
+        };
+
+        me.bon = function(vid) {
+            hb.adsr_start(me._voices[vid].env.gain, {attack: 0.1, release: 0.3, sustain: 1});
+        };
+
+        me.boff = function(vid) {
+            hb.adsr_stop(me._voices[vid].env.gain, {attack: 0.1, release: 0.3, sustain: 1});
+        };
+
+        me.noteOn = function(nn) {
+            if (midi2buttons[nn]) me.bon(midi2buttons[nn]);
+        };
+
+        me.noteOff = function(nn) {
+            if (midi2buttons[nn]) me.boff(midi2buttons[nn]);
+        };
+
+        me.panic = function() {
+            me._vol.gain.setValueAtTime(0, me._ac.currentTime);
+        };
+
+
+        return me;
+    };
+
+
+    // TODO - zde bude implementována Lyra
+
+    ub.on("power","click",  function(ev){
+        ub.stop(ev);
+        ub.addClass("box_welcome", 'ub-hidden');
+        ub.delClass("form", 'ub-hidden');
+
+        ub.gebi('form').reset();
+        hb.start();
+
+        window.lyra = Lyra8();
+        hb.chnget(lyra, 'master_pitch');
+        hb.chnget(lyra, 'lower_pitch');
+        hb.chnget(lyra, 'upper_pitch');
+        hb.chnget(lyra, 'tune1');
+        hb.chnget(lyra, 'tune2');
+        hb.chnget(lyra, 'tune3');
+        hb.chnget(lyra, 'tune4');
+        hb.chnget(lyra, 'tune5');
+        hb.chnget(lyra, 'tune6');
+        hb.chnget(lyra, 'tune7');
+        hb.chnget(lyra, 'tune8');
+
+
+        ub.on('tlacitka', 'mousedown', function (ev) {
+            ub.stop(ev);
+            var vid = ev.target.getAttribute('data-midi');
+            lyra.bon(vid);
+        });
+
+        ub.on('tlacitka', 'mouseup', function (ev) {
+            ub.stop(ev);
+            var vid = ev.target.getAttribute('data-midi');
+            lyra.boff(vid);
+        });
+
+        ub.on('tlacitka', 'click', function (ev) {
+           ub.stop(ev);
+        });
+
+    });
+</script>
+
+</body>
+</html>
