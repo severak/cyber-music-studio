@@ -54,24 +54,24 @@
             <div class="ub-cols">
                 <div class="ub-same">
                     master pitch
-                    <input type="range" min="200" max="8000" step="1" value="261" id="master_pitch">
+                    <input type="range" min="27" max="4186" step="0.1" value="261.6" id="master_pitch">
                 </div>
             </div>
 
             <div class="ub-cols">
-                <div class="ub-same">pitch <input type="range" min="0" max="2" step="0.01" value="1" id="lower_pitch"> </div>
-                <div class="ub-same">pitch <input type="range" min="0" max="2" step="0.01" value="2" id="upper_pitch"> </div>
+                <div class="ub-same">pitch <input type="range" min="0.5" max="2" step="0.01" value="1" id="lower_pitch"> </div>
+                <div class="ub-same">pitch <input type="range" min="0.5" max="2" step="0.01" value="1" id="upper_pitch"> </div>
             </div>
 
-            <div class="ub-cols">
-                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0" id="tune1"> </div>
-                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0.33" id="tune2"> </div>
-                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0.66" id="tune3"> </div>
-                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="1" id="tune4"> </div>
-                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0" id="tune5"> </div>
-                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0.33" id="tune6"> </div>
-                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="0.66" id="tune7"> </div>
-                <div class="ub-same">tune <input type="range" min="0" max="1" step="0.01" value="1" id="tune8"> </div>
+            <div class="">
+                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune1"> </div>
+                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune2"> </div>
+                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune3"> </div>
+                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune4"> </div>
+                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune5"> </div>
+                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune6"> </div>
+                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune7"> </div>
+                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune8"> </div>
             </div>
 
             <div class="ub-cols" id="tlacitka">
@@ -114,16 +114,16 @@
     Lyra8 = function(out) {
         var me = {};
         me.vol = 0.5;
-        me.master_pitch = 261;
+        me.master_pitch = hb.midi2cps(60);
         me.lower_pitch = 1;
-        me.upper_pitch = 2;
-        me.tune1 = 0;
-        me.tune2 = 0.33;
-        me.tune3 = 0.66;
+        me.upper_pitch = 1;
+        me.tune1 = 1;
+        me.tune2 = 1;
+        me.tune3 = 1;
         me.tune4 = 1;
-        me.tune5 = 0;
-        me.tune6 = 0.33;
-        me.tune7 = 0.66;
+        me.tune5 = 1;
+        me.tune6 = 1;
+        me.tune7 = 1;
         me.tune8 = 1;
 
         if (!out) out = hb.ac;
@@ -158,8 +158,14 @@
           8: hb.midi2cps(72)
         };
 
+
         for (var vid = 1; vid < 9; vid++) {
-            var osc = hb.makeOsc('sawtooth', tuning[vid]); // TODO - naladit
+            // console.log('tu ' + vid + ' ' + (tuning[vid] /  hb.midi2cps(60)) )
+            var tune = tuning[vid] /  hb.midi2cps(60);
+            ub.gebi('tune'+vid).value = tune;
+            me['tune' + vid] = tune;
+
+            var osc = hb.makeOsc('sawtooth', me.master_pitch * tuning[vid]); // TODO - naladit
             var env = hb.makeGain();
             osc.connect(env);
             env.connect(me._vol);
@@ -181,7 +187,7 @@
             // console.log(vid, freq);
             if (!me._voices[vid]) return;
             var mod = (vid < 5 ? me.lower_pitch : me.upper_pitch);
-            me._voices[vid].osc.frequency.setValueAtTime(me.master_pitch * mod * hb.clamp(0.01, freq, 1), hb.ac.currentTime);
+            me._voices[vid].osc.frequency.setValueAtTime(me.master_pitch * mod * hb.clamp(1, freq, 2), hb.ac.currentTime);
         };
 
         me.bon = function(vid) {
