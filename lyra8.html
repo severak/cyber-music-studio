@@ -30,6 +30,12 @@
             width: 100%;
             font-size: 30pt;
         }
+
+        .tuners div {
+            background-image: url("img/krizek.png");
+            background-repeat: no-repeat;
+            background-position-y: 18px;
+        }
     </style>
 <script>if(!sessionStorage.getItem("_swa")&&document.referrer.indexOf(location.protocol+"//"+location.host)!== 0){fetch("https://counter.dev/track?"+new URLSearchParams({referrer:document.referrer,screen:screen.width+"x"+screen.height,user:"severak",utcoffset:"1"}))};sessionStorage.setItem("_swa","1");</script>
 </head>
@@ -37,7 +43,7 @@
 
 <div class="ub-container">
 
-    <h1>Lyra 8</h1>
+    <h1>Severák's Lyra 8</h1>
 
     <div class="ub-box" id="box_welcome">
         <img src="img/preview.png" class="ub-fit-img">
@@ -53,25 +59,126 @@
         <div class="ub-box" id="box_traveller" style="background-color: lightseagreen">
             <div class="ub-cols">
                 <div class="ub-same">
+                    <p>a parody/homage to <a href="https://somasynths.com/lyra-organismic-synthesizer/" target="_blank">Soma Laboratory Lyra-8</a> </p>
+                    <p>currently only subset is implemented and it works differently than original.</p>
+                </div>
+            </div>
+
+            <strong>LFO</strong>
+
+            <div class="ub-cols">
+                <div class="ub-same">
+                    LFO A <input type="range" min="0.3" max="30" id="lfoa">
+                </div>
+                <div class="ub-same">
+                    LFO B <input type="range" min="0.3" max="30" id="lfob">
+                </div>
+                <div class="ub-same"></div>
+                <div class="ub-same"></div>
+            </div>
+
+            <strong>DELAY</strong>
+            <div class="ub-cols">
+                <div class="ub-same">
+                    time 1 <input type="range" min="0.1" max="2"  step="0.1" value="0.2" id="time1">
+                </div>
+                <div class="ub-same">
+                    time 2 <input type="range" min="0.1" max="2"  step="0.1" value="0.5" id="time2">
+                </div>
+                <div class="ub-same">
+                    FB <input type="range" min="0" max="1"  step="0.1" value="0" id="delay_fb">
+                </div>
+                <div class="ub-same">
+                    mix <input type="range" min="0" max="1"  step="0.1" value="0" id="delay_mix">
+                </div>
+            </div>
+
+
+            <strong>VOICES</strong>
+
+
+            <div class="ub-cols">
+                <div class="ub-same">
+                    volume
+                    <input type="range" min="0" max="1" step="0.01" value="0.5" id="vol">
+                </div>
+                <div class="ub-same">
                     master pitch
                     <input type="range" min="27" max="4186" step="0.1" value="261.6" id="master_pitch">
+                </div>
+                <div class="ub-same">
+                    <button id="tuning">show / hide tuning</button>
+                </div>
+            </div>
+
+            <div class="tuners ub-hidden" id="tuners">
+                <div class="ub-same">tune Q<input type="range" min="1" max="2" step="0.01" id="tune1"> </div>
+                <div class="ub-same" style="background-position-x: 13%">tune W <input type="range" min="1" max="2" step="0.01" id="tune2"> </div>
+                <div class="ub-same" style="background-position-x: 26.5%">tune E <input type="range" min="1" max="2" step="0.01" id="tune3"> </div>
+                <div class="ub-same" style="background-position-x: 33%">tune R <input type="range" min="1" max="2" step="0.01" id="tune4"> </div>
+                <div class="ub-same" style="background-position-x: 50%">tune T <input type="range" min="1" max="2" step="0.01" id="tune5"> </div>
+                <div class="ub-same" style="background-position-x: 67%">tune Y<input type="range" min="1" max="2" step="0.01" id="tune6"> </div>
+                <div class="ub-same" style="background-position-x: 88%">tune U<input type="range" min="1" max="2" step="0.01" id="tune7"> </div>
+                <div class="ub-same" style="background-position-x: 100%">tune I <input type="range" min="1" max="2" step="0.01" id="tune8"> </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same">
+                    hold <input type="range" min="0" max="1" step="0.1" value="0.3" id="hold1">
+                </div>
+                <div class="ub-same">
+                    hold <input type="range" min="0" max="1" step="0.1" value="0.3" id="hold2">
                 </div>
             </div>
 
             <div class="ub-cols">
-                <div class="ub-same">pitch <input type="range" min="0.5" max="2" step="0.01" value="1" id="lower_pitch"> </div>
-                <div class="ub-same">pitch <input type="range" min="0.5" max="2" step="0.01" value="1" id="upper_pitch"> </div>
+                <div class="ub-same">
+                    <div class="ub-cols">
+                        <div class="ub-same">
+                            sharp <input type="range" min="0" max="1" step="0.1" value="1" id="sharp1">
+                        </div>
+                        <div class="ub-same">
+                            mod <input type="range" min="0" max="1" step="0.1" value="1" id="mod1">
+                        </div>
+                    </div>
+                </div>
+                <div class="ub-same">
+                    <div class="ub-cols">
+                        <div class="ub-same">
+                            sharp <input type="range" min="0" max="1" step="0.1" value="1" id="sharp2">
+                        </div>
+                        <div class="ub-same">
+                            mod <input type="range" min="0" max="1" step="0.1" value="1" id="mod2">
+                        </div>
+                    </div>
+                </div>
+                <div class="ub-same">
+                    <div class="ub-cols">
+                        <div class="ub-same">
+                            sharp <input type="range" min="0" max="1" step="0.1" value="1" id="sharp3">
+                        </div>
+                        <div class="ub-same">
+                            mod <input type="range" min="0" max="1" step="0.1" value="1" id="mod3">
+                        </div>
+                    </div>
+                </div>
+                <div class="ub-same">
+                    <div class="ub-cols">
+                        <div class="ub-same">
+                            sharp <input type="range" min="0" max="1" step="0.1" value="1" id="sharp4">
+                        </div>
+                        <div class="ub-same">
+                            mod <input type="range" min="0" max="1" step="0.1" value="1" id="mod4">
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="">
-                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune1"> </div>
-                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune2"> </div>
-                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune3"> </div>
-                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune4"> </div>
-                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune5"> </div>
-                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune6"> </div>
-                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune7"> </div>
-                <div class="ub-same">tune <input type="range" min="1" max="2" step="0.01" id="tune8"> </div>
+            <div class="ub-cols">
+                <div class="ub-same"><label>fast <input type="checkbox" id="fast1"></label></div>
+                <div class="ub-same"><label>fast <input type="checkbox" id="fast2"></label></div>
+                <div class="ub-same"><label>fast <input type="checkbox" id="fast3"></label></div>
+                <div class="ub-same"><label>fast <input type="checkbox" id="fast4"></label></div>
             </div>
 
             <div class="ub-cols" id="tlacitka">
@@ -84,6 +191,10 @@
                 <div class="ub-same"><button data-midi="7">U</button></div>
                 <div class="ub-same"><button data-midi="8">I</button></div>
             </div>
+
+            <!-- TODO - MIDI select -->
+
+            <!-- TODO - popis změn oproti originálu -->
 
         </div>
 
@@ -111,12 +222,14 @@
         };
     }
 
+    function toggleClass(elem, className) {
+        ub.hasClass(elem, className) ? ub.delClass(elem, className) : ub.addClass(elem, className);
+    }
+
     Lyra8 = function(out) {
         var me = {};
         me.vol = 0.5;
         me.master_pitch = hb.midi2cps(60);
-        me.lower_pitch = 1;
-        me.upper_pitch = 1;
         me.tune1 = 1;
         me.tune2 = 1;
         me.tune3 = 1;
@@ -165,7 +278,7 @@
             ub.gebi('tune'+vid).value = tune;
             me['tune' + vid] = tune;
 
-            var osc = hb.makeOsc('sawtooth', me.master_pitch * tuning[vid]); // TODO - naladit
+            var osc = hb.makeOsc('sawtooth', me.master_pitch * tuning[vid]);
             var env = hb.makeGain();
             osc.connect(env);
             env.connect(me._vol);
@@ -177,17 +290,26 @@
 
         me.param = function(name, val) {
             me[name] = val;
+            if (name=='master_pitch') {
+                me._retune();
+                return;
+            }
+
             var matches = name.match(/tune([1-8])/)
             if (matches && matches[1]) {
                 me.tune(matches[1], val);
             }
         };
 
+        me._retune = function() {
+            for (var vid = 1; vid < 9; vid++) {
+                me.tune(vid, me['tune'+vid]);
+            }
+        };
+
         me.tune = function(vid, freq) {
-            // console.log(vid, freq);
             if (!me._voices[vid]) return;
-            var mod = (vid < 5 ? me.lower_pitch : me.upper_pitch);
-            me._voices[vid].osc.frequency.setValueAtTime(me.master_pitch * mod * hb.clamp(1, freq, 2), hb.ac.currentTime);
+            me._voices[vid].osc.frequency.setValueAtTime(me.master_pitch * hb.clamp(1, freq, 2), hb.ac.currentTime);
         };
 
         me.bon = function(vid) {
@@ -199,6 +321,7 @@
         };
 
         me.noteOn = function(nn) {
+            console.log(nn);
             if (midi2buttons[nn]) me.bon(midi2buttons[nn]);
         };
 
@@ -214,9 +337,6 @@
         return me;
     };
 
-
-    // TODO - zde bude implementována Lyra
-
     ub.on("power","click",  function(ev){
         ub.stop(ev);
         ub.addClass("box_welcome", 'ub-hidden');
@@ -226,9 +346,8 @@
         hb.start();
 
         window.lyra = Lyra8();
+        hb.chnget(lyra, 'vol');
         hb.chnget(lyra, 'master_pitch');
-        hb.chnget(lyra, 'lower_pitch');
-        hb.chnget(lyra, 'upper_pitch');
         hb.chnget(lyra, 'tune1');
         hb.chnget(lyra, 'tune2');
         hb.chnget(lyra, 'tune3');
@@ -237,7 +356,6 @@
         hb.chnget(lyra, 'tune6');
         hb.chnget(lyra, 'tune7');
         hb.chnget(lyra, 'tune8');
-
 
         ub.on('tlacitka', 'mousedown', function (ev) {
             ub.stop(ev);
@@ -254,6 +372,27 @@
         ub.on('tlacitka', 'click', function (ev) {
            ub.stop(ev);
         });
+
+        ub.on('tuning', 'click', function (ev) {
+            ub.stop(ev);
+            toggleClass('tuners', 'ub-hidden');
+        });
+
+        var ascii = JZZ.input.ASCII({
+            Q: 'C5',
+            W: 'D5',
+            E: 'E5',
+            R: 'F5',
+            T: 'G5',
+            Y: 'A5',
+            Z: 'A5',
+            U: 'B5',
+            I: 'C6'
+        });
+
+        var wrap = JZZ.synth.Severak();
+        wrap.setSynth(lyra);
+        ascii.connect(wrap);
 
     });
 </script>
