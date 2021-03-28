@@ -135,7 +135,8 @@ MIDI input: <select id="select_midi_in"></select> <!-- | <button id="record">rec
 <h2>analog nomad</h2>
 </div>
 <div style="text-align: right;" class="ub-same">
-<small>Juno-like polysynth</small>
+<small>Juno-like polysynth</small><br>
+	<input type="range" min="0" max="1" value="0.5" step="0.05" id="n_vol"> vol
 </div>
 </div>
 
@@ -150,7 +151,7 @@ saw <input type="range" min="0" max="0.3" step="0.1" value="0.25" id="saw">
 sub <input type="range" min="0" max="0.3" step="0.1" value="0.25" id="sub">
 </div>
 <div class="ub-same">
-vol <input type="range" min="0" max="1" value="0.5" step="0.1" id="n_vol">
+noise <input type="range" min="0" max="0.3" value="0" step="0.05" id="noise">
 </div>
 </div>
 
@@ -169,43 +170,18 @@ R <input type="range" min="0.01" max="1" step="0.1" value="0.5" id="R">
 </div>
 </div>
 
-<!---
 
 <div class="ub-cols">
 <div class="ub-same">
-PW <input type="range" min="0.01" max="1" step="0.01" value="0.01" id="A">
+<label><input type="checkbox" id="n_quack" checked> quack</label>
 </div>
 <div class="ub-same">
-angle <input type="range" min="0.01" max="1" step="0.01" value="0.25" id="D">
+FREQ <input type="range" min="30" max="22000" step="1" value="8000" id="n_freq">
 </div>
 <div class="ub-same">
-detune <input type="range" min="0" max="1" step="0.1" value="0.8" id="S">
-</div>
-<div class="ub-same">
-R <input type="range" min="0.01" max="1" step="0.1" value="0.5" id="R">
+Q <input type="range" min="0" max="10" step="0.1" value="5" id="n_resonance">
 </div>
 </div>
-
-
-<div class="ub-cols">
-<div class="ub-same">
-<label><input type="checkbox" id="hold2" checked> hold</label>
-</div>
-<div class="ub-same">
-<label><input type="checkbox" id="bite2"> bite</label>
-</div>
-<div class="ub-same">
-<label><input type="checkbox" id="quack2"> quack</label>
-</div>
-</div>
-
-<div class="ub-cols">
-<div class="ub-same">
-TRAVELLER
-<input type="range" min="0" max="22000" value="22000" id="traveller2">
-</div>
-</div>
---->
 
 <div class="ub-cols">
 <div class="ub-same"  style="text-align: center">
@@ -271,15 +247,19 @@ ub.on("power","click",  function(ev){
 	keyboardMidiWrap('keyboard', 'select_midi_in', traveller);
 	
 	window.nomad = hb.AnalogNomad();
+	hb.chnget(nomad, 'vol', 'n_vol');
 	hb.chnget(nomad, 'saw');
 	hb.chnget(nomad, 'pulse');
 	hb.chnget(nomad, 'sub');
-	// hb.chnget(nomad, 'noise');
+	hb.chnget(nomad, 'noise');
 	hb.chnget(nomad, 'attack', 'A');
 	hb.chnget(nomad, 'decay', 'D');
 	hb.chnget(nomad, 'sustain', 'S');
 	hb.chnget(nomad, 'release', 'R');
-	hb.chnget(nomad, 'vol', 'n_vol');
+	hb.chnget(nomad, 'release', 'R');
+	hb.chnget(nomad, 'quack', 'n_quack');
+	hb.chnget(nomad, 'filter', 'n_freq');
+	hb.chnget(nomad, 'resonance', 'n_resonance');
 
     keyboardMidiWrap('keyboard2', 'select_midi_in2', nomad);
 

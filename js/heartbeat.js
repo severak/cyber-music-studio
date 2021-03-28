@@ -13,10 +13,13 @@ hb.start = function() {
 	hb.ac= new AudioContext();
 };
 
-
 // common functions
- 
- hb.clamp = function(min, v, max) {
+
+hb.now = function() {
+    hb.ac.currentTime;
+};
+
+hb.clamp = function(min, v, max) {
 	if (v < min) return min;
 	if (v > max) return max;
 	return v;
@@ -34,7 +37,7 @@ hb.cps2midi = function(cps, A4) {
 
 // ADSR
  
-hb.adsr_start = function(audioParam, env) {
+hb.adsrStart = function(audioParam, env) {
 	env.max = env.max || 1;
 	env.attack = env.attack || 0.05;
 	env.decay = env.decay || 0.01;
@@ -46,7 +49,7 @@ hb.adsr_start = function(audioParam, env) {
 	audioParam.linearRampToValueAtTime(env.sustain, hb.ac.currentTime + env.attack + env.decay); // move to sustain level
 };
 
-hb.adsr_stop = function(audioParam, env) {
+hb.adsrStop = function(audioParam, env) {
 	env.max = env.max || 1;
 	env.sustain = env.sustain || 0;
 	env.release = env.release || 0.05;
@@ -64,6 +67,10 @@ hb.makeOsc = function(wave, freq, startAt) {
     osc.frequency.setValueAtTime(freq, startAt);
     osc.start(startAt);
     return osc;
+};
+
+hb.makePwmOsc = function(wave, freq, startAt) {
+    // TODO - implement from https://github.com/pendragon-andyh/WebAudio-PulseOscillator
 };
 
 hb.makeNoiseOsc = function(startAt) {
@@ -90,7 +97,6 @@ hb.makeSamplerOsc = function(buffer, freq, baseFreq, startAt) {
 
 	var osc = hb.ac.createBufferSource();
 	osc.buffer = buffer;
-	osc.loop = true;
 	osc.playbackRate.setValueAtTime(freq / baseFreq, startAt);
 	osc.start(startAt);
 
@@ -103,16 +109,35 @@ hb.makeSamplerOsc = function(buffer, freq, baseFreq, startAt) {
 	return osc;
 };
 
-hb.makeDrumOsc = function(buffer, startAt) {
-	// TODO - implement
+hb.makeSamplerLoopOsc = function(buffer, freq, baseFreq, startAt) {
+    var osc = hb.makeSamplerOsc(buffer, freq, baseFreq, startAt);
+    osc.loop = true;
+    return loop;
 };
 
-// TODO - hb.makePwmOsc
+hb.makeDrumOsc = function(buffer, startAt) {
+    if (!startAt) startAt = hb.ac.currentTime;
 
-hb.makeGain = function() {
-	var gain = hb.ac.createGain();
-	gain.gain.setValueAtTime(0, hb.ac.currentTime);
-	return gain;
+    var osc = hb.ac.createBufferSource();
+    osc.buffer = buffer;
+    osc.start(startAt);
+
+    return osc;
+};
+
+hb.makeGain = function(vol) {
+    if (!vol) vol = 0;
+	var gainNode = hb.ac.createGain();
+	gainNode.gain.setValueAtTime(vol, hb.ac.currentTime);
+	return gainNode;
+};
+
+hb.makeFilter = function(type) {
+    if (!type) type = 'lowpass';
+    var filter = hb.ac.createBiquadFilter();
+    filter.type = type;
+    filter.frequency.setValueAtTime(0, hb.ac.currentTime);
+    return filter;
 };
 
 
@@ -139,16 +164,9 @@ hb.Traveller = function(out) {
 	me._out = out;
 
 	me._osc = hb.makeOsc(me.wave, 440);
-	
-	me._vcf = me._ac.createBiquadFilter();
-	me._vcf.type = 'lowpass';
-	
-	me._vca = me._ac.createGain();
-	me._vca.gain.setValueAtTime(0, me._ac.currentTime);
-	
-	me._vol = me._ac.createGain();
-	me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
-	
+	me._vcf = hb.makeFilter('lowpass');
+	me._vca = hb.makeGain();
+	me._vol = hb.makeGain(me.vol);
 	
 	me._osc.connect(me._vcf);
 	me._vcf.connect(me._vca);
@@ -190,10 +208,10 @@ hb.Traveller = function(out) {
 		// switch OSC
 		me._osc.type = me.wave;
 		me._osc.frequency.setValueAtTime(freq, me._ac.currentTime + (me.attack / 2)); // TODO - portamento
-		hb.adsr_start(me._vca.gain, me._getEnv(1)); // VCA ENV
+		hb.adsrStart(me._vca.gain, me._getEnv(1)); // VCA ENV
 		me._vcf.Q.value = me.bite ? 10 : 1;
 		if (me.quack) { // VCF ENV:
-			hb.adsr_start(me._vcf.frequency, me._getEnv(me.traveller));
+			hb.adsrStart(me._vcf.frequency, me._getEnv(me.traveller));
 		} else {
 			me._vcf.frequency.setValueAtTime(me.traveller, me._ac.currentTime)
 		}
@@ -202,9 +220,9 @@ hb.Traveller = function(out) {
 	me.noteOff = function(nn) {
 		if (!me.hold) return;
 		if (nn!=me.lastN) return;
-		hb.adsr_stop(me._vca.gain, me._getEnv(1));
+		hb.adsrStop(me._vca.gain, me._getEnv(1));
 		if (me.quack) {
-			hb.adsr_stop(me._vcf.frequency, me._getEnv(me.traveller));
+			hb.adsrStop(me._vcf.frequency, me._getEnv(me.traveller));
 		} else {
 			me._vcf.frequency.setValueAtTime(me.traveller, me._ac.currentTime)
 		}
@@ -231,7 +249,7 @@ hb.AnalogNomad = function(out) {
 	me.sub = 0.1;
 	me.noise = 0.1;
 	
-	// pulse width - https://github.com/pendragon-andyh/WebAudio-PulseOscillator
+	// TODO - implement pulse width of PWM OSC
 	
 	me.filter = 22000;
 	me.resonance = 5;
@@ -241,8 +259,7 @@ hb.AnalogNomad = function(out) {
 	if (!out) out = hb.ac;
 	me._out = out;
 	
-	me._vol = me._ac.createGain();
-	me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
+	me._vol = hb.makeGain(me.vol)
 	me._vol.connect(me._out.destination);	
 	
 	// me._notes = [];
@@ -262,53 +279,67 @@ hb.AnalogNomad = function(out) {
 			release: me.release
 		};
 	};
-	
-	me._makeVoice = function(nn) {
-		var ac = hb.ac;
+
+    me._getFEnv = function() {
+        return {
+            max: 22000,
+            attack: me.attack,
+            decay: me.decay,
+            sustain: me.filter * me.sustain,
+            release: me.release
+        };
+    };
+
+
+    me._makeVoice = function(nn) {
 		var freq = hb.midi2cps(nn);
 		var vox = {};
-		vox._saw = ac.createOscillator();
-		vox._saw.type = 'sawtooth';
-		vox._saw.frequency.setValueAtTime(freq, ac.currentTime);
-		vox._saw.start();
 
-		vox._saw = hb.makeOsc('saw', freq);
+		vox._saw = hb.makeOsc('sawtooth', freq);
 		vox._pulse = hb.makeOsc('square', freq);
-		vox._sub = hb.makeOsc('square', freq);
+		vox._sub = hb.makeOsc('square', freq/2);
+		vox._noise = hb.makeNoiseOsc();
 
-		// TODO - zkrátit vytváření a spouštění oscilátorů
-		// TODO - přidat noise
+		vox._saw_gain = hb.makeGain(me.saw);
+		vox._pulse_gain = hb.makeGain(me.pulse);
+		vox._sub_gain = hb.makeGain(me.sub);
+		vox._noise_gain = hb.makeGain(me.noise);
 
-		vox._saw_gain = ac.createGain();
-		vox._saw_gain.gain.setValueAtTime(me.saw, ac.currentTime);
-		vox._pulse_gain = ac.createGain();
-		vox._pulse_gain.gain.setValueAtTime(me.pulse, ac.currentTime);
-		vox._sub_gain = ac.createGain();
-		vox._sub_gain.gain.setValueAtTime(me.sub, ac.currentTime);
-
-		vox._env = ac.createGain();
-
-		// TODO - filtr
+		vox._env = hb.makeGain();
 
 		vox._saw.connect(vox._saw_gain);
 		vox._pulse.connect(vox._pulse_gain);
 		vox._sub.connect(vox._sub_gain);
+		vox._noise.connect(vox._noise_gain);
 		vox._saw_gain.connect(vox._env);
 		vox._pulse_gain.connect(vox._env);
 		vox._sub_gain.connect(vox._env);
+		vox._noise_gain.connect(vox._env);
 
-		hb.adsr_start(vox._env.gain, me._getEnv(0.5));
+        vox._filter = hb.makeFilter('lowpass');
+        vox._filter.Q.setValueAtTime(me.resonance, hb.ac.currentTime);
+        vox._env.connect(vox._filter);
 
-		vox._env.connect(me._vol);
+		hb.adsrStart(vox._env.gain, me._getEnv(1));
+		if (me.quack) {
+            vox._filter.frequency.setValueAtTime(0, hb.ac.currentTime);
+		    hb.adsrStart(vox._filter.frequency, me._getFEnv());
+        } else {
+            vox._filter.frequency.setValueAtTime(me.filter, hb.ac.currentTime);
+        }
+
+		vox._filter.connect(me._vol);
+
 
 		vox.noteOff = function () {
 			var env = me._getEnv(1);
-			hb.adsr_stop(vox._env.gain, env);
+			hb.adsrStop(vox._env.gain, env);
+            if (me.quack) {
+                hb.adsrStop(vox._filter.frequency, me._getFEnv());
+            }
 			vox._saw.stop(hb.ac.currentTime + env.release);
 			vox._pulse.stop(hb.ac.currentTime + env.release);
 			vox._sub.stop(hb.ac.currentTime + env.release);
-
-			// TODO - GC
 		};
 
 		return vox;

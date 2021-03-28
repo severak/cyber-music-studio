@@ -191,11 +191,11 @@
         };
 
         me.bon = function(vid) {
-            hb.adsr_start(me._voices[vid].env.gain, {attack: 0.1, release: 0.3, sustain: 1});
+            hb.adsrStart(me._voices[vid].env.gain, {attack: 0.1, release: 0.3, sustain: 1});
         };
 
         me.boff = function(vid) {
-            hb.adsr_stop(me._voices[vid].env.gain, {attack: 0.1, release: 0.3, sustain: 1});
+            hb.adsrStop(me._voices[vid].env.gain, {attack: 0.1, release: 0.3, sustain: 1});
         };
 
         me.noteOn = function(nn) {

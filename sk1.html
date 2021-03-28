@@ -206,17 +206,16 @@
             var freq = hb.midi2cps(nn);
             var vox = {};
             vox._osc = hb.makeSamplerOsc(me.buffer, freq);
-            vox._env = ac.createGain();
-            vox._env.gain.setValueAtTime(0, hb.ac.currentTime);
+            vox._env = hb.makeGain();
 
             vox._osc.connect(vox._env);
-            hb.adsr_start(vox._env.gain, me._getEnv(1));
+            hb.adsrStart(vox._env.gain, me._getEnv(1));
 
             vox._env.connect(me._vol);
 
             vox.noteOff = function () {
                 var env = me._getEnv(1);
-                hb.adsr_stop(vox._env.gain, env);
+                hb.adsrStop(vox._env.gain, env);
                 vox._osc.stop(hb.ac.currentTime + env.release);
                 // TODO - GC
             };
