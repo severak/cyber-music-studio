@@ -158,6 +158,10 @@ hb.Traveller = function(out) {
 	me.bite = false;
 	me.quack = false;
 	me.traveller = 22000;
+	me.lfo = 'sawtooth';
+	me.rate = 5;
+	me.amp = 0;
+	me.vcf = 0;
 	
 	me._ac = hb.ac;
 	if (!out) out = hb.ac;
@@ -171,7 +175,13 @@ hb.Traveller = function(out) {
 	me._osc.connect(me._vcf);
 	me._vcf.connect(me._vca);
 	me._vca.connect(me._vol);
-	me._vol.connect(me._out.destination);	
+	me._vol.connect(me._out.destination);
+
+	me._lfo = hb.makeOsc(me.lfo, me.rate);
+	me._lfoAmp = hb.makeGain(0);
+	me._lfo.connect(me._lfoAmp);
+
+	me._lfoAmp.connect(me._vca.gain);
 	
 	me.param = function(name, val) {
 		me[name] = val;
@@ -183,6 +193,18 @@ hb.Traveller = function(out) {
 		if (name=='vol') {
 			me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime)
 		}
+
+        if (name=='rate') {
+            me._lfo.frequency.setValueAtTime(me.rate, me._ac.currentTime)
+        }
+
+        if (name=='amp') {
+            me._lfoAmp.gain.setValueAtTime(me.amp, me._ac.currentTime)
+        }
+
+        if (name=='lfo') {
+            me.lfo.wave = me.lfo;
+        }
 	};
 	
 	me._getEnv = function(max) {

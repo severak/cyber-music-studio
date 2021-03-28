@@ -1,0 +1,6 @@
+- https://github.com/notthetup/birds
+- https://github.com/elas7/monotron
+- https://github.com/velipso/adsrnode
+- https://github.com/Bloomca/equalizer
+- https://github.com/jstrait/jssynth
+- https://github.com/rsimmons/plinth

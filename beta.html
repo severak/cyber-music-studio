@@ -66,6 +66,28 @@ button.on {
 </div>
 </div>
 
+
+<div class="ub-cols ub-hidden">
+    <div class="ub-same">
+        LFO
+        <select id="lfo">
+            <option name="sine">sine</option>
+            <option name="triangle">triangle</option>
+            <option name="square">square</option>
+            <option name="sawtooth" selected>sawtooth</option>
+        </select>
+    </div>
+    <div class="ub-same">
+        rate <input type="range" min="0.30" max="30" step="0.25" value="5" id="rate">
+    </div>
+    <div class="ub-same">
+        amp <input type="range" min="0" max="1" step="0.01" value="0" id="amp">
+    </div>
+    <div class="ub-same">
+        vcf <input type="range" min="0" max="1" step="0.01" value="0" id="vcf">
+    </div>
+</div>
+
 <div class="ub-cols">
 <div class="ub-same">
 vol <input type="range" min="0" max="0.5" step="0.01" value="0.25" id="vol">
@@ -243,7 +265,11 @@ ub.on("power","click",  function(ev){
 	hb.chnget(traveller, "bite");
 	hb.chnget(traveller, "quack");
 	hb.chnget(traveller, "traveller");
-	
+	hb.chnget(traveller, "lfo");
+	hb.chnget(traveller, "rate");
+	hb.chnget(traveller, "amp");
+	hb.chnget(traveller, "vcf");
+
 	keyboardMidiWrap('keyboard', 'select_midi_in', traveller);
 	
 	window.nomad = hb.AnalogNomad();
