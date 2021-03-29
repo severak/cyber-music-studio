@@ -84,7 +84,7 @@ button.on {
         amp <input type="range" min="0" max="1" step="0.01" value="0" id="amp">
     </div>
     <div class="ub-same">
-        vcf <input type="range" min="0" max="1" step="0.01" value="0" id="vcf">
+        vcf <input type="range" min="0" max="1" step="0.01" value="0" id="detune">
     </div>
 </div>
 
@@ -268,7 +268,7 @@ ub.on("power","click",  function(ev){
 	hb.chnget(traveller, "lfo");
 	hb.chnget(traveller, "rate");
 	hb.chnget(traveller, "amp");
-	hb.chnget(traveller, "vcf");
+	hb.chnget(traveller, "detune");
 
 	keyboardMidiWrap('keyboard', 'select_midi_in', traveller);
 	
@@ -294,26 +294,6 @@ ub.on("power","click",  function(ev){
 	oscope.lineThickness = 2;
 	traveller._vol.connect(oscope);
 	nomad._vol.connect(oscope);
-
-	// TODO - single' Cycle Sampler
-    function _base64ToArrayBuffer(base64) {
-        var binary_string = window.atob(base64);
-        var len = binary_string.length;
-        var bytes = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-            bytes[i] = binary_string.charCodeAt(i);
-        }
-        return bytes.buffer;
-    }
-
-	var violin = 'UklGRsACAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YZwCAABGAFAAZQBpAGsAYQBdAG4AXQBjABAAbgC4AL4AtgDEALUAsAC4AOQAJgErAf4AJwFWATsDfgThATD9d/gG9aXykPFL8T7xivEH8ofyQvPV8030GPXf9ZL2z/Yb95/3Wfjr+F75z/ks+sX69vpT+8r7Qvy9/CL9Qf2p/SP+hP64/hH/R/93/9n/YAB2AJ4AzQAhAZoBuQHSAS0CQQJnAq0CAwNhA6EDmwPCA+gDGwRKBGAEiAS8BKkE2AQ0BTcFRAVqBUIFkgXbBbcF1gXSBdcFAAYBBukF4QUEBrcEMwLrAxkKTBGlFjoaXRxxHbMdcx0FHXIcXBuqGvAZJhlbGJwX5RYQFmEVsBTfEyMTOxK0ESwRTxDDDzEPnw76DW8N9gw/DFQLNQuyClUK2AlBCb0IQgjSBzgHsQaHBiMGpQVWBf0ErQQbBKoDYwPcAo0CUQIQAq0BhgEtAdcArwAYALr/gP9p/1H/v/52/nf+NP7P/aH9m/1Q/e/82vzu/Jz8XfxA/O/7c/yA/Az73fgz9wT23PQu9LTziPOO87nzs/PX8wD0HvQ69Ev0uvTS9On0/PQ89Uv1ifWQ9cH1BfYg9k72SvaW9rr21vYA9xn3I/dB93/3s/fL99f32/f/9w/4X/iY+Nz49PjT+Pv4FflA+X35fvmt+dL5GvoV+vX5Gfo4+iL6Wfqx+rL6xfrm+vD6JPtJ+3b7lfua+5D7hvuH+5j75PsJ/BL8MvyY/I/8h/zT/Cj9K/3z/Gn9Sf1A/Uz9UP1p/Zj9i/2N/aP9zP0G/mb+H/4e/mX+Vv4X/hT+Kv5B/kz+q/6n/vf+7P7r/vD+Cv/+/jT/Nv8u/zX/cP96/4T/fP+q/8f/4f+u/4j/lv/A/9D/7/9BAG8ANgAFAA==';
-    hb.ac.decodeAudioData(_base64ToArrayBuffer(violin), function (buffer) {
-        window.violinSample = buffer;
-        // traveller._osc.disconnect(traveller._vcf);
-        // traveller._osc = hb.makeSamplerOsc(buffer, 440);
-        // traveller._osc.connect(traveller._vcf);
-    });
-
 });
 </script>
 

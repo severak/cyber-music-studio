@@ -140,6 +140,46 @@ hb.makeFilter = function(type) {
     return filter;
 };
 
+var makeConstant = function(n) {
+	var constant = hb.ac.createConstantSource();
+	constant.offset.value = n;
+	return constant;
+};
+
+hb.makeAdder = function(a, b) {
+	var adder = hb.makeGain(1);
+	for (var i = 0; i < arguments.length; i++) {
+		var node = arguments[i];
+		if (!isNaN(node)) node = makeConstant(node);
+		node.connect(adder);
+	}
+	return adder;
+};
+
+hb.makeMultiplier = function(a, b) {
+	// TODO - rewrite - this is everything but elegant
+	var multiplier;
+	if (!isNaN(b)) {
+		multiplier = hb.makeGain(b);
+	} else {
+		multiplier = hb.makeGain(1);
+		multiplier.connect(b);
+	}
+	if (!isNaN(a)) a = makeConstant(a);
+	a.connect(multiplier);
+	return multiplier;
+};
+
+hb.makeChain = function(a) {
+	var prevNode = false;
+	for (var i = 0; i < arguments.length; i++) {
+		var currNode = arguments[i];
+		if (prevNode && prevNode.connect) {
+			prevNode.connect(currNode);
+		}
+		prevNode = currNode;
+	}
+};
 
 // TODO implement these components
 // - mixbus
@@ -161,7 +201,7 @@ hb.Traveller = function(out) {
 	me.lfo = 'sawtooth';
 	me.rate = 5;
 	me.amp = 0;
-	me.vcf = 0;
+	me.detune = 0;
 	
 	me._ac = hb.ac;
 	if (!out) out = hb.ac;
@@ -172,42 +212,20 @@ hb.Traveller = function(out) {
 	me._vca = hb.makeGain();
 	me._vol = hb.makeGain(me.vol);
 
-	// TODO - seru na to, jdu pracovat
-
-	var lfoBase = me._ac.createConstantSource(); // {0.5}
-    lfoBase.offset.value = 0.5;
 	me._lfo = hb.makeOsc(me.lfo, me.rate); // {-1, 1}
-	var lfoNorm = hb.makeGain(0.5); // {0,1} (*0.5)
-	lfoBase.connect(lfoNorm); // {}
-	me._lfo.connect(lfoNorm);
-
     me._lfoAmp = hb.makeGain(me.amp);
-    lfoNorm.connect(me._lfoAmp);
+    me._lfoDetune = hb.makeGain(me.detune);
 
+    var normLFO = hb.makeAdder(hb.makeMultiplier(me._lfo, 0.5), 0.5);
+    hb.makeChain(normLFO, me._lfoAmp);
+    var modF = hb.makeAdder(1, hb.makeMultiplier(me._lfoAmp, -1));
+    var modulator = hb.makeGain(1);
+    modF.connect(modulator.gain);
 
-	// VCF -> VCA -> (LFO MOD) -> VOL -> OUT
-    me._osc.connect(me._vcf);
-    //me._vcf.connect(me._vca);
+    var toCents = hb.makeGain(100);
+    hb.makeChain(me._lfo, me._lfoDetune, toCents, me._osc.detune); // detune LFO
 
-
-    var ModBase = me._ac.createConstantSource();
-    ModBase.offset.value = 1;
-    var ModMinus = hb.makeGain(-1);
-
-
-
-
-    var lfoMod = hb.makeGain(1);
-    ModBase.connect()
-
-    me._vcf.connect(lfoMod);
-    lfoMod.connect(me._vca);
-
-
-    me._vca.connect(me._vol);
-    me._vol.connect(me._out.destination);
-
-
+    hb.makeChain(me._osc, me._vcf, modulator, me._vca, me._vol, me._out.destination);
 	
 	me.param = function(name, val) {
 		me[name] = val;
@@ -228,8 +246,12 @@ hb.Traveller = function(out) {
             me._lfoAmp.gain.setValueAtTime(me.amp, me._ac.currentTime)
         }
 
+		if (name=='detune') {
+			me._lfoDetune.gain.setValueAtTime(me.detune, me._ac.currentTime)
+		}
+
         if (name=='lfo') {
-            me.lfo.wave = me.lfo;
+            me._lfo.type = me.lfo;
         }
 	};
 	
