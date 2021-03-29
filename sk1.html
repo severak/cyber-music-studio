@@ -258,64 +258,27 @@
         hb.chnget(sk, 'release', 'sk1_release');
         keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
 
-        /*
-        var oscope = new WavyJones(hb.ac, 'scope');
-        oscope.lineColor = '#00ff00';
-        oscope.lineThickness = 2;
-        traveller._vol.connect(oscope);
-        nomad._vol.connect(oscope);
-        */
-
-
         var violin = 'UklGRsACAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YZwCAABGAFAAZQBpAGsAYQBdAG4AXQBjABAAbgC4AL4AtgDEALUAsAC4AOQAJgErAf4AJwFWATsDfgThATD9d/gG9aXykPFL8T7xivEH8ofyQvPV8030GPXf9ZL2z/Yb95/3Wfjr+F75z/ks+sX69vpT+8r7Qvy9/CL9Qf2p/SP+hP64/hH/R/93/9n/YAB2AJ4AzQAhAZoBuQHSAS0CQQJnAq0CAwNhA6EDmwPCA+gDGwRKBGAEiAS8BKkE2AQ0BTcFRAVqBUIFkgXbBbcF1gXSBdcFAAYBBukF4QUEBrcEMwLrAxkKTBGlFjoaXRxxHbMdcx0FHXIcXBuqGvAZJhlbGJwX5RYQFmEVsBTfEyMTOxK0ESwRTxDDDzEPnw76DW8N9gw/DFQLNQuyClUK2AlBCb0IQgjSBzgHsQaHBiMGpQVWBf0ErQQbBKoDYwPcAo0CUQIQAq0BhgEtAdcArwAYALr/gP9p/1H/v/52/nf+NP7P/aH9m/1Q/e/82vzu/Jz8XfxA/O/7c/yA/Az73fgz9wT23PQu9LTziPOO87nzs/PX8wD0HvQ69Ev0uvTS9On0/PQ89Uv1ifWQ9cH1BfYg9k72SvaW9rr21vYA9xn3I/dB93/3s/fL99f32/f/9w/4X/iY+Nz49PjT+Pv4FflA+X35fvmt+dL5GvoV+vX5Gfo4+iL6Wfqx+rL6xfrm+vD6JPtJ+3b7lfua+5D7hvuH+5j75PsJ/BL8MvyY/I/8h/zT/Cj9K/3z/Gn9Sf1A/Uz9UP1p/Zj9i/2N/aP9zP0G/mb+H/4e/mX+Vv4X/hT+Kv5B/kz+q/6n/vf+7P7r/vD+Cv/+/jT/Nv8u/zX/cP96/4T/fP+q/8f/4f+u/4j/lv/A/9D/7/9BAG8ANgAFAA==';
         hb.ac.decodeAudioData(_base64ToArrayBuffer(violin), function (buffer) {
             sk.buffer = buffer;
             showWave(buffer);
         });
 
-        function ftgen(callback, cycles) {
-            if (!cycles) cycles = 1;
-            var len = hb.midi2cps(69) * cycles;
-            // console.log('len ' + len);
-            var abuf = hb.ac.createBuffer(1, len, hb.ac.sampleRate);
-            var chan = abuf.getChannelData(0);
-            for (var i = 0; i < len; i++) {
-                var p = i / len;
-                // console.log(Math.sin(p));
-                chan[i] = callback(p);
-            }
-            return abuf;
-        }
-
-        var sinfunc = function(n) {
-            return Math.sin(n * 6);
-        };
-
         ub.on('sin', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(sinfunc);
+            sk.buffer = hb.generateWaveformBuffer(hb.generators.sin);
             showWave(sk.buffer);
         });
-
-        var sqrfunc = function(n) {
-            if (n < 0.5) return 0.8;
-            return -0.8;
-        };
 
         ub.on('sqr', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(sqrfunc);
+            sk.buffer = hb.generateWaveformBuffer(hb.generators.sqr);
             showWave(sk.buffer);
         });
 
-        var pwmfunc = function(n) {
-            if (n < 0.2) return 0.8;
-            return -0.8;
-        };
-
         ub.on('pwm', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(pwmfunc);
+            sk.buffer = hb.generateWaveformBuffer(hb.generators.pulse, {pulse: 0.2});
             showWave(sk.buffer);
         });
 
@@ -325,31 +288,19 @@
 
         ub.on('noise', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(noisefunc, 100);
+            sk.buffer = hb.generateWaveformBuffer(noisefunc, {}, 2 * hb.ac.sampleRate);
             showWave(sk.buffer);
         });
-
-        var sawfunc = function(n) {
-            return (n * 2) - 1;
-        };
 
         ub.on('saw', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(sawfunc);
+            sk.buffer = hb.generateWaveformBuffer(hb.generators.saw);
             showWave(sk.buffer);
         });
 
-        var trianglefunc = function(n) {
-            if (n < 0.25) return n * 4;
-            if (n==0.25) return 1;
-            if (n > 0.25 && n < 0.75) return 1- ((n-0.25) * 4);
-            if (n==0.75) return -1;
-            if (n > 0.75) return ((n - 0.75) * 4) - 1;
-        };
-
         ub.on('tri', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(trianglefunc);
+            sk.buffer = hb.generateWaveformBuffer(hb.generators.triangle);
             showWave(sk.buffer);
         });
 
@@ -361,7 +312,7 @@
 
         ub.on('triasin', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(triasin);
+            sk.buffer = hb.generateWaveformBuffer(triasin);
             showWave(sk.buffer);
         });
 
@@ -373,28 +324,29 @@
 
         ub.on('triasin2', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(triasin2);
+            sk.buffer = hb.generateWaveformBuffer(triasin2);
             showWave(sk.buffer);
         });
 
 
         var cirkule = function(n) {
-            return n * sinfunc(n) + (0.3 * noisefunc()); // ozubený sinus
+            return n * hb.generators.sin(n) + (0.3 * Math.random()); // ozubený sinus
         };
 
         ub.on('cirkule', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(cirkule);
+            sk.buffer = hb.generateWaveformBuffer(cirkule);
             showWave(sk.buffer);
         });
 
         var metalik = function(n) {
+            var sinfunc = hb.generators.sin;
             return hb.clamp(-0.9, ( sinfunc(n) + sinfunc(n * 6) ) / 2, 0.9); // ořezaná vícevlnka
         };
 
         ub.on('metalik', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(metalik);
+            sk.buffer = hb.generateWaveformBuffer(metalik);
             showWave(sk.buffer);
         });
 
@@ -404,6 +356,10 @@
             // 43 - saw
             // 86 - square
             // 127 - pulse 10%
+
+            var trianglefunc = hb.generators.triangle;
+            var sawfunc = hb.generators.saw;
+            var sqrfunc = hb.generators.sqr;
             if (p==0) return trianglefunc(n);
             if (p > 1 && p < 43) return (trianglefunc(n) * (1-(p / 42))) + (sawfunc(n) * (p / 42));
             if (p==43) return sawfunc(n);
@@ -419,14 +375,14 @@
 
         ub.on('unowave', 'input', function (ev) {
 
-            sk.buffer = ftgen(unowave);
+            sk.buffer = hb.generateWaveformBuffer(unowave);
             showWave(sk.buffer);
         });
 
 
         ub.on('noisey', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = ftgen(function (n) {
+            sk.buffer = hb.generateWaveformBuffer(function (n) {
                 return Math.random() * 2 - 1;
             });
             showWave(sk.buffer);

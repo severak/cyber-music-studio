@@ -76,6 +76,7 @@ hb.makePwmOsc = function(wave, freq, startAt) {
 hb.makeNoiseOsc = function(startAt) {
     if (!startAt) startAt = hb.ac.currentTime;
     // adapted from https://noisehack.com/generate-noise-web-audio-api/
+	// important - noise must be longer than 2s to be percieved as noise
     var bufferSize = 2 * hb.ac.sampleRate,
         noiseBuffer = hb.ac.createBuffer(1, bufferSize, hb.ac.sampleRate),
         output = noiseBuffer.getChannelData(0);
@@ -89,6 +90,45 @@ hb.makeNoiseOsc = function(startAt) {
     osc.start(startAt);
 
     return osc;
+};
+
+hb.generateWaveformBuffer = function(generator, params, len) {
+	if (!params) params = {};
+	if (!len) len = hb.midi2cps(60);
+	// console.log('len ' + len);
+	var buffer = hb.ac.createBuffer(1, len, hb.ac.sampleRate);
+	var chan = buffer.getChannelData(0);
+	for (var i = 0; i < len; i++) {
+		var n = i / len;
+		chan[i] = generator(n, params);
+	}
+	return buffer;
+};
+
+hb.generators = {
+	sin: function(n) {
+		return Math.sin(n * 6);
+	},
+	sqr: function(n) {
+		if (n < 0.5) return 1;
+		return -1;
+	},
+	pulse: function(n, params) {
+		if (!params.pulse) params.pulse = 0.1;
+		if (n < params.pulse) return 1;
+		return -1;
+	},
+	saw: function(n) {
+		return (n * 2) - 1;
+	},
+	triangle: function(n) {
+		// TODO - rework this horrible mess
+		if (n < 0.25) return n * 4;
+		if (n==0.25) return 1;
+		if (n > 0.25 && n < 0.75) return 1- ((n-0.25) * 4);
+		if (n==0.75) return -1;
+		if (n > 0.75) return ((n - 0.75) * 4) - 1;
+	}
 };
 
 hb.makeSamplerOsc = function(buffer, freq, baseFreq, startAt) {
