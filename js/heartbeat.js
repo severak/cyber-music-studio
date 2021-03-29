@@ -112,7 +112,7 @@ hb.makeSamplerOsc = function(buffer, freq, baseFreq, startAt) {
 hb.makeSamplerLoopOsc = function(buffer, freq, baseFreq, startAt) {
     var osc = hb.makeSamplerOsc(buffer, freq, baseFreq, startAt);
     osc.loop = true;
-    return loop;
+    return osc;
 };
 
 hb.makeDrumOsc = function(buffer, startAt) {

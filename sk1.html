@@ -98,6 +98,7 @@
                     <button id="triasin2">TRIASIN 1/2</button>
                     <button id="cirkule">CIRKULE</button>
                     <button id="metalik">METALIK</button>
+                    <button id="noisey">NOISEY</button>
                 </div>
             </div>
             <div class="ub-cols">
@@ -205,7 +206,7 @@
             var ac = hb.ac;
             var freq = hb.midi2cps(nn);
             var vox = {};
-            vox._osc = hb.makeSamplerOsc(me.buffer, freq);
+            vox._osc = hb.makeSamplerLoopOsc(me.buffer, freq);
             vox._env = hb.makeGain();
 
             vox._osc.connect(vox._env);
@@ -422,6 +423,14 @@
             showWave(sk.buffer);
         });
 
+
+        ub.on('noisey', 'click', function (ev) {
+            ub.stop(ev);
+            sk.buffer = ftgen(function (n) {
+                return Math.random() * 2 - 1;
+            });
+            showWave(sk.buffer);
+        });
 
     });
 </script>
