@@ -171,17 +171,43 @@ hb.Traveller = function(out) {
 	me._vcf = hb.makeFilter('lowpass');
 	me._vca = hb.makeGain();
 	me._vol = hb.makeGain(me.vol);
-	
-	me._osc.connect(me._vcf);
-	me._vcf.connect(me._vca);
-	me._vca.connect(me._vol);
-	me._vol.connect(me._out.destination);
 
-	me._lfo = hb.makeOsc(me.lfo, me.rate);
-	me._lfoAmp = hb.makeGain(0);
-	me._lfo.connect(me._lfoAmp);
+	// TODO - seru na to, jdu pracovat
 
-	me._lfoAmp.connect(me._vca.gain);
+	var lfoBase = me._ac.createConstantSource(); // {0.5}
+    lfoBase.offset.value = 0.5;
+	me._lfo = hb.makeOsc(me.lfo, me.rate); // {-1, 1}
+	var lfoNorm = hb.makeGain(0.5); // {0,1} (*0.5)
+	lfoBase.connect(lfoNorm); // {}
+	me._lfo.connect(lfoNorm);
+
+    me._lfoAmp = hb.makeGain(me.amp);
+    lfoNorm.connect(me._lfoAmp);
+
+
+	// VCF -> VCA -> (LFO MOD) -> VOL -> OUT
+    me._osc.connect(me._vcf);
+    //me._vcf.connect(me._vca);
+
+
+    var ModBase = me._ac.createConstantSource();
+    ModBase.offset.value = 1;
+    var ModMinus = hb.makeGain(-1);
+
+
+
+
+    var lfoMod = hb.makeGain(1);
+    ModBase.connect()
+
+    me._vcf.connect(lfoMod);
+    lfoMod.connect(me._vca);
+
+
+    me._vca.connect(me._vol);
+    me._vol.connect(me._out.destination);
+
+
 	
 	me.param = function(name, val) {
 		me[name] = val;
