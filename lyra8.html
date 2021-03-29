@@ -63,7 +63,7 @@
             <div class="ub-cols">
                 <div class="ub-same">
                     <p>a parody/homage to <a href="https://somasynths.com/lyra-organismic-synthesizer/" target="_blank">Soma Laboratory Lyra-8</a> </p>
-                    <p>currently only subset is implemented and it works differently than original.</p>
+                    <p>currently only (very limited) subset is implemented and it works differently than original.</p>
                 </div>
             </div>
 
@@ -71,14 +71,19 @@
 
             <div class="ub-cols">
                 <div class="ub-same">
-                    LFO A <input type="range" min="0.3" max="30" id="lfoa">
+                    LFO A <input type="range" min="0.3" max="30" value="0.6" id="lfoa">
                 </div>
                 <div class="ub-same">
-                    LFO B <input type="range" min="0.3" max="30" id="lfob">
+                    LFO B <input type="range" min="0.3" max="30" value="5" id="lfob">
                 </div>
-                <div class="ub-same"></div>
-                <div class="ub-same"></div>
+                <div class="ub-same">
+                    det <input type="range" min="0" max="1" step="0.01" value="0" id="detune">
+                </div>
+                <div class="ub-same">
+                    chaos total <input type="range" min="0" max="1" step="0.01" value="0" id="chaos">
+                </div>
             </div>
+
 
             <strong>DELAY</strong>
             <div class="ub-cols">
@@ -89,10 +94,10 @@
                     time 2 <input type="range" min="0.1" max="2"  step="0.1" value="0.5" id="time2">
                 </div>
                 <div class="ub-same">
-                    FB <input type="range" min="0" max="1"  step="0.1" value="0" id="delay_fb">
+                    FB <input type="range" min="0" max="0.8"  step="0.01" value="0" id="delay_fb">
                 </div>
                 <div class="ub-same">
-                    mix <input type="range" min="0" max="1"  step="0.1" value="0" id="delay_mix">
+                    mix <input type="range" min="0" max="1"  step="0.01" value="0" id="delay_mix">
                 </div>
             </div>
 
@@ -107,7 +112,7 @@
                 </div>
                 <div class="ub-same">
                     master pitch
-                    <input type="range" min="27" max="4186" step="0.1" value="261.6" id="master_pitch">
+                    <input type="range" min="27" max="2093" step="0.1" value="261.6" id="master_pitch">
                 </div>
                 <div class="ub-same">
                     <button id="tuning">show / hide tuning</button>
@@ -125,6 +130,7 @@
                 <div class="ub-same" style="background-position-x: 100%">tune I <input type="range" min="1" max="2" step="0.01" id="tune8"> </div>
             </div>
 
+            <!--
             <div class="ub-cols">
                 <div class="ub-same">
                     hold <input type="range" min="0" max="1" step="0.1" value="0.3" id="hold1">
@@ -183,6 +189,7 @@
                 <div class="ub-same"><label>fast <input type="checkbox" id="fast3"></label></div>
                 <div class="ub-same"><label>fast <input type="checkbox" id="fast4"></label></div>
             </div>
+            -->
 
             <div class="ub-cols" id="tlacitka">
                 <div class="ub-same"><button data-midi="1">Q</button></div>
@@ -244,14 +251,49 @@
         me.tune7 = 1;
         me.tune8 = 1;
 
+        me.time1 = 0;
+        me.time2 = 0;
+        me.delay_fb = 0;
+        me.delay_mix = 0;
+
+        me.lfoa = 0.3;
+        me.lfob = 0.6;
+        me.detune = 0;
+        me.chaos = 0;
+
         if (!out) out = hb.ac;
         me._out = out;
 
-        me._vol = hb.ac.createGain();
-        me._vol.gain.setValueAtTime(me.vol, hb.ac.currentTime);
+        me._vol = hb.makeGain(me.vol);
+
+        me._lfoA = hb.makeOsc('square', me.lfoa);
+        me._lfoB = hb.makeOsc('square', me.lfob);
+        var lfoMul = hb.makeGain(1);
+        me._lfoA.connect(lfoMul);
+        me._lfoB.connect(lfoMul.gain);
+        var lfoMod = hb.makeMultiplier(lfoMul, 300);
+
+        me._detune = hb.makeGain(me.detune);
+        lfoMod.connect(me._detune);
+        var det = hb.makeGain(1);
+        me._detune.connect(det);
+
+        var delayStart = hb.makeGain(1);
+        me._delay1 = hb.ac.createDelay(10);
+        me._delay2 = hb.ac.createDelay(10);
+        me._mix1 = hb.makeGain(0);
+        me._mix2 = hb.makeGain(0);
+        me._feedback = hb.makeGain(0);
+        me._chaos = hb.makeGain(0);
+
+        hb.makeChain(hb.makeMultiplier(hb.makeNoiseOsc(), 0.05), delayStart, me._delay1, me._delay2);
+        hb.makeChain(me._delay1, me._mix1, me._vol);
+        hb.makeChain(me._delay1, me._mix2, me._vol);
+        hb.makeChain(me._delay2, me._feedback, delayStart); // FEEDBACK!
         me._vol.connect(me._out.destination);
 
-        // me._notes = [];
+        hb.makeChain(hb.makeMultiplier(hb.makeNoiseOsc(), 0.05), me._delay2, hb.makeGain(200), me._chaos, det); // CHAOS knob
+
         me._voices = [];
 
         var midi2buttons = {
@@ -276,6 +318,11 @@
           8: hb.midi2cps(72)
         };
 
+        // TODO - sharp knob move from TRI -> SQR
+        var buff = hb.generateWaveformBuffer(function (n) {
+            return (hb.generators.triangle(n) /2) +  (hb.generators.sqr(n) / 2);
+        });
+
 
         for (var vid = 1; vid < 9; vid++) {
             // console.log('tu ' + vid + ' ' + (tuning[vid] /  hb.midi2cps(60)) )
@@ -283,10 +330,12 @@
             ub.gebi('tune'+vid).value = tune;
             me['tune' + vid] = tune;
 
-            var osc = hb.makeOsc('sawtooth', me.master_pitch * tuning[vid]);
+            var osc = hb.makeSamplerLoopOsc(buff, me.master_pitch * tuning[vid], hb.midi2cps(60));
+            det.connect(osc.detune);
             var env = hb.makeGain();
             osc.connect(env);
             env.connect(me._vol);
+            env.connect(delayStart);
             me._voices[vid] = {
                 osc : osc,
                 env : env
@@ -299,6 +348,18 @@
                 me._retune();
                 return;
             }
+
+            if (name=='vol') me._vol.gain.setValueAtTime(me.vol, hb.ac.currentTime);
+            if (name=='time1') me._delay1.delayTime.setValueAtTime(me.time1, hb.ac.currentTime);
+            if (name=='time2') me._delay2.delayTime.setValueAtTime(me.time2, hb.ac.currentTime);
+            if (name=='delay_mix') me._mix1.gain.setValueAtTime(me.delay_mix, hb.ac.currentTime);
+            if (name=='delay_fb') me._feedback.gain.setValueAtTime(me.delay_fb, hb.ac.currentTime);
+            if (name=='delay_fb') me._feedback.gain.setValueAtTime(me.delay_fb, hb.ac.currentTime);
+
+            if (name=='lfoa') me._lfoA.frequency.setValueAtTime(me.lfoa, hb.ac.currentTime);
+            if (name=='lfob') me._lfoB.frequency.setValueAtTime(me.lfob, hb.ac.currentTime);
+            if (name=='detune') me._detune.gain.setValueAtTime(me.detune, hb.ac.currentTime);
+            if (name=='chaos') me._chaos.gain.setValueAtTime(me.chaos, hb.ac.currentTime);
 
             var matches = name.match(/tune([1-8])/)
             if (matches && matches[1]) {
@@ -326,7 +387,6 @@
         };
 
         me.noteOn = function(nn) {
-            console.log(nn);
             if (midi2buttons[nn]) me.bon(midi2buttons[nn]);
         };
 
@@ -361,17 +421,27 @@
         hb.chnget(lyra, 'tune6');
         hb.chnget(lyra, 'tune7');
         hb.chnget(lyra, 'tune8');
+        // delay
+        hb.chnget(lyra, 'time1');
+        hb.chnget(lyra, 'time2');
+        hb.chnget(lyra, 'delay_fb');
+        hb.chnget(lyra, 'delay_mix');
+        // lfo
+        hb.chnget(lyra, 'lfoa');
+        hb.chnget(lyra, 'lfob');
+        hb.chnget(lyra, 'detune');
+        hb.chnget(lyra, 'chaos');
 
         ub.on('tlacitka', 'mousedown', function (ev) {
             ub.stop(ev);
             var vid = ev.target.getAttribute('data-midi');
-            lyra.bon(vid);
+            if (vid) lyra.bon(vid);
         });
 
         ub.on('tlacitka', 'mouseup', function (ev) {
             ub.stop(ev);
             var vid = ev.target.getAttribute('data-midi');
-            lyra.boff(vid);
+            if (vid) lyra.boff(vid);
         });
 
         ub.on('tlacitka', 'click', function (ev) {
