@@ -60,6 +60,13 @@ hb.adsrStop = function(audioParam, env) {
 	audioParam.linearRampToValueAtTime(0, hb.ac.currentTime + env.release); // move to 0
 };
 
+hb.portk = function(audioParam, target, time) {
+	var curr = audioParam.value;
+	audioParam.cancelScheduledValues(hb.ac.currentTime);
+	audioParam.setValueAtTime(curr, hb.ac.currentTime); // stop ENV at current point
+	audioParam.linearRampToValueAtTime(target, hb.ac.currentTime + time); // move to 0
+};
+
 hb.makeOsc = function(wave, freq, startAt) {
     if (!startAt) startAt = hb.ac.currentTime;
     var osc = hb.ac.createOscillator();
@@ -210,7 +217,7 @@ hb.makeMultiplier = function(a, b) {
 	return multiplier;
 };
 
-hb.makeChain = function(a) {
+hb.chain = function(a) {
 	var prevNode = false;
 	for (var i = 0; i < arguments.length; i++) {
 		var currNode = arguments[i];
@@ -223,6 +230,51 @@ hb.makeChain = function(a) {
 
 // TODO implement these components
 // - mixbus
+
+hb.Mixbus = function() {
+	var me = {};
+	me.hi = 0;
+	me.mid = 0;
+	me.low = 0;
+	me.pan = 0;
+	me.reverb = 0;
+	me.vol = 1;
+
+	me.input = hb.makeGain(1);
+	me._mute = hb.makeGain(1);
+	me._hi = hb.makeFilter('highshelf');
+	me._low = hb.makeFilter('lowshelf');
+	me._mid = hb.makeFilter('peaking');
+	// see https://github.com/Bloomca/equalizer/blob/6e8b49e9868d1f8289766414f4b9f0bcbcc21f37/src/player/index.js#L22
+	me._hi.frequency.value = 4200;
+	me._mid.frequency.value = 1500;
+	me._mid.Q.value = 0.5;
+	me._low.frequency.value = 500;
+	me._toReverb = hb.makeGain(0);
+
+	me._reverb = hb.ac.createConvolver();
+	me._reverb.buffer = hb.generateWaveformBuffer(function(n) {
+		return (Math.random() * 2 -1)  * (1 - n);
+	}, {}, hb.ac.sampleRate * 3);
+
+	me.output = hb.makeGain(1);
+
+	hb.chain(me.input, me._mute, me._low, me._mid, me._hi,  me.output);
+	me._hi.connect(me._toReverb);
+	hb.chain(me._toReverb, me._reverb, me.output);
+
+	me.param = function(name, val) {
+		me[name] = val;
+		if (name=='hi') me._hi.gain.setValueAtTime(val, hb.ac.currentTime);
+		if (name=='low') me._low.gain.setValueAtTime(val, hb.ac.currentTime);
+		if (name=='mid') me._mid.gain.setValueAtTime(val, hb.ac.currentTime);
+		if (name=='reverb') me._toReverb.gain.setValueAtTime(val, hb.ac.currentTime);
+		if (name=='vol') me.output.gain.setValueAtTime(val, hb.ac.currentTime);
+	}
+
+	return me;
+};
+
 // - tape - https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioDestinationNode
 
 // Traveller
@@ -257,15 +309,15 @@ hb.Traveller = function(out) {
     me._lfoDetune = hb.makeGain(me.detune);
 
     var normLFO = hb.makeAdder(hb.makeMultiplier(me._lfo, 0.5), 0.5);
-    hb.makeChain(normLFO, me._lfoAmp);
+    hb.chain(normLFO, me._lfoAmp);
     var modF = hb.makeAdder(1, hb.makeMultiplier(me._lfoAmp, -1));
     var modulator = hb.makeGain(1);
     modF.connect(modulator.gain);
 
     var toCents = hb.makeGain(100);
-    hb.makeChain(me._lfo, me._lfoDetune, toCents, me._osc.detune); // detune LFO
+    hb.chain(me._lfo, me._lfoDetune, toCents, me._osc.detune); // detune LFO
 
-    hb.makeChain(me._osc, me._vcf, modulator, me._vca, me._vol, me._out.destination);
+    hb.chain(me._osc, me._vcf, modulator, me._vca, me._vol, me._out.destination);
 	
 	me.param = function(name, val) {
 		me[name] = val;

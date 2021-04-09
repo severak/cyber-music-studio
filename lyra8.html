@@ -286,13 +286,13 @@
         me._feedback = hb.makeGain(0);
         me._chaos = hb.makeGain(0);
 
-        hb.makeChain(hb.makeMultiplier(hb.makeNoiseOsc(), 0.05), delayStart, me._delay1, me._delay2);
-        hb.makeChain(me._delay1, me._mix1, me._vol);
-        hb.makeChain(me._delay1, me._mix2, me._vol);
-        hb.makeChain(me._delay2, me._feedback, delayStart); // FEEDBACK!
+        hb.chain(hb.makeMultiplier(hb.makeNoiseOsc(), 0.05), delayStart, me._delay1, me._delay2);
+        hb.chain(me._delay1, me._mix1, me._vol);
+        hb.chain(me._delay1, me._mix2, me._vol);
+        hb.chain(me._delay2, me._feedback, delayStart); // FEEDBACK!
         me._vol.connect(me._out.destination);
 
-        hb.makeChain(hb.makeMultiplier(hb.makeNoiseOsc(), 0.05), me._delay2, hb.makeGain(200), me._chaos, det); // CHAOS knob
+        hb.chain(hb.makeMultiplier(hb.makeNoiseOsc(), 0.05), me._delay2, hb.makeGain(200), me._chaos, det); // CHAOS knob
 
         me._voices = [];
 

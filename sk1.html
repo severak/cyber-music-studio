@@ -105,8 +105,11 @@
                     <input type="range" id="unowave" min="0" max="127" step="1">
                 </div>
             </div>
+            <div>
+                <button id="organ">GENERATE ORGAN SOUND</button>
+            </div>
+
             <div class="ub-cols">
-                <div class="ub-same"><button id="organ">ORGAN</button> -&gt;</div>
                 <div class="ub-same"><label><input type="checkbox" id="org1" > 16"</label></div>
                 <div class="ub-same"><label><input type="checkbox" id="org2" > 8"</label></div>
                 <div class="ub-same"><label><input type="checkbox" id="org3" > 4"</label></div>
@@ -131,7 +134,23 @@
                 </div>
             </div>
 
-
+            <div class="ub-cols">
+                <div class="ub-same">
+                    HI <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_hi">
+                </div>
+                <div class="ub-same">
+                    MID <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_mid">
+                </div>
+                <div class="ub-same">
+                    LO <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_low">
+                </div>
+                <div class="ub-same">
+                    REVERB <input type="range" min="0" max="1" step="0.01" value="0" id="bus_reverb">
+                </div>
+                <div class="ub-same">
+                    VOL <input type="range" min="0" max="1" step="0.01" value="0.5" id="bus_vol">
+                </div>
+            </div>
 
 
         </div>
@@ -212,12 +231,12 @@
         me.buffer = hb.ac.createBuffer(1, hb.ac.sampleRate * 1, hb.ac.sampleRate);
 
         me._ac = hb.ac;
-        if (!out) out = hb.ac;
+        if (!out) out = hb.ac.destination;
         me._out = out;
 
         me._vol = hb.makeGain(me.vol);
         me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
-        me._vol.connect(me._out.destination);
+        me._vol.connect(me._out);
 
         // me._notes = [];
         me._voices = {};
@@ -285,8 +304,15 @@
         hb.start();
 
 
+        bus = hb.Mixbus();
+        hb.chnget(bus, 'vol', 'bus_vol');
+        hb.chnget(bus, 'hi', 'bus_hi');
+        hb.chnget(bus, 'low', 'bus_low');
+        hb.chnget(bus, 'mid', 'bus_mid');
+        hb.chnget(bus, 'reverb', 'bus_reverb');
+        bus.output.connect(hb.ac.destination);
 
-        window.sk = sk1();
+        window.sk = sk1(bus.input);
         hb.chnget(sk, 'vol', 'vol');
         hb.chnget(sk, 'attack', 'sk1_attack');
         hb.chnget(sk, 'decay', 'sk1_decay');
