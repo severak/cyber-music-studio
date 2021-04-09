@@ -62,6 +62,8 @@
                 </div>
             </div>
 
+            <div><strong>ENVELOPE</strong></div>
+
             <div class="ub-cols">
                 <div class="ub-same">
                     A <input type="range" min="0.01" max="1" step="0.01" value="0.01" id="sk1_attack">
@@ -77,17 +79,7 @@
                 </div>
             </div>
 
-            <div class="ub-cols">
-                <div class="ub-same"  style="text-align: center">
-                    <div id="keyboard3"></div>
-                </div>
-            </div>
-
-            <div class="ub-cols">
-                <div class="ub-same" style="text-align: center">
-                    MIDI input: <select id="select_midi_in3"></select> <!-- | <button id="record" disabled>record</button> -->
-                </div>
-            </div>
+            <div><strong>SIMPLE WAVEFORMS</strong></div>
 
             <div class="ub-cols">
                 <div class="ub-same">
@@ -104,12 +96,43 @@
                     <button id="noisey">NOISEY</button>
                 </div>
             </div>
+
+            <div><strong>COMPLEX WAVEFORMS</strong></div>
+
             <div class="ub-cols">
                 <div class="ub-same">
-                    UNO
+                    UNO SYNTH WAVEFORM:
                     <input type="range" id="unowave" min="0" max="127" step="1">
                 </div>
             </div>
+            <div class="ub-cols">
+                <div class="ub-same"><button id="organ">ORGAN</button> -&gt;</div>
+                <div class="ub-same"><label><input type="checkbox" id="org1" > 16"</label></div>
+                <div class="ub-same"><label><input type="checkbox" id="org2" > 8"</label></div>
+                <div class="ub-same"><label><input type="checkbox" id="org3" > 4"</label></div>
+                <div class="ub-same"><label><input type="checkbox" id="org4" > 2 1/3"</label></div>
+            </div>
+
+            <div><strong>COMMON</strong></div>
+
+            <div class="ub-cols">
+                <div class="ub-same" style="text-align: center">
+                    <div id="keyboard3"></div>
+                </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same">
+                    VOL
+                    <input type="range" id="vol" min="0" max="1" step="0.01" value="0.5">
+                </div>
+                <div class="ub-same">
+                    MIDI input: <select id="select_midi_in3"></select>
+                </div>
+            </div>
+
+
+
 
         </div>
 
@@ -145,10 +168,17 @@
         var ctx = ub.gebi('waveform').getContext("2d");
         ub.gebi('waveform').width = 440;
         ub.gebi('waveform').height = 40;
-        ctx.strokeStyle = '#00ff00';
         ctx.fillStyle = '#000';
 
         ctx.fillRect(0,0,440,80);
+
+        ctx.strokeStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(0, 20);
+        ctx.lineTo(440, 20);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#00ff00';
         ctx.beginPath();
         ctx.moveTo(0, (data[0] * 20 * amp) + 20);
         for (var n = 0; n < buffer.length; n++) {
@@ -185,7 +215,7 @@
         if (!out) out = hb.ac;
         me._out = out;
 
-        me._vol = me._ac.createGain();
+        me._vol = hb.makeGain(me.vol);
         me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
         me._vol.connect(me._out.destination);
 
@@ -257,6 +287,7 @@
 
 
         window.sk = sk1();
+        hb.chnget(sk, 'vol', 'vol');
         hb.chnget(sk, 'attack', 'sk1_attack');
         hb.chnget(sk, 'decay', 'sk1_decay');
         hb.chnget(sk, 'sustain', 'sk1_sustain');
@@ -390,6 +421,30 @@
             sk.buffer = hb.generateWaveformBuffer(function (n) {
                 return Math.random() * 2 - 1;
             });
+            showWave(sk.buffer);
+        });
+
+        var sin = hb.generators.sin;
+
+        function organwave(n, p) {
+            var out = 0;
+            if (p.org1) out += sin(n) / 4;
+            if (p.org2) out += sin(n * 2) /4;
+            if (p.org3) out += sin(n * 3) /4;
+            if (p.org4) out += sin(n * 4) /4;
+
+            return out;
+        }
+
+        ub.on('organ', 'click', function (ev) {
+            ub.stop(ev);
+
+            sk.buffer = hb.generateWaveformBuffer(organwave, {
+                org1: ub.gebi('org1').checked,
+                org2: ub.gebi('org2').checked,
+                org3: ub.gebi('org3').checked,
+                org4: ub.gebi('org4').checked,
+            }, hb.midi2cps(60) * 2);
             showWave(sk.buffer);
         });
 

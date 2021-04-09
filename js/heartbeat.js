@@ -107,7 +107,7 @@ hb.generateWaveformBuffer = function(generator, params, len) {
 
 hb.generators = {
 	sin: function(n) {
-		return Math.sin(n * 6);
+		return Math.sin(n * 2 * Math.PI);
 	},
 	sqr: function(n) {
 		if (n < 0.5) return 1;
