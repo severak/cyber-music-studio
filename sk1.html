@@ -155,6 +155,12 @@
                 </div>
             </div>
 
+            <div class="ub-cols">
+                <div class="ub-same"><button id="record">RECORD</button></div>
+                <div class="ub-same"><button id="stop">STOP</button></div>
+                <div class="ub-same"><button id="play">PLAY</button></div>
+            </div>
+
 
         </div>
 
@@ -306,6 +312,7 @@
         ub.gebi('form').reset();
         hb.start();
 
+        tape = hb.Tape();
 
         bus = hb.Mixbus();
         hb.chnget(bus, 'hi', 'bus_hi');
@@ -315,6 +322,9 @@
         hb.chnget(bus, 'reverb', 'bus_reverb');
         hb.chnget(bus, 'vol', 'bus_vol');
         bus.output.connect(hb.ac.destination);
+
+        hb.chain(bus.output, tape.input);
+        hb.chain(tape.output, hb.ac.destination);
 
         window.sk = sk1(bus.input);
         hb.chnget(sk, 'vol', 'vol');
@@ -477,6 +487,26 @@
             }, hb.midi2cps(60) * 2);
             showWave(sk.buffer);
         });
+
+        ub.on('record', 'click', function (ev) {
+           ub.stop(ev);
+           if (tape.status=='standby') {
+               tape.record();
+           }
+        });
+
+        ub.on('stop', 'click', function (ev) {
+            ub.stop(ev);
+            tape.stop();
+        });
+
+        ub.on('play', 'click', function (ev) {
+            ub.stop(ev);
+            if (tape.status=='standby') {
+                tape.play();
+            }
+        });
+
 
     });
 </script>

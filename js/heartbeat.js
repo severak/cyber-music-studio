@@ -299,7 +299,66 @@ hb.Mixbus = function() {
 	return me;
 };
 
+hb.Tape = function() {
+	var me = {};
+	me.status = 'standby';
+	me.input = hb.makeGain(1);
+	me.output = hb.makeGain(1);
+	me._dest = hb.ac.createMediaStreamDestination();
+	me.buffer = hb.ac.createBuffer(1,1, hb.ac.sampleRate);
+	me._wip = [];
 
+	hb.chain(me.input, me.output);
+	hb.chain(me.input, me._dest);
+
+
+	me.record = function () {
+		me.status = 'recording';
+		console.log('TAPE: stared recording');
+		me.output.gain.setValueAtTime(0, hb.ac.currentTime);
+		me._wip = [];
+
+		var mediaRecorder = me._mediaRecorder = new MediaRecorder(me._dest.stream);
+		mediaRecorder.ondataavailable = function(evt) {
+			// push each chunk (blobs) in an array
+			me._wip.push(evt.data);
+		};
+
+		mediaRecorder.onstop = function(evt) {
+			console.log(me._wip);
+			me.status = 'rewinding';
+			hb.ac.decodeAudioData(me._wip, function (buffer) {
+				me.buffer = buffer;
+				me.status = 'standby';
+			});
+
+			// TODO - wip - https://stackoverflow.com/questions/35649571/mediarecorder-api-playback-through-web-audio-api-not-audio-element
+
+			// a https://javascript.info/promise-chaining
+		};
+
+		mediaRecorder.start();
+	};
+
+	me.stop = function () {
+		me.status = 'standby';
+		console.log('TAPE: stopped');
+		if (me._mediaRecorder) me._mediaRecorder.stop();
+		if (me._player) me._player.stop();
+		me.output.gain.setValueAtTime(1, hb.ac.currentTime);
+	};
+
+	me.play = function () {
+		me.status = 'playing';
+		console.log('TAPE: playing');
+		me.input.gain.setValueAtTime(1, hb.ac.currentTime);
+		me._player = hb.makeDrumOsc(me.buffer);
+		hb.chain(me._player, me.output);
+	};
+
+
+	return me;
+};
 
 // - tape - https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioDestinationNode
 
