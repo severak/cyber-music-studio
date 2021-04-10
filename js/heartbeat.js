@@ -228,8 +228,22 @@ hb.chain = function(a) {
 	}
 };
 
-// TODO implement these components
-// - mixbus
+/*
+// qValues calculation from  https://github.com/Bloomca/equalizer/blob/6e8b49e9868d1f8289766414f4b9f0bcbcc21f37/src/player/index.js#L22
+let filterValues = [80, 1000, 12000];
+let qValues = [];
+
+filterValues.forEach(function(freq, i, arr) {
+	if (!i || i === arr.length - 1) {
+		qValues.push(null);
+	} else {
+		qValues.push(2 * freq / Math.abs(arr[i + 1] - arr[i - 1]));
+	}
+});
+
+console.log(qValues);
+*/
+
 
 hb.Mixbus = function() {
 	var me = {};
@@ -238,6 +252,7 @@ hb.Mixbus = function() {
 	me.low = 0;
 	me.pan = 0;
 	me.reverb = 0;
+	me.reverb_len = 3;
 	me.vol = 1;
 
 	me.input = hb.makeGain(1);
@@ -245,35 +260,46 @@ hb.Mixbus = function() {
 	me._hi = hb.makeFilter('highshelf');
 	me._low = hb.makeFilter('lowshelf');
 	me._mid = hb.makeFilter('peaking');
-	// see https://github.com/Bloomca/equalizer/blob/6e8b49e9868d1f8289766414f4b9f0bcbcc21f37/src/player/index.js#L22
-	me._hi.frequency.value = 4200;
-	me._mid.frequency.value = 1500;
-	me._mid.Q.value = 0.5;
-	me._low.frequency.value = 500;
+	me._hi.frequency.setValueAtTime(12000, hb.ac.currentTime);
+	me._mid.frequency.setValueAtTime(1000, hb.ac.currentTime);
+	me._mid.Q.value = 0.1677; // TODO - spočítat Q
+	me._low.frequency.setValueAtTime(80, hb.ac.currentTime);
+	me._panner = hb.ac.createStereoPanner();
 	me._toReverb = hb.makeGain(0);
 
 	me._reverb = hb.ac.createConvolver();
-	me._reverb.buffer = hb.generateWaveformBuffer(function(n) {
-		return (Math.random() * 2 -1)  * (1 - n);
-	}, {}, hb.ac.sampleRate * 3);
 
 	me.output = hb.makeGain(1);
 
-	hb.chain(me.input, me._mute, me._low, me._mid, me._hi,  me.output);
+	hb.chain(me.input, me._mute, me._low, me._mid, me._hi, me._panner, me.output);
 	me._hi.connect(me._toReverb);
 	hb.chain(me._toReverb, me._reverb, me.output);
+
+	me.genReverb = function(sec) {
+		me._reverb.buffer = hb.generateWaveformBuffer(function(n) {
+			return (Math.random() * 2 -1)  * (1 - n);
+		}, {}, hb.ac.sampleRate * sec);
+	};
+
+	me.genReverb(me.reverb_len);
 
 	me.param = function(name, val) {
 		me[name] = val;
 		if (name=='hi') me._hi.gain.setValueAtTime(val, hb.ac.currentTime);
 		if (name=='low') me._low.gain.setValueAtTime(val, hb.ac.currentTime);
 		if (name=='mid') me._mid.gain.setValueAtTime(val, hb.ac.currentTime);
+		if (name=='pan') me._panner.pan.setValueAtTime(val, hb.ac.currentTime);
 		if (name=='reverb') me._toReverb.gain.setValueAtTime(val, hb.ac.currentTime);
+		if (name=='reverb_len') me.genReverb(val);
 		if (name=='vol') me.output.gain.setValueAtTime(val, hb.ac.currentTime);
-	}
+	};
+
+
 
 	return me;
 };
+
+
 
 // - tape - https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioDestinationNode
 
