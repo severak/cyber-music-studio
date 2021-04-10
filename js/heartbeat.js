@@ -582,6 +582,12 @@ if (window.ub && ub.on) {
 				ub.on(elem, 'input', function(){
 					synth.param(param, ub.tonumber(ub.gebi(elem).value));
 				});
+				// TODO - možná smazat
+				var defaultValue = ub.gebi(elem).value;
+				ub.on(elem, 'dblclick', function () {
+					ub.gebi(elem).value = defaultValue;
+					synth.param(param, ub.tonumber(defaultValue));
+				});
 			}
 		}
 	}
