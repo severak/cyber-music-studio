@@ -312,16 +312,15 @@
         ub.gebi('form').reset();
         hb.start();
 
-        tape = hb.Tape();
+        tape = hb.TapeRecorder();
 
-        bus = hb.Mixbus();
+        bus = hb.MixStrip();
         hb.chnget(bus, 'hi', 'bus_hi');
         hb.chnget(bus, 'low', 'bus_low');
         hb.chnget(bus, 'mid', 'bus_mid');
         hb.chnget(bus, 'pan', 'bus_pan');
         hb.chnget(bus, 'reverb', 'bus_reverb');
         hb.chnget(bus, 'vol', 'bus_vol');
-        bus.output.connect(hb.ac.destination);
 
         hb.chain(bus.output, tape.input);
         hb.chain(tape.output, hb.ac.destination);
@@ -354,7 +353,7 @@
 
         ub.on('pwm', 'click', function (ev) {
             ub.stop(ev);
-            sk.buffer = hb.generateWaveformBuffer(hb.generators.pulse, {pulse: 0.2});
+            sk.buffer = hb.generateWaveformBuffer(hb.generators.pulse, {width: 0.2});
             showWave(sk.buffer);
         });
 

@@ -35,7 +35,7 @@ hb.cps2midi = function(cps, A4) {
 	return 69 + 12 * Math.log2(cps / A4);
 };
 
-// ADSR
+// ADSR & audioParam stuff
  
 hb.adsrStart = function(audioParam, env) {
 	env.max = env.max || 1;
@@ -60,12 +60,19 @@ hb.adsrStop = function(audioParam, env) {
 	audioParam.linearRampToValueAtTime(0, hb.ac.currentTime + env.release); // move to 0
 };
 
-hb.portk = function(audioParam, target, time) {
+hb.moveTo = function(audioParam, target, time) {
 	var curr = audioParam.value;
 	audioParam.cancelScheduledValues(hb.ac.currentTime);
 	audioParam.setValueAtTime(curr, hb.ac.currentTime); // stop ENV at current point
 	audioParam.linearRampToValueAtTime(target, hb.ac.currentTime + time); // move to 0
 };
+
+hb.setNow = function(audioParam, target) {
+    audioParam.cancelScheduledValues(hb.ac.currentTime);
+    audioParam.setValueAtTime(target, hb.ac.currentTime);
+};
+
+// primitives
 
 hb.makeOsc = function(wave, freq, startAt) {
     if (!startAt) startAt = hb.ac.currentTime;
@@ -83,7 +90,7 @@ hb.makePwmOsc = function(wave, freq, startAt) {
 hb.makeNoiseOsc = function(startAt) {
     if (!startAt) startAt = hb.ac.currentTime;
     // adapted from https://noisehack.com/generate-noise-web-audio-api/
-	// important - noise must be longer than 2s to be percieved as noise
+	// important - noise must be longer than 2s to be perceived as noise
     var bufferSize = 2 * hb.ac.sampleRate,
         noiseBuffer = hb.ac.createBuffer(1, bufferSize, hb.ac.sampleRate),
         output = noiseBuffer.getChannelData(0);
@@ -121,13 +128,14 @@ hb.generators = {
 		return -1;
 	},
 	pulse: function(n, params) {
-		if (!params.pulse) params.pulse = 0.1;
-		if (n < params.pulse) return 1;
+		if (!params.width) params.width = 0.1;
+		if (n < params.width) return 1;
 		return -1;
 	},
 	saw: function(n) {
 		return (n * 2) - 1;
 	},
+    // TODO - ramp (opak saw)
 	triangle: function(n) {
 		// TODO - rework this horrible mess
 		if (n < 0.25) return n * 4;
@@ -172,6 +180,12 @@ hb.makeDrumOsc = function(buffer, startAt) {
     return osc;
 };
 
+hb.makeConstantOsc = function(n) {
+    var constant = hb.ac.createConstantSource();
+    constant.offset.value = n;
+    return constant;
+};
+
 hb.makeGain = function(vol) {
     if (!vol) vol = 0;
 	var gainNode = hb.ac.createGain();
@@ -179,25 +193,22 @@ hb.makeGain = function(vol) {
 	return gainNode;
 };
 
-hb.makeFilter = function(type) {
+hb.makeFilter = function(type, freq) {
+    if (!freq) freq = 0;
     if (!type) type = 'lowpass';
     var filter = hb.ac.createBiquadFilter();
     filter.type = type;
-    filter.frequency.setValueAtTime(0, hb.ac.currentTime);
+    filter.frequency.setValueAtTime(freq, hb.ac.currentTime);
     return filter;
 };
 
-var makeConstant = function(n) {
-	var constant = hb.ac.createConstantSource();
-	constant.offset.value = n;
-	return constant;
-};
+// TODO - adder and multiplier
 
 hb.makeAdder = function(a, b) {
 	var adder = hb.makeGain(1);
 	for (var i = 0; i < arguments.length; i++) {
 		var node = arguments[i];
-		if (!isNaN(node)) node = makeConstant(node);
+		if (!isNaN(node)) node = hb.makeConstantOsc(node);
 		node.connect(adder);
 	}
 	return adder;
@@ -221,12 +232,29 @@ hb.chain = function(a) {
 	var prevNode = false;
 	for (var i = 0; i < arguments.length; i++) {
 		var currNode = arguments[i];
-		if (prevNode && prevNode.connect) {
-			prevNode.connect(currNode);
-		}
+		if (!prevNode instanceof AudioNode) {
+		    return false;
+        }
+		if (prevNode) prevNode.connect(currNode);
 		prevNode = currNode;
 	}
+	return true;
 };
+
+hb.unchain = function(a) {
+    var prevNode = false;
+    for (var i = 0; i < arguments.length; i++) {
+        var currNode = arguments[i];
+        if (!prevNode instanceof AudioNode) {
+            return false;
+        }
+        if (prevNode) prevNode.disconnect(currNode);
+        prevNode = currNode;
+    }
+    return true;
+};
+
+// components
 
 /*
 // qValues calculation from  https://github.com/Bloomca/equalizer/blob/6e8b49e9868d1f8289766414f4b9f0bcbcc21f37/src/player/index.js#L22
@@ -245,7 +273,7 @@ console.log(qValues);
 */
 
 
-hb.Mixbus = function() {
+hb.MixStrip = function() {
 	var me = {};
 	me.hi = 0;
 	me.mid = 0;
@@ -294,28 +322,40 @@ hb.Mixbus = function() {
 		if (name=='vol') me.output.gain.setValueAtTime(val, hb.ac.currentTime);
 	};
 
-
-
 	return me;
 };
 
-hb.Tape = function() {
+hb.TapeRecorder = function() {
 	var me = {};
+	me.playtrough = false; // TODO - implement
 	me.status = 'standby';
 	me.input = hb.makeGain(1);
 	me.output = hb.makeGain(1);
 	me._dest = hb.ac.createMediaStreamDestination();
-	me.buffer = hb.ac.createBuffer(1,1, hb.ac.sampleRate);
+	me._audio = document.createElement('audio');
+	me._player = hb.ac.createMediaElementSource(me._audio);
 	me._wip = [];
 
 	hb.chain(me.input, me.output);
 	hb.chain(me.input, me._dest);
+	hb.chain(me._player, me.output);
 
+	me.loadLocalFile = function() {
+	    // TODO - https://stackoverflow.com/questions/3582671/how-to-open-a-local-disk-file-with-javascript
+    };
+
+	me.loadRemoteFile = function() {
+	    // TODO
+    };
+
+	me.downloadFile = function() {
+	    // TODO
+    };
 
 	me.record = function () {
 		me.status = 'recording';
 		console.log('TAPE: stared recording');
-		me.output.gain.setValueAtTime(0, hb.ac.currentTime);
+		// me.output.gain.setValueAtTime(0, hb.ac.currentTime);
 		me._wip = [];
 
 		var mediaRecorder = me._mediaRecorder = new MediaRecorder(me._dest.stream);
@@ -325,35 +365,38 @@ hb.Tape = function() {
 		};
 
 		mediaRecorder.onstop = function(evt) {
+            me._wip.push(evt.data);
 			console.log(me._wip);
-			me.status = 'rewinding';
-			hb.ac.decodeAudioData(me._wip, function (buffer) {
-				me.buffer = buffer;
-				me.status = 'standby';
-			});
-
-			// TODO - wip - https://stackoverflow.com/questions/35649571/mediarecorder-api-playback-through-web-audio-api-not-audio-element
-
-			// a https://javascript.info/promise-chaining
+			me.status = 'standby';
+            var blob = new Blob(me._wip, { 'type' : 'audio/ogg; codecs=opus' });
+            me._audio.src = URL.createObjectURL(blob);
 		};
+
+		// WIP TODO - nepřehrává celé
 
 		mediaRecorder.start();
 	};
 
 	me.stop = function () {
-		me.status = 'standby';
 		console.log('TAPE: stopped');
-		if (me._mediaRecorder) me._mediaRecorder.stop();
-		if (me._player) me._player.stop();
-		me.output.gain.setValueAtTime(1, hb.ac.currentTime);
-	};
+		if (me.status=='recording') {
+            me._mediaRecorder.stop();
+        } else if (me.status=='playing') {
+            me._audio.pause();
+        }
+		// me.output.gain.setValueAtTime(1, hb.ac.currentTime);
+        me.status = 'standby';
+    };
+
+	me.autostop = function() {
+	    // TODO
+    };
 
 	me.play = function () {
 		me.status = 'playing';
 		console.log('TAPE: playing');
-		me.input.gain.setValueAtTime(1, hb.ac.currentTime);
-		me._player = hb.makeDrumOsc(me.buffer);
-		hb.chain(me._player, me.output);
+		// me.input.gain.setValueAtTime(1, hb.ac.currentTime);
+        me._audio.play();
 	};
 
 
