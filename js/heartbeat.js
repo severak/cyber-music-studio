@@ -2,7 +2,7 @@
 // (c) Severák 2021
  
 // My heart starts missing a beat
-// Every time... 
+// Every time...
  
 var hb = {};
 
@@ -344,8 +344,8 @@ hb.TapeRecorder = function() {
 	    // TODO - https://stackoverflow.com/questions/3582671/how-to-open-a-local-disk-file-with-javascript
     };
 
-	me.loadRemoteFile = function() {
-	    // TODO
+	me.loadRemoteFile = function(url) {
+		me._audio.src = url;
     };
 
 	me.downloadFile = function() {
@@ -358,23 +358,24 @@ hb.TapeRecorder = function() {
 		// me.output.gain.setValueAtTime(0, hb.ac.currentTime);
 		me._wip = [];
 
-		var mediaRecorder = me._mediaRecorder = new MediaRecorder(me._dest.stream);
-		mediaRecorder.ondataavailable = function(evt) {
-			// push each chunk (blobs) in an array
+		var mediaRecorder = new MediaRecorder(me._dest.stream, {mimeType: "audio/wav"});
+
+		mediaRecorder.addEventListener('dataavailable', function(evt) {
 			me._wip.push(evt.data);
-		};
+			console.log('ondataavailable', evt);
+		});
 
-		mediaRecorder.onstop = function(evt) {
-            me._wip.push(evt.data);
-			console.log(me._wip);
+		mediaRecorder.addEventListener('stop', function(evt) {
+			console.log('onstop', evt);
+			console.log('WIP ' , me._wip);
 			me.status = 'standby';
-            var blob = new Blob(me._wip, { 'type' : 'audio/ogg; codecs=opus' });
-            me._audio.src = URL.createObjectURL(blob);
-		};
-
-		// WIP TODO - nepřehrává celé
+			var blob = new Blob(me._wip, { 'type' : 'audio/wav' });
+			me._audio.src = URL.createObjectURL(blob);
+			me._wip = [];
+		});
 
 		mediaRecorder.start();
+		me._mediaRecorder = mediaRecorder;
 	};
 
 	me.stop = function () {
@@ -398,7 +399,6 @@ hb.TapeRecorder = function() {
 		// me.input.gain.setValueAtTime(1, hb.ac.currentTime);
         me._audio.play();
 	};
-
 
 	return me;
 };

@@ -12,6 +12,11 @@
     <script src="js/JZZ.gui.Select.js"></script>
     <script src="js/JZZ.synth.Severak.js"></script>
     <script src="js/wavy-jones.js"></script>
+    <script type="module">
+        // TODO - tohle jinak
+        import AudioRecorder from 'https://cdn.jsdelivr.net/npm/audio-recorder-polyfill/index.js'
+        window.MediaRecorder = AudioRecorder
+    </script>
     <script src="js/heartbeat.js"></script>
     <style>
         body {
