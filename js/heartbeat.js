@@ -354,7 +354,6 @@ hb.TapeRecorder = function() {
 
 	me.record = function () {
 		me.status = 'recording';
-		console.log('TAPE: stared recording');
 		// me.output.gain.setValueAtTime(0, hb.ac.currentTime);
 		me._wip = [];
 
@@ -366,8 +365,6 @@ hb.TapeRecorder = function() {
 		});
 
 		mediaRecorder.addEventListener('stop', function(evt) {
-			console.log('onstop', evt);
-			console.log('WIP ' , me._wip);
 			me.status = 'standby';
 			var blob = new Blob(me._wip, { 'type' : 'audio/wav' });
 			me._audio.src = URL.createObjectURL(blob);
@@ -379,14 +376,13 @@ hb.TapeRecorder = function() {
 	};
 
 	me.stop = function () {
-		console.log('TAPE: stopped');
 		if (me.status=='recording') {
             me._mediaRecorder.stop();
         } else if (me.status=='playing') {
+			me.input.gain.setValueAtTime(1, hb.ac.currentTime);
             me._audio.pause();
         }
-		// me.output.gain.setValueAtTime(1, hb.ac.currentTime);
-        me.status = 'standby';
+		me.status = 'standby';
     };
 
 	me.autostop = function() {
@@ -395,8 +391,7 @@ hb.TapeRecorder = function() {
 
 	me.play = function () {
 		me.status = 'playing';
-		console.log('TAPE: playing');
-		// me.input.gain.setValueAtTime(1, hb.ac.currentTime);
+		me.input.gain.setValueAtTime(0, hb.ac.currentTime);
         me._audio.play();
 	};
 

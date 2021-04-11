@@ -38,6 +38,11 @@
             height: 80px;
             background-color: #000;
         }
+
+        #recording_download {
+            color: black;
+            text-decoration-style: dashed;
+        }
     </style>
 <script>if(!sessionStorage.getItem("_swa")&&document.referrer.indexOf(location.protocol+"//"+location.host)!== 0){fetch("https://counter.dev/track?"+new URLSearchParams({referrer:document.referrer,screen:screen.width+"x"+screen.height,user:"severak",utcoffset:"1"}))};sessionStorage.setItem("_swa","1");</script>
 </head>
@@ -117,8 +122,8 @@
             <div class="ub-cols">
                 <div class="ub-same"><label><input type="checkbox" id="org1" > 16"</label></div>
                 <div class="ub-same"><label><input type="checkbox" id="org2" > 8"</label></div>
-                <div class="ub-same"><label><input type="checkbox" id="org3" > 4"</label></div>
-                <div class="ub-same"><label><input type="checkbox" id="org4" > 2 1/3"</label></div>
+                <div class="ub-same"><label><input type="checkbox" id="org3" > 5 ⅓"</label></div>
+                <div class="ub-same"><label><input type="checkbox" id="org4" > 4"</label></div>
             </div>
 
             <div><strong>COMMON</strong></div>
@@ -138,6 +143,8 @@
                     MIDI input: <select id="select_midi_in3"></select>
                 </div>
             </div>
+
+            <div><strong>MIXING &amp; RECORDING</strong></div>
 
             <div class="ub-cols">
                 <div class="ub-same">
@@ -164,6 +171,7 @@
                 <div class="ub-same"><button id="record">RECORD</button></div>
                 <div class="ub-same"><button id="stop">STOP</button></div>
                 <div class="ub-same"><button id="play">PLAY</button></div>
+                <div class="ub-same"><a href="#" id="recording_download" class="ub-hidden">DOWNLOAD IT</a></div>
             </div>
 
 
@@ -501,7 +509,15 @@
 
         ub.on('stop', 'click', function (ev) {
             ub.stop(ev);
+            if (tape.status=='recording') {
+                setTimeout(function () {
+                    var uri = tape._audio.src; // TODO - hack do this in better way
+                    ub.delClass('recording_download', 'ub-hidden');
+                    ub.gebi('recording_download').href = uri;
+                }, 100);
+            }
             tape.stop();
+
         });
 
         ub.on('play', 'click', function (ev) {
