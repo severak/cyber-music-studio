@@ -361,7 +361,6 @@ hb.TapeRecorder = function() {
 
 		mediaRecorder.addEventListener('dataavailable', function(evt) {
 			me._wip.push(evt.data);
-			console.log('ondataavailable', evt);
 		});
 
 		mediaRecorder.addEventListener('stop', function(evt) {
