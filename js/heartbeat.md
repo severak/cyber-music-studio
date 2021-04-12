@@ -16,7 +16,7 @@ these function creates various audio nodes and connects them.
 - `hb.makeOsc(wave, freq, startAt=hb.now())` - makes `OscillatorNode` with waveform `wave` and frequency `freq`
 - `hb.makeNoiseOsc(startAt=hb.now())` - makes noise source (2s of generated white noise sample)
 - `hb.generateWaveformBuffer(generator, params={}, len=/*one cycle of C3 note*/)` - generates `len` samples of audio buffer by calling `generator` function with `params`
-- `hb.generators` - generators for `` function - `sin`, `sqr`, `pulse({width:0.1})`, `saw`, `triangle`
+- `hb.generators` - generators for `hb.generateWaveformBuffer` function - `sin`, `sqr`, `pulse({width:0.1})`, `saw`, `triangle`
 - `hb.makeSamplerOsc(buffer, freq, baseFreq=C3 note, startAt=hb.now())` - makes tunable `AudioBufferSourceNode` which is (partially) pretending to be `OscillatorNode` with frequency `freq`, tuned to `baseFreq` 
 - `hb.makeSamplerLoopOsc` - same `hb.makeSamplerOsc`, but with looping
 - `hb.makeDrumOsc(buffer, startAt=hb.now())` - makes `AudioBufferSourceNode` which is not tunable
