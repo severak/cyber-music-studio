@@ -301,17 +301,27 @@
         };
 
         me.noteOn = function(nn) {
+            console.log('on ' + nn);
+            if (me._voices[nn]) return; // už je
             me._voices[nn] = me._makeVoice(nn);
         };
 
         me.noteOff = function(nn) {
+            console.log('off ' + nn);
             if (!me._voices[nn]) return; // už není
             me._voices[nn].noteOff();
             delete me._voices[nn];
         };
 
+
         me.panic = function() {
-            me._vol.gain.setValueAtTime(0, me._ac.currentTime);
+           console.log('PANIC at the disco!');
+            for (var nn in me._voices) {
+                hb.setNow(me._voices[nn]._env.gain, 0);
+                me._voices[nn]._osc.stop(hb.now());
+                delete me._voices[nn];
+            }
+            // me._vol.gain.setValueAtTime(0, me._ac.currentTime);
         };
 
         return me;
