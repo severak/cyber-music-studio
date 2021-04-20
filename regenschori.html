@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Regenschori / Cyber Music Studio™</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uboot.css">
+    <link rel="stylesheet" href="css/gh-fork-ribbon.css">
+    <script src="js/bluescreen.js"></script>
+    <script src="js/uboot.js"></script>
+    <script src="js/JZZ.js"></script>
+    <script src="js/JZZ.input.Kbd.js"></script>
+    <script src="js/JZZ.gui.Select.js"></script>
+    <script src="js/JZZ.synth.Severak.js"></script>
+    <script src="js/wavy-jones.js"></script>
+    <script type="module">
+        // TODO - tohle jinak
+        import AudioRecorder from 'https://cdn.jsdelivr.net/npm/audio-recorder-polyfill/index.js'
+        window.MediaRecorder = AudioRecorder
+    </script>
+    <script src="js/heartbeat.js"></script>
+    <style>
+        body {
+            font-family: "Lucida Console", monospace;
+            background-color: plum;
+        }
+
+        .ub-box {
+            background-color: darkorange;
+        }
+
+        a { color: black; text-decoration-style: dashed; }
+
+        #power {
+            font-weight: bold;
+            font-size: 200%;
+        }
+
+        #scope {
+            padding: 0;
+            width: 100%;
+            height: 80px;
+            background-color: #000;
+        }
+
+        #recording_download {
+            color: black;
+            text-decoration-style: dashed;
+        }
+
+        .tabs {
+            font-size: 150%;
+        }
+
+        .ub-container {
+            max-width: 60em !important;
+        }
+    </style>
+    <script>if(!sessionStorage.getItem("_swa")&&document.referrer.indexOf(location.protocol+"//"+location.host)!== 0){fetch("https://counter.dev/track?"+new URLSearchParams({referrer:document.referrer,screen:screen.width+"x"+screen.height,user:"severak",utcoffset:"1"}))};sessionStorage.setItem("_swa","1");</script>
+</head>
+<body>
+
+<a class="github-fork-ribbon" href="https://github.com/severak/cyber-music-studio" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+
+<div class="ub-container">
+
+    <div class="ub-box" id="box_welcome">
+        <img src="img/preview.png" class="ub-fit-img">
+        <p>As Cyber Music Studio™ is not finished yet I wanted to make something already usable. Inspired by <a href="https://collection.maas.museum/object/405927">Sankei Stereo Entertainer</a> I choose weird instrument to implement - an organ with built-in cassette deck.</p>
+        <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
+        <center><button id="power" class="ub-button">OK</button></center>
+    </div>
+    <br><br>
+
+
+
+    <form class="ub-form ub-hidden" id="form">
+        <div class="ub-box" id="box_traveller">
+            <img src="img/regenschori.png">
+
+            <div class="ub-cols">
+                <div>
+                    <canvas style="width: 440px; height: 40px; background-color: white" id="waveform"></canvas>
+
+                    <div class="ub-cols tabs">
+                    <div><input type="checkbox" class="ub-checkbutton" id="foot16"><label for="foot16" class="ub-checkbutton">16'</label></div>
+                    <div><input type="checkbox" class="ub-checkbutton" id="foot8" checked><label for="foot8" class="ub-checkbutton">8'</label></div>
+                    <div><input type="checkbox" class="ub-checkbutton" id="foot4"><label for="foot4" class="ub-checkbutton">4'</label></div>
+                    <div><input type="checkbox" class="ub-checkbutton" id="foot2"><label for="foot2" class="ub-checkbutton">2'</label></div>
+                    <div><input type="checkbox" class="ub-checkbutton" id="strings16"><label for="strings16" class="ub-checkbutton">SAW 16'</label></div>
+                    </div>
+                    <div>
+                        <div id="keyboard3"></div>
+                        MIDI input: <select id="select_midi_in3"></select>
+                    </div>
+
+                    <div class="ub-cols">
+                        <div class="ub-same">
+                            HI <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_hi">
+                        </div>
+                        <div class="ub-same">
+                            MID <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_mid">
+                        </div>
+                        <div class="ub-same">
+                            LO <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_low">
+                        </div>
+                        <div class="ub-same">
+                            PAN <input type="range" min="-1" max="1" step="0.01" value="0" id="bus_pan">
+                        </div>
+                        <div class="ub-same">
+                            REVERB <input type="range" min="0" max="1" step="0.01" value="0.4" id="bus_reverb">
+                        </div>
+                        <div class="ub-same">
+                            VOL <input type="range" min="0" max="1" step="0.01" value="0.5" id="bus_vol">
+                        </div>
+                    </div>
+
+                </div>
+                <div>
+                    <div class="ub-cols">
+                        <div class="ub-same"><button id="record">RECORD</button></div>
+                        <div class="ub-same"><button id="stop">STOP</button></div>
+                        <div class="ub-same"><button id="play">PLAY</button></div>
+                        <div class="ub-same"><a href="#" id="recording_download" class="ub-hidden">DOWNLOAD IT</a></div>
+                    </div>
+                    <img src="img/tape.png">
+                </div>
+            </div>
+
+        </div>
+
+        <p>part of <a href="index.html">Cyber Music Studio™</a></p>
+
+    </form>
+</div>
+
+<script>
+    function keyboardMidiWrap(keyboardElemId, midiSelectorId, synth) {
+        // set up routing from external MIDI via HTML keyboard to synth itself
+        var kbd = JZZ.input.Kbd({ at:keyboardElemId, pos:'N', wl: 50, ww:21, bl: 25, bw:12, from:'F4', to:'C7' });
+        var midiIn = JZZ.gui.SelectMidiIn({ at: midiSelectorId });
+        var wrap = JZZ.synth.Severak();
+        wrap.setSynth(synth);
+        kbd.connect(wrap);
+
+        // handles all the selection stuff
+        midiIn.onSelect = function(name) {
+            JZZ().openMidiIn(name).and(function () {
+                if (kbd.currentExternal) kbd.currentExternal.disconnect(kbd);
+                this.connect(kbd);
+                kbd.currentExternal = this;
+            }).or(function () {
+                if (kbd.currentExternal) kbd.currentExternal.disconnect(kbd);
+            });
+        };
+    }
+
+    function showWave(buffer) {
+        var amp = 1;
+        var data = buffer.getChannelData(0);
+        var ctx = ub.gebi('waveform').getContext("2d");
+        ub.gebi('waveform').width = 440;
+        ub.gebi('waveform').height = 40;
+        ctx.fillStyle = '#000';
+
+        ctx.fillRect(0,0,440,80);
+
+        ctx.strokeStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(0, 20);
+        ctx.lineTo(440, 20);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#00ff00';
+        ctx.beginPath();
+        ctx.moveTo(0, (data[0] * 20 * amp) + 20);
+        for (var n = 0; n < buffer.length; n++) {
+            var y = (data[n] * 20 * amp) + 20;
+            ctx.lineTo(n, y);
+        }
+        ctx.stroke();
+    }
+
+    sk1 = function(out) {
+        var me = {};
+
+        me.vol = 0.5;
+
+        me.buffer = hb.ac.createBuffer(1, hb.ac.sampleRate * 1, hb.ac.sampleRate);
+
+        me._ac = hb.ac;
+        if (!out) out = hb.ac.destination;
+        me._out = out;
+
+        me._vol = hb.makeGain(me.vol);
+        me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
+        me._vol.connect(me._out);
+
+        // me._notes = [];
+        me._voices = {};
+
+        me.foot16 = false;
+        me.foot8 = false;
+        me.foot4 = false;
+        me.foot2 = false;
+
+        me.strings16 = false;
+
+        me.param = function(name, val) {
+            me[name] = val;
+            if (name=='vol') me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
+            if (name=='foot16') me.makeWave();
+            if (name=='foot8') me.makeWave();
+            if (name=='foot4') me.makeWave();
+            if (name=='foot2') me.makeWave();
+            if (name=='strings16') me.makeWave();
+        };
+
+        me.makeWave = function() {
+            var sin = hb.generators.sin;
+            var saw = hb.generators.saw;
+
+            var triasin = function(n) {
+                if (n < 0.25) return n * -4;
+                if (n==0.25) return 1;
+                return Math.sin(n * 6);
+            };
+
+            function organwave(n, p) {
+                var out = 0;
+                if (p.foot16) out += sin(n) / 4;
+                if (p.foot8) out += sin(n * 2) /4;
+                if (p.foot4) out += sin(n * 4) /4;
+                if (p.foot2) out += sin(n * 8) /4;
+
+                if (p.strings16) out += triasin(n) / 4;
+                return out;
+            }
+
+            me.buffer = hb.generateWaveformBuffer(organwave, {
+                foot16: me.foot16,
+                foot8: me.foot8,
+                foot4: me.foot4,
+                foot2: me.foot2,
+                strings16: me.strings16,
+            }, hb.midi2cps(60) * 2);
+            showWave(me.buffer);
+        };
+
+        me._makeVoice = function(nn) {
+            var freq = hb.midi2cps(nn);
+            var vox = {};
+            vox._osc = hb.makeSamplerLoopOsc(me.buffer, freq);
+            vox._env = hb.makeGain();
+
+            vox._osc.connect(vox._env);
+            hb.moveTo(vox._env.gain, 1, 0.1);
+
+            vox._env.connect(me._vol);
+
+            vox.noteOff = function () {
+                hb.moveTo(vox._env.gain, 0, 0.1);
+                vox._osc.stop(hb.ac.currentTime + 0.1);
+                // TODO - GC
+            };
+
+            return vox;
+        };
+
+        me.noteOn = function(nn) {
+            // console.log('on ' + nn);
+            if (me._voices[nn]) return; // už je
+            me._voices[nn] = me._makeVoice(nn);
+        };
+
+        me.noteOff = function(nn) {
+            // console.log('off ' + nn);
+            if (!me._voices[nn]) return; // už není
+            me._voices[nn].noteOff();
+            delete me._voices[nn];
+        };
+
+
+        me.panic = function() {
+            console.log('PANIC at the disco!');
+            for (var nn in me._voices) {
+                hb.setNow(me._voices[nn]._env.gain, 0);
+                me._voices[nn]._osc.stop(hb.now());
+                delete me._voices[nn];
+            }
+            // me._vol.gain.setValueAtTime(0, me._ac.currentTime);
+        };
+
+        return me;
+    };
+
+    ub.on("power","click",  function(ev){
+        ub.stop(ev);
+        ub.addClass("box_welcome", 'ub-hidden');
+        ub.delClass("form", 'ub-hidden');
+
+        ub.gebi('form').reset();
+        hb.start();
+
+        tape = hb.TapeRecorder();
+
+        bus = hb.MixStrip();
+        hb.chnget(bus, 'hi', 'bus_hi');
+        hb.chnget(bus, 'low', 'bus_low');
+        hb.chnget(bus, 'mid', 'bus_mid');
+        hb.chnget(bus, 'pan', 'bus_pan');
+        hb.chnget(bus, 'reverb', 'bus_reverb');
+        hb.chnget(bus, 'vol', 'bus_vol');
+
+        hb.chain(bus.output, tape.input);
+        hb.chain(tape.output, hb.ac.destination);
+
+
+
+        /*
+
+         Lower manual voices: Dolce 8’, Principale 8’, Ottava 4’
+         Vibrato: Slow/Fast, Light/Heavy, Vibrato Off/On
+         Reverb: Off/On
+         Tremolo: Lower manual Off/On, Upper Manual Off/On, Speed (knob)
+         Repeat/Percussion: Lower Manual Off/On, Upper Manual Off/On, Repeat Speed(knob), Repeat/Percussion, Percussion Length(knob)
+         Multi-Tone Booster: 16', 8', 4', 2-2/3', All Booster Off/On, Multi-Tone Booster Off/On
+         Voice Tabs: Bass 16', Strings 16', Flute 8', Oboe 8', Trumpet 8', Strings 8', Flute 4', Strings 4', 2-2/3'
+         Brilliant Tab
+         Grey Keys Selector: Treble/Bass
+         Pedal Bass Manual Soft/Sharp
+         Percussion: Off/On, Long/Short
+         Knobs: Bass Manual Balance, Lower Manual Balance
+
+        16     1
+        8      2
+        4      4
+        2 2/3  6.66
+
+
+         */
+
+        window.sk = sk1(bus.input);
+        hb.chnget(sk, 'foot16');
+        hb.chnget(sk, 'foot8');
+        hb.chnget(sk, 'foot4');
+        hb.chnget(sk, 'foot2');
+        hb.chnget(sk, 'strings16');
+        keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
+
+        ub.on('record', 'click', function (ev) {
+            ub.stop(ev);
+            if (tape.status=='standby') {
+                tape.record();
+            }
+        });
+
+        ub.on('stop', 'click', function (ev) {
+            ub.stop(ev);
+            if (tape.status=='recording') {
+                setTimeout(function () {
+                    var uri = tape._audio.src; // TODO - hack do this in better way
+                    ub.delClass('recording_download', 'ub-hidden');
+                    ub.gebi('recording_download').href = uri;
+                }, 100);
+            }
+            tape.stop();
+
+        });
+
+        ub.on('play', 'click', function (ev) {
+            ub.stop(ev);
+            if (tape.status=='standby') {
+                tape.play();
+            }
+        });
+
+
+    });
+</script>
+
+</body>
+</html>
