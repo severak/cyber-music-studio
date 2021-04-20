@@ -87,7 +87,8 @@
                     <div><input type="checkbox" class="ub-checkbutton" id="foot8" checked><label for="foot8" class="ub-checkbutton">8'</label></div>
                     <div><input type="checkbox" class="ub-checkbutton" id="foot4"><label for="foot4" class="ub-checkbutton">4'</label></div>
                     <div><input type="checkbox" class="ub-checkbutton" id="foot2"><label for="foot2" class="ub-checkbutton">2'</label></div>
-                    <div><input type="checkbox" class="ub-checkbutton" id="strings16"><label for="strings16" class="ub-checkbutton">SAW 16'</label></div>
+                    <div><input type="checkbox" class="ub-checkbutton" id="strings16"><label for="strings16" class="ub-checkbutton">STRINGS 16'</label></div>
+                    <div><input type="checkbox" class="ub-checkbutton" id="strings4"><label for="strings4" class="ub-checkbutton">STRINGS 4'</label></div>
                     </div>
                     <div>
                         <div id="keyboard3"></div>
@@ -159,16 +160,16 @@
         var amp = 1;
         var data = buffer.getChannelData(0);
         var ctx = ub.gebi('waveform').getContext("2d");
-        ub.gebi('waveform').width = 440;
+        ub.gebi('waveform').width = 880;
         ub.gebi('waveform').height = 40;
         ctx.fillStyle = '#000';
 
-        ctx.fillRect(0,0,440,80);
+        ctx.fillRect(0,0,880,80);
 
         ctx.strokeStyle = '#fff';
         ctx.beginPath();
         ctx.moveTo(0, 20);
-        ctx.lineTo(440, 20);
+        ctx.lineTo(880, 20);
         ctx.stroke();
 
         ctx.strokeStyle = '#00ff00';
@@ -205,6 +206,7 @@
         me.foot2 = false;
 
         me.strings16 = false;
+        me.strings4 = false;
 
         me.param = function(name, val) {
             me[name] = val;
@@ -214,26 +216,22 @@
             if (name=='foot4') me.makeWave();
             if (name=='foot2') me.makeWave();
             if (name=='strings16') me.makeWave();
+            if (name=='strings4') me.makeWave();
         };
 
         me.makeWave = function() {
             var sin = hb.generators.sin;
             var saw = hb.generators.saw;
 
-            var triasin = function(n) {
-                if (n < 0.25) return n * -4;
-                if (n==0.25) return 1;
-                return Math.sin(n * 6);
-            };
-
             function organwave(n, p) {
                 var out = 0;
-                if (p.foot16) out += sin(n) / 4;
-                if (p.foot8) out += sin(n * 2) /4;
-                if (p.foot4) out += sin(n * 4) /4;
-                if (p.foot2) out += sin(n * 8) /4;
+                if (p.foot16) out += sin(n) / 6;
+                if (p.foot8) out += sin(n * 2) /6;
+                if (p.foot4) out += sin(n * 4) /6;
+                if (p.foot2) out += sin(n * 8) /6;
 
-                if (p.strings16) out += triasin(n) / 4;
+                if (p.strings16) out += saw(n) / 6;
+                if (p.strings4) out += saw((n * 4) % 1 ) / 6;
                 return out;
             }
 
@@ -243,6 +241,7 @@
                 foot4: me.foot4,
                 foot2: me.foot2,
                 strings16: me.strings16,
+                strings4: me.strings4,
             }, hb.midi2cps(60) * 2);
             showWave(me.buffer);
         };
@@ -346,6 +345,7 @@
         hb.chnget(sk, 'foot4');
         hb.chnget(sk, 'foot2');
         hb.chnget(sk, 'strings16');
+        hb.chnget(sk, 'strings4');
         keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
 
         ub.on('record', 'click', function (ev) {
