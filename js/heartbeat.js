@@ -469,51 +469,36 @@ hb.Traveller = function(out) {
         }
 	};
 	
-	me._getEnv = function(max) {
-        var env = {};
-        env.max = max;
-        env.attack = me.attack;
-        if (me.hold) {
-            env.sustain = env.max;
-            env.decay = 0.01;
-            env.release = me.decay;
-        } else {
-            env.sustain = 0;
-            env.decay = me.decay;
-            env.release = 0;
-        }
-        return env;
-    };
-	
 	me.noteOn = function(nn) {
 		me.lastN = nn;
 		var freq = hb.midi2cps(nn);
 		
 		// switch OSC
 		me._osc.type = me.wave;
-		me._osc.frequency.setValueAtTime(freq, me._ac.currentTime + (me.attack / 2)); // TODO - portamento
-		hb.adsrStart(me._vca.gain, me._getEnv(1)); // VCA ENV
+		// TODO - SIN is crackling when changing freq
+		hb.moveTo(me._osc.frequency, freq, hb.clamp(0.1, me.attack / 2, 1));
+		hb.moveTo(me._vca.gain, 1, me.attack); // VCA ENV
 		me._vcf.Q.value = me.bite ? 10 : 1;
 		if (me.quack) { // VCF ENV:
-			hb.adsrStart(me._vcf.frequency, me._getEnv(me.traveller));
+			hb.moveTo(me._vcf.frequency, me.traveller, me.attack);
 		} else {
-			me._vcf.frequency.setValueAtTime(me.traveller, me._ac.currentTime)
+			hb.setNow(me._vcf.frequency, me.traveller);
 		}
 	};
 	
 	me.noteOff = function(nn) {
 		if (!me.hold) return;
 		if (nn!=me.lastN) return;
-		hb.adsrStop(me._vca.gain, me._getEnv(1));
+		hb.moveTo(me._vca.gain, 0, me.decay);
 		if (me.quack) {
-			hb.adsrStop(me._vcf.frequency, me._getEnv(me.traveller));
+			hb.moveTo(me._vcf.frequency, 0, me.decay);
 		} else {
-			me._vcf.frequency.setValueAtTime(me.traveller, me._ac.currentTime)
+			hb.setNow(me._vcf.frequency, me.traveller);
 		}
 	};
 	
 	me.panic = function() {
-		me._vca.gain.setValueAtTime(0, me._ac.currentTime);
+		hb.setNow(me._vca.gain, 0);
 	};
 	
 	return me;
