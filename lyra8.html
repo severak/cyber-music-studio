@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/uboot.css">
     <link rel="stylesheet" href="css/gh-fork-ribbon.css">
+    <script src="js/bluescreen.js"></script>
     <script src="js/uboot.js"></script>
     <script src="js/JZZ.js"></script>
     <script src="js/JZZ.input.Kbd.js"></script>
@@ -329,7 +330,7 @@
             me['tune' + vid] = tune;
 
             var osc = hb.makeSamplerLoopOsc(buff, me.master_pitch * tuning[vid], hb.midi2cps(60));
-            det.connect(osc.detune);
+            // det.connect(osc.detune);
             var env = hb.makeGain();
             osc.connect(env);
             env.connect(me._vol);
