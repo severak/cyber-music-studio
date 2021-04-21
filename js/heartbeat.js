@@ -333,6 +333,7 @@ hb.TapeRecorder = function() {
 	me.output = hb.makeGain(1);
 	me._dest = hb.ac.createMediaStreamDestination();
 	me._audio = document.createElement('audio');
+	me._audio.src = 'data:audio/wav;base64,UklGRnwAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YVgAAAAAAAAAAAAAAAAAAAD//wIA/v8CAP3/BAD7/wUA/P8CAAAA//8BAAAA//8AAAIA/f8DAP7/AAACAP3/AwD9/wMA/f8DAP7/AQD//wEA//8BAP//AQD//wEA'; // silence
 	me._player = hb.ac.createMediaElementSource(me._audio);
 	me._wip = [];
 
@@ -366,6 +367,7 @@ hb.TapeRecorder = function() {
 
 	me.record = function () {
 		me.status = 'recording';
+		hb.setNow(me.input.gain, 1);
 		hb.setNow(me.output.gain, me.playtrough ? 1 : 0);
 		me._wip = [];
 
