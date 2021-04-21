@@ -340,8 +340,13 @@ hb.TapeRecorder = function() {
 	hb.chain(me.input, me._dest);
 	hb.chain(me._player, me.output);
 
-	me.loadLocalFile = function() {
-	    // TODO - https://stackoverflow.com/questions/3582671/how-to-open-a-local-disk-file-with-javascript
+	me.loadLocalFile = function(file) {
+	    var reader = new FileReader();
+        reader.onload = function(e) {
+            me.makeFilename();
+            me._audio.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     };
 
 	me.loadRemoteFile = function(url) {
@@ -349,11 +354,14 @@ hb.TapeRecorder = function() {
     };
 
 	me.downloadFile = function() {
-	    document.location = me._audio.src;
+	    var a = document.createElement('a');
+	    a.href = me._audio.src;
+	    a.target = '_blank';
+	    a.click();
     };
 
 	me.makeFilename = function() {
-		return "recording" + (new Date().toISOString().replace('~[:- ]~g', ''));
+		return "recording" + (new Date().toISOString().replace(/[:\- ]/g, ''));
 	};
 
 	me.record = function () {
@@ -369,7 +377,7 @@ hb.TapeRecorder = function() {
 
 		mediaRecorder.addEventListener('stop', function(evt) {
 			me.status = 'standby';
-			var blob = new File(me._wip, me.makeFilename());
+			var blob = new File(me._wip, me.makeFilename(), {type: "audio/wav"});
 			me._audio.src = URL.createObjectURL(blob);
 			me._wip = [];
 		});

@@ -13,21 +13,25 @@
     <script src="js/JZZ.gui.Select.js"></script>
     <script src="js/JZZ.synth.Severak.js"></script>
     <script src="js/wavy-jones.js"></script>
-    <script type="module">
-        // TODO - tohle jinak
-        import AudioRecorder from 'https://cdn.jsdelivr.net/npm/audio-recorder-polyfill/index.js'
-        window.MediaRecorder = AudioRecorder
-    </script>
+    <script src="js/wave-encoder-polyfill.js"></script>
     <script src="js/heartbeat.js"></script>
     <style>
         body {
             font-family: "Lucida Console", monospace;
             background-color: plum;
+            background-image: url("img/carpet.jpg");
+        }
+
+        footer {
+            margin-top: 1em;
+            background-color: whitesmoke;
         }
 
         .ub-box {
-            background-color: darkorange;
+            background-color: #FFCC66;
         }
+
+        #box_welcome { width: 30em; margin: auto; }
 
         a { color: black; text-decoration-style: dashed; }
 
@@ -55,6 +59,28 @@
         .ub-container {
             max-width: 60em !important;
         }
+
+        .is-blinking {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .big-buttons button {
+            width: 98%;
+            font-weight: bold;
+            font-size: x-large;
+        }
+
+        #tape_menu {
+            width: 400px;
+            height: 250px;
+
+        }
     </style>
     <script>if(!sessionStorage.getItem("_swa")&&document.referrer.indexOf(location.protocol+"//"+location.host)!== 0){fetch("https://counter.dev/track?"+new URLSearchParams({referrer:document.referrer,screen:screen.width+"x"+screen.height,user:"severak",utcoffset:"1"}))};sessionStorage.setItem("_swa","1");</script>
 </head>
@@ -63,6 +89,7 @@
 <a class="github-fork-ribbon" href="https://github.com/severak/cyber-music-studio" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
 
 <div class="ub-container">
+    <br><br>
 
     <div class="ub-box" id="box_welcome">
         <img src="img/preview.png" class="ub-fit-img">
@@ -70,9 +97,6 @@
         <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
         <center><button id="power" class="ub-button">OK</button></center>
     </div>
-    <br><br>
-
-
 
     <form class="ub-form ub-hidden" id="form">
         <div class="ub-box" id="box_traveller">
@@ -97,7 +121,7 @@
 
                     <div class="ub-cols">
                         <div class="ub-same">
-                            HI <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_hi">
+                            EQ HI <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_hi">
                         </div>
                         <div class="ub-same">
                             MID <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_mid">
@@ -106,31 +130,31 @@
                             LO <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_low">
                         </div>
                         <div class="ub-same">
-                            PAN <input type="range" min="-1" max="1" step="0.01" value="0" id="bus_pan">
-                        </div>
-                        <div class="ub-same">
                             REVERB <input type="range" min="0" max="1" step="0.01" value="0.4" id="bus_reverb">
-                        </div>
-                        <div class="ub-same">
-                            VOL <input type="range" min="0" max="1" step="0.01" value="0.5" id="bus_vol">
                         </div>
                     </div>
 
                 </div>
                 <div>
-                    <div class="ub-cols">
+                    <div class="ub-cols big-buttons">
                         <div class="ub-same"><button id="record">RECORD</button></div>
-                        <div class="ub-same"><button id="stop">STOP</button></div>
-                        <div class="ub-same"><button id="play">PLAY</button></div>
-                        <div class="ub-same"><a href="#" id="recording_download" class="ub-hidden">DOWNLOAD IT</a></div>
+                        <div class="ub-same"><button id="stop">STOP/EJECT</button></div>
+                        <div class="ub-same"><button id="play" >PLAY</button></div>
                     </div>
-                    <img src="img/tape.png">
+                    <img src="img/tape.png" id="tape_img">
+                    <div id="tape_menu" class="ub-hidden big-buttons">
+                        <button id="open_file">open file...</button>
+                        <button id="save_file">save to file...</button>
+                        <input type="file" id="choose_file" class="ub-hidden" accept=".wav,.mp3,audio/wav,audio/mp3">
+
+                        <!-- TODO - doprovody -->
+                    </div>
                 </div>
             </div>
 
         </div>
 
-        <p>part of <a href="index.html">Cyber Music Studio™</a></p>
+        <footer>part of <a href="index.html">Cyber Music Studio™</a></footer>
 
     </form>
 </div>
@@ -182,7 +206,7 @@
         ctx.stroke();
     }
 
-    sk1 = function(out) {
+    sk1 = function() {
         var me = {};
 
         me.vol = 0.5;
@@ -190,12 +214,11 @@
         me.buffer = hb.ac.createBuffer(1, hb.ac.sampleRate * 1, hb.ac.sampleRate);
 
         me._ac = hb.ac;
-        if (!out) out = hb.ac.destination;
-        me._out = out;
+        me.output = hb.makeGain(1);
 
         me._vol = hb.makeGain(me.vol);
         me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
-        me._vol.connect(me._out);
+        me._vol.connect(me.output);
 
         // me._notes = [];
         me._voices = {};
@@ -301,19 +324,27 @@
         ub.gebi('form').reset();
         hb.start();
 
+        window.sk = sk1();
+        hb.chnget(sk, 'foot16');
+        hb.chnget(sk, 'foot8');
+        hb.chnget(sk, 'foot4');
+        hb.chnget(sk, 'foot2');
+        hb.chnget(sk, 'strings16');
+        hb.chnget(sk, 'strings4');
+        keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
+
         tape = hb.TapeRecorder();
 
         bus = hb.MixStrip();
         hb.chnget(bus, 'hi', 'bus_hi');
         hb.chnget(bus, 'low', 'bus_low');
         hb.chnget(bus, 'mid', 'bus_mid');
-        hb.chnget(bus, 'pan', 'bus_pan');
         hb.chnget(bus, 'reverb', 'bus_reverb');
-        hb.chnget(bus, 'vol', 'bus_vol');
 
+        hb.chain(sk.output, bus.input);
         hb.chain(bus.output, tape.input);
-        hb.chain(tape.output, hb.ac.destination);
-
+        hb.chain(tape.output, hb.ac.destination); // TODO gain
+        hb.chain(bus.output, hb.ac.destination); // TODO gain
 
 
         /*
@@ -339,40 +370,61 @@
 
          */
 
-        window.sk = sk1(bus.input);
-        hb.chnget(sk, 'foot16');
-        hb.chnget(sk, 'foot8');
-        hb.chnget(sk, 'foot4');
-        hb.chnget(sk, 'foot2');
-        hb.chnget(sk, 'strings16');
-        hb.chnget(sk, 'strings4');
-        keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
+
 
         ub.on('record', 'click', function (ev) {
             ub.stop(ev);
+            ub.addClass('tape_menu', 'ub-hidden');
+            ub.delClass('tape_img', 'ub-hidden');
             if (tape.status=='standby') {
                 tape.record();
+                ub.addClass('tape_img', 'is-blinking');
             }
         });
 
         ub.on('stop', 'click', function (ev) {
             ub.stop(ev);
-            if (tape.status=='recording') {
-                setTimeout(function () {
-                    var uri = tape._audio.src; // TODO - hack do this in better way
-                    ub.delClass('recording_download', 'ub-hidden');
-                    ub.gebi('recording_download').href = uri;
-                }, 100);
+            if (tape.status=='standby') {
+                ub.delClass('tape_menu', 'ub-hidden');
+                ub.addClass('tape_img', 'ub-hidden');
             }
-            tape.stop();
 
+            tape.stop();
+            ub.delClass('tape_img', 'is-blinking');
         });
 
         ub.on('play', 'click', function (ev) {
             ub.stop(ev);
+            ub.addClass('tape_menu', 'ub-hidden');
+            ub.delClass('tape_img', 'ub-hidden');
             if (tape.status=='standby') {
-                tape.play();
+                ub.addClass('tape_img', 'is-blinking');
+                tape.play(function () {
+                    ub.delClass('tape_img', 'is-blinking');
+                });
             }
+        });
+
+        ub.on('open_file', 'click', function (ev) {
+            ub.stop(ev);
+            ub.addClass('tape_menu', 'ub-hidden');
+            ub.delClass('tape_img', 'ub-hidden');
+            ub.gebi('choose_file').click();
+        });
+
+        ub.on('save_file', 'click', function (ev) {
+            ub.stop(ev);
+            ub.addClass('tape_menu', 'ub-hidden');
+            ub.delClass('tape_img', 'ub-hidden');
+            tape.downloadFile();
+        });
+
+        ub.on('choose_file', 'change', function (ev) {
+            var file = ev.target.files[0];
+            if (!file) {
+                return;
+            }
+            tape.loadLocalFile(file);
         });
 
 

@@ -12,3 +12,4 @@ Also it uses custom javascript library and CSS framework (both called `uboot`) a
 
 - [JZZ.js](https://github.com/jazz-soft/JZZ) for MIDI connectivity and keyboard widget
 - [Audio Recorder Polyfill](https://github.com/ai/audio-recorder-polyfill) for WAV recording
+- cliparts from [OpenClipArt](https://openclipart.org/) and textures from [3D Jugle](https://3djungle.net/textures/)
