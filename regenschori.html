@@ -52,10 +52,6 @@
             text-decoration-style: dashed;
         }
 
-        .tabs {
-            font-size: 150%;
-        }
-
         .ub-container {
             max-width: 60em !important;
         }
@@ -70,7 +66,7 @@
             }
         }
 
-        .big-buttons button {
+        .big-buttons button, .big-buttons label {
             width: 98%;
             font-weight: bold;
             font-size: x-large;
@@ -100,21 +96,38 @@
 
     <form class="ub-form ub-hidden" id="form">
         <div class="ub-box" id="box_traveller">
-            <img src="img/regenschori.png">
+
+
+            <div class="ub-cols">
+                <img src="img/regenschori.png">
+                <div>ORGAN VOL <input type="range" min="0" max="1" step="0.01" value="0.5" id="A"></div>
+                <div>TAPE VOL <input type="range" min="0" max="1" step="0.01" value="0.5" id="B"></div>
+            </div>
+
 
             <div class="ub-cols">
                 <div>
                     <canvas style="width: 440px; height: 40px; background-color: white" id="waveform"></canvas>
 
-                    <div class="ub-cols tabs">
-                    <div><input type="checkbox" class="ub-checkbutton" id="foot16"><label for="foot16" class="ub-checkbutton">16'</label></div>
-                    <div><input type="checkbox" class="ub-checkbutton" id="foot8" checked><label for="foot8" class="ub-checkbutton">8'</label></div>
-                    <div><input type="checkbox" class="ub-checkbutton" id="foot4"><label for="foot4" class="ub-checkbutton">4'</label></div>
-                    <div><input type="checkbox" class="ub-checkbutton" id="foot2"><label for="foot2" class="ub-checkbutton">2'</label></div>
-                    <div><input type="checkbox" class="ub-checkbutton" id="strings16"><label for="strings16" class="ub-checkbutton">STRINGS 16'</label></div>
-                    <div><input type="checkbox" class="ub-checkbutton" id="strings4"><label for="strings4" class="ub-checkbutton">STRINGS 4'</label></div>
+                    <div class="ub-cols big-buttons">
+                        <div><input type="checkbox" class="ub-checkbutton" id="foot16"><label for="foot16" class="ub-checkbutton">16'</label></div>
+                        <div><input type="checkbox" class="ub-checkbutton" id="foot8" checked><label for="foot8" class="ub-checkbutton">8'</label></div>
+                        <div><input type="checkbox" class="ub-checkbutton" id="foot4"><label for="foot4" class="ub-checkbutton">4'</label></div>
+                        <div><input type="checkbox" class="ub-checkbutton" id="foot2"><label for="foot2" class="ub-checkbutton">2'</label></div>
+                        <div><input type="checkbox" class="ub-checkbutton" id="strings16"><label for="strings16" class="ub-checkbutton">STRINGS 16'</label></div>
+                        <div><input type="checkbox" class="ub-checkbutton" id="strings4"><label for="strings4" class="ub-checkbutton">STRINGS 4'</label></div>
+
                     </div>
+                    <br>
+                    <div class="ub-cols big-buttons">
+                        <div><input type="checkbox" class="ub-checkbutton" id="boost"><label for="boost" class="ub-checkbutton">BOOST</label></div>
+                        <div><input type="checkbox" class="ub-checkbutton" id="vibrato"><label for="vibrato" class="ub-checkbutton">VIBRATO</label></div>
+                        <div><input type="checkbox" class="ub-checkbutton" id="vibrato_fast"><label for="vibrato_fast" class="ub-checkbutton">FAST</label></div>
+                        <div><input type="checkbox" class="ub-checkbutton" id="vibrato_heavy"><label for="vibrato_heavy" class="ub-checkbutton">HEAVY</label></div>
+                    </div>
+                    <br>
                     <div>
+
                         <div id="keyboard3"></div>
                         MIDI input: <select id="select_midi_in3"></select>
                     </div>
@@ -231,6 +244,15 @@
         me.strings16 = false;
         me.strings4 = false;
 
+        me.boost = false;
+        me.vibrato = false;
+        me.vibrato_fast = false;
+        me.vibrato_heavy = false;
+
+        me._lfo = hb.makeOsc('sine', 3);
+        me._vibratoGain = hb.makeGain(0);
+        hb.chain(me._lfo, me._vibratoGain);
+
         me.param = function(name, val) {
             me[name] = val;
             if (name=='vol') me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
@@ -240,6 +262,19 @@
             if (name=='foot2') me.makeWave();
             if (name=='strings16') me.makeWave();
             if (name=='strings4') me.makeWave();
+            if (name=='boost') me.makeWave();
+            if (name=='vibrato') me.setupVibrato();
+            if (name=='vibrato_fast') me.setupVibrato();
+            if (name=='vibrato_heavy') me.setupVibrato();
+        };
+
+        me.setupVibrato = function() {
+            hb.moveTo(me._lfo.frequency, me.vibrato_fast ? 10 : 3, 0.5);
+            if (me.vibrato) {
+                hb.moveTo(me._vibratoGain.gain, me.vibrato_heavy ? 50 : 10, 0.1);
+            } else {
+                hb.moveTo(me._vibratoGain.gain, 0, 0.1);
+            }
         };
 
         me.makeWave = function() {
@@ -247,14 +282,20 @@
             var saw = hb.generators.saw;
 
             function organwave(n, p) {
-                var out = 0;
-                if (p.foot16) out += sin(n) / 6;
-                if (p.foot8) out += sin(n * 2) /6;
-                if (p.foot4) out += sin(n * 4) /6;
-                if (p.foot2) out += sin(n * 8) /6;
 
-                if (p.strings16) out += saw(n) / 6;
-                if (p.strings4) out += saw((n * 4) % 1 ) / 6;
+                var parts = 6;
+                if (p.boost) {
+                    parts = 0 + p.foot16 + p.foot8 + p.foot4 + p.foot2 + p.strings16 + p.strings4;
+                }
+
+                var out = 0;
+                if (p.foot16) out += sin(n) / parts;
+                if (p.foot8) out += sin(n * 2) / parts;
+                if (p.foot4) out += sin(n * 4) / parts;
+                if (p.foot2) out += sin(n * 8) / parts;
+
+                if (p.strings16) out += saw(n) / parts;
+                if (p.strings4) out += saw((n * 4) % 1 ) / parts;
                 return out;
             }
 
@@ -265,6 +306,7 @@
                 foot2: me.foot2,
                 strings16: me.strings16,
                 strings4: me.strings4,
+                boost: me.boost
             }, hb.midi2cps(60) * 2);
             showWave(me.buffer);
         };
@@ -276,6 +318,8 @@
             vox._env = hb.makeGain();
 
             vox._osc.connect(vox._env);
+            me._vibratoGain.connect(vox._osc.detune);
+
             hb.moveTo(vox._env.gain, 1, 0.1);
 
             vox._env.connect(me._vol);
@@ -316,6 +360,21 @@
         return me;
     };
 
+    function Mix() {
+        var me = {};
+        me.A = hb.makeGain(0.5);
+        me.B = hb.makeGain(0.5);
+        hb.chain(me.A, hb.ac.destination);
+        hb.chain(me.B, hb.ac.destination);
+
+        me.param = function(name, val) {
+            if (name=='A') hb.setNow(me.A.gain, val);
+            if (name=='B') hb.setNow(me.B.gain, val);
+        };
+
+        return me;
+    };
+
     ub.on("power","click",  function(ev){
         ub.stop(ev);
         ub.addClass("box_welcome", 'ub-hidden');
@@ -331,6 +390,10 @@
         hb.chnget(sk, 'foot2');
         hb.chnget(sk, 'strings16');
         hb.chnget(sk, 'strings4');
+        hb.chnget(sk, 'boost');
+        hb.chnget(sk, 'vibrato');
+        hb.chnget(sk, 'vibrato_fast');
+        hb.chnget(sk, 'vibrato_heavy');
         keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
 
         tape = hb.TapeRecorder();
@@ -341,36 +404,14 @@
         hb.chnget(bus, 'mid', 'bus_mid');
         hb.chnget(bus, 'reverb', 'bus_reverb');
 
+        mixer = Mix();
+        hb.chnget(mixer, 'A');
+        hb.chnget(mixer, 'B');
+
         hb.chain(sk.output, bus.input);
         hb.chain(bus.output, tape.input);
-        hb.chain(tape.output, hb.ac.destination); // TODO gain
-        hb.chain(bus.output, hb.ac.destination); // TODO gain
-
-
-        /*
-
-         Lower manual voices: Dolce 8’, Principale 8’, Ottava 4’
-         Vibrato: Slow/Fast, Light/Heavy, Vibrato Off/On
-         Reverb: Off/On
-         Tremolo: Lower manual Off/On, Upper Manual Off/On, Speed (knob)
-         Repeat/Percussion: Lower Manual Off/On, Upper Manual Off/On, Repeat Speed(knob), Repeat/Percussion, Percussion Length(knob)
-         Multi-Tone Booster: 16', 8', 4', 2-2/3', All Booster Off/On, Multi-Tone Booster Off/On
-         Voice Tabs: Bass 16', Strings 16', Flute 8', Oboe 8', Trumpet 8', Strings 8', Flute 4', Strings 4', 2-2/3'
-         Brilliant Tab
-         Grey Keys Selector: Treble/Bass
-         Pedal Bass Manual Soft/Sharp
-         Percussion: Off/On, Long/Short
-         Knobs: Bass Manual Balance, Lower Manual Balance
-
-        16     1
-        8      2
-        4      4
-        2 2/3  6.66
-
-
-         */
-
-
+        hb.chain(bus.output, mixer.A);
+        hb.chain(tape.output, mixer.B);
 
         ub.on('record', 'click', function (ev) {
             ub.stop(ev);
