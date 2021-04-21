@@ -327,7 +327,7 @@ hb.MixStrip = function() {
 
 hb.TapeRecorder = function() {
 	var me = {};
-	me.playtrough = false; // TODO - implement
+	me.playtrough = false;
 	me.status = 'standby';
 	me.input = hb.makeGain(1);
 	me.output = hb.makeGain(1);
@@ -349,15 +349,19 @@ hb.TapeRecorder = function() {
     };
 
 	me.downloadFile = function() {
-	    // TODO
+	    document.location = me._audio.src;
     };
+
+	me.makeFilename = function() {
+		return "recording" + (new Date().toISOString().replace('~[:- ]~g', ''));
+	};
 
 	me.record = function () {
 		me.status = 'recording';
-		// me.output.gain.setValueAtTime(0, hb.ac.currentTime);
+		hb.setNow(me.output.gain, me.playtrough ? 1 : 0);
 		me._wip = [];
 
-		var mediaRecorder = new MediaRecorder(me._dest.stream, {mimeType: "audio/wav"});
+		var mediaRecorder = MediaRecorder.isTypeSupported("audio/wav") ? new MediaRecorder(me._dest.stream, {mimeType: "audio/wav"}) : new WaveAudioRecorder(me._dest.stream, {mimeType: "audio/wav"});
 
 		mediaRecorder.addEventListener('dataavailable', function(evt) {
 			me._wip.push(evt.data);
@@ -365,7 +369,7 @@ hb.TapeRecorder = function() {
 
 		mediaRecorder.addEventListener('stop', function(evt) {
 			me.status = 'standby';
-			var blob = new Blob(me._wip, { 'type' : 'audio/wav' });
+			var blob = new File(me._wip, me.makeFilename());
 			me._audio.src = URL.createObjectURL(blob);
 			me._wip = [];
 		});
@@ -378,20 +382,27 @@ hb.TapeRecorder = function() {
 		if (me.status=='recording') {
             me._mediaRecorder.stop();
         } else if (me.status=='playing') {
-			me.input.gain.setValueAtTime(1, hb.ac.currentTime);
-            me._audio.pause();
+			me._audio.pause();
         }
 		me.status = 'standby';
+		hb.setNow(me.input.gain, 0);
+		hb.setNow(me.output.gain, 0);
     };
 
 	me.autostop = function() {
 	    // TODO
     };
 
-	me.play = function () {
+	me.play = function (onStop) {
 		me.status = 'playing';
-		me.input.gain.setValueAtTime(0, hb.ac.currentTime);
+		hb.setNow(me.input.gain, 0);
+		hb.setNow(me.output.gain, 1);
+		me._audio.currentTime = 0;
         me._audio.play();
+        me._audio.onended = function () {
+			me.status = 'standby';
+			if (onStop) onStop();
+		};
 	};
 
 	return me;
