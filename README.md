@@ -2,7 +2,9 @@
 
 *not your usual DAW. Work in progress.*
 
-This will be self-contained browser-based music making program. It's not finished yet, but you can try [various demos of it](https://severak.github.io/cyber-music-studio/).
+This will be self-contained browser-based music making program. 
+
+It's not finished yet, but you can try [various demos of it](https://severak.github.io/cyber-music-studio/).
 
 ![](img/preview.png)
 
@@ -12,4 +14,9 @@ Also it uses custom javascript library and CSS framework (both called `uboot`) a
 
 - [JZZ.js](https://github.com/jazz-soft/JZZ) for MIDI connectivity and keyboard widget
 - [Audio Recorder Polyfill](https://github.com/ai/audio-recorder-polyfill) for WAV recording
+- [Wavy Jones](https://github.com/stuartmemo/wavy-jones) oscilloscope
 - cliparts from [OpenClipArt](https://openclipart.org/) and textures from [3D Jugle](https://3djungle.net/textures/)
+
+Made by [Severák](http://tilde.town/~severak/) in 2021.
+
+Thanks for 

@@ -1,0 +1,10 @@
+https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code
+
+https://en.wikipedia.org/wiki/QWERTZ#/media/File:Latin_keyboard_layouts_by_country_in_Europe_map.PNG
+
+https://github.com/jazz-soft/JZZ-input-Kbd/blob/master/javascript/JZZ.input.Kbd.js#L25
+
+- buffersource node umí detuning -> vibrato
+
+https://dzone.com/articles/exploring-html5-web-audio
+https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
