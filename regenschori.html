@@ -181,6 +181,36 @@
         wrap.setSynth(synth);
         kbd.connect(wrap);
 
+        var ascii = JZZ.input.ASCII({
+            Z: 'C4',
+            S: 'C#4',
+            X: 'D4',
+            D: 'D#4',
+            C: 'E4',
+            V: 'F4',
+            G: 'F#4',
+            B: 'G4',
+            H: 'G#4',
+            N: 'A4',
+            J: 'A#4',
+            M: 'B4',
+            // + octave
+            Q: 'C5',
+            2: 'C#5',
+            W: 'D5',
+            3: 'D#5',
+            E: 'E5',
+            R: 'F5',
+            5: 'F#5',
+            T: 'G5',
+            6: 'G#5',
+            Y: 'A5',
+            7: 'A#5',
+            U: 'B5',
+        });
+
+        ascii.connect(kbd);
+
         // handles all the selection stuff
         midiIn.onSelect = function(name) {
             JZZ().openMidiIn(name).and(function () {
@@ -395,38 +425,6 @@
         hb.chnget(sk, 'vibrato_fast');
         hb.chnget(sk, 'vibrato_heavy');
         keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
-
-        var ascii = JZZ.input.ASCII({
-            Z: 'C4',
-            S: 'C#4',
-            X: 'D4',
-            D: 'D#4',
-            C: 'E4',
-            V: 'F4',
-            G: 'F#4',
-            B: 'G4',
-            H: 'G#4',
-            N: 'A4',
-            J: 'A#4',
-            M: 'B4',
-            // + octave
-            Q: 'C5',
-            2: 'C#5',
-            W: 'D5',
-            3: 'D#5',
-            E: 'E5',
-            R: 'F5',
-            5: 'F#5',
-            T: 'G5',
-            6: 'G#5',
-            Y: 'A5',
-            7: 'A#5',
-            U: 'B5',
-        });
-
-        var wrap = JZZ.synth.Severak();
-        wrap.setSynth(sk);
-        ascii.connect(wrap);
 
         tape = hb.TapeRecorder();
 
