@@ -40,18 +40,6 @@
             font-size: 200%;
         }
 
-        #scope {
-            padding: 0;
-            width: 100%;
-            height: 80px;
-            background-color: #000;
-        }
-
-        #recording_download {
-            color: black;
-            text-decoration-style: dashed;
-        }
-
         .ub-container {
             max-width: 60em !important;
         }
@@ -127,9 +115,9 @@
                     </div>
                     <br>
                     <div>
-
+                        Use computer keyboard or following widget:<br/>
                         <div id="keyboard3"></div>
-                        MIDI input: <select id="select_midi_in3"></select>
+                        or MIDI input: <select id="select_midi_in3"></select>
                     </div>
 
                     <div class="ub-cols">
@@ -181,32 +169,48 @@
         wrap.setSynth(synth);
         kbd.connect(wrap);
 
+        kbd.getKey('F4').setInnerHTML('Z');
+        kbd.getKey('C5').setInnerHTML('B');
+        kbd.getKey('F5').setInnerHTML('Q');
+        kbd.getKey('C6').setInnerHTML('T');
+        kbd.getKey('F6').setInnerHTML('I');
+        kbd.getKey('C7').setInnerHTML(']');
+
         var ascii = JZZ.input.ASCII({
-            Z: 'C4',
-            S: 'C#4',
-            X: 'D4',
-            D: 'D#4',
-            C: 'E4',
-            V: 'F4',
-            G: 'F#4',
-            B: 'G4',
-            H: 'G#4',
-            N: 'A4',
-            J: 'A#4',
-            M: 'B4',
-            // + octave
-            Q: 'C5',
-            2: 'C#5',
-            W: 'D5',
-            3: 'D#5',
-            E: 'E5',
-            R: 'F5',
-            5: 'F#5',
-            T: 'G5',
-            6: 'G#5',
-            Y: 'A5',
-            7: 'A#5',
-            U: 'B5',
+            // lower row:
+            Z: 'F4',
+            S: 'F#4',
+            X: 'G4',
+            D: 'G#4',
+            C: 'A4',
+            F: 'A#4',
+            V: 'B4',
+            B: 'C5',
+            H: 'C#5',
+            N: 'D5',
+            J: 'D#5',
+            M: 'E5',
+            // upper row:
+            Q: 'F5',
+            2: 'F#5',
+            W: 'G5',
+            3: 'G#5',
+            E: 'A5',
+            4: 'A#5',
+            R: 'B5',
+            T: 'C6',
+            6: 'C#6',
+            Y: 'D6',
+            7: 'D#6',
+            U: 'E6',
+            I: 'F6',
+            9: 'F#6',
+            O: 'G6',
+            0: 'G#6',
+            P: 'A6',
+            '%': 'A#6',
+            '[': 'B6',
+            ']': 'C7'
         });
 
         ascii.connect(kbd);
