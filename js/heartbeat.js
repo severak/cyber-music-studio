@@ -678,7 +678,7 @@ if (window.ub && ub.on) {
 			ub.on(elem, 'change', function(){
 				synth.param(param, ub.tonumber(ub.gebi(elem).value));
 			});
-			synth.param(elem, ub.tonumber(ub.gebi(elem).value));
+			synth.param(param, ub.tonumber(ub.gebi(elem).value));
 			if (ub.gebi(elem).getAttribute("type")=="range") {
 				// slider is adjustable in real time
 				ub.on(elem, 'input', function(){
