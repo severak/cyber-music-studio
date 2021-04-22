@@ -19,4 +19,4 @@ Also it uses custom javascript library and CSS framework (both called `uboot`) a
 
 Made by [Severák](http://tilde.town/~severak/) in 2021.
 
-Thanks for 
+Thanks for all the fish.
