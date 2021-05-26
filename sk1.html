@@ -125,6 +125,12 @@
                 <div class="ub-same"><label><input type="checkbox" id="org4" > 4"</label></div>
             </div>
 
+            <div><strong>CUSTOM SOUND</strong></div>
+
+            <div>
+                <input type="file" accept="audio/wav" id="choose_sample">
+            </div>
+
             <div><strong>COMMON</strong></div>
 
             <div class="ub-cols">
@@ -249,6 +255,7 @@
         me.sustain = 0.8;
         me.release = 0.5;
 
+        me.once = false;
         me.buffer = hb.ac.createBuffer(1, hb.ac.sampleRate * 1, hb.ac.sampleRate);
 
         me._ac = hb.ac;
@@ -281,7 +288,7 @@
             var ac = hb.ac;
             var freq = hb.midi2cps(nn);
             var vox = {};
-            vox._osc = hb.makeSamplerLoopOsc(me.buffer, freq);
+            vox._osc = me.once ? hb.makeSamplerOsc(me.buffer, freq) : hb.makeSamplerLoopOsc(me.buffer, freq);
             vox._env = hb.makeGain();
 
             vox._osc.connect(vox._env);
@@ -508,6 +515,28 @@
                 org4: ub.gebi('org4').checked,
             }, hb.midi2cps(60) * 2);
             showWave(sk.buffer);
+        });
+
+        ub.on('choose_sample', 'change', function (ev) {
+            var file = ev.target.files[0];
+            if (!file) {
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(loadEvent) {
+                if (loadEvent.loaded < 500*1024) {
+                    // less then 500kB
+                    hb.ac.decodeAudioData(reader.result, function (buffer) {
+                        sk.buffer = buffer;
+
+                        sk.once = true;
+
+                        showWave(buffer);
+                    });
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
         });
 
         ub.on('record', 'click', function (ev) {
