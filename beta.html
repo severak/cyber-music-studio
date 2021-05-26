@@ -250,6 +250,239 @@ function keyboardMidiWrap(keyboardElemId, midiSelectorId, synth) {
     };
 }
 
+// Traveller
+// simple monophonic synth:
+// OSC -> VCF -> VCA
+hb.Traveller = function(out) {
+    var me = {};
+    me.vol = 0.25;
+    me.wave = 'sawtooth';
+    me.attack = 0.2;
+    me.decay = 0.5;
+    me.hold = true;
+    me.bite = false;
+    me.quack = false;
+    me.traveller = 22000;
+    me.lfo = 'sawtooth';
+    me.rate = 5;
+    me.amp = 0;
+    me.detune = 0;
+
+    me._ac = hb.ac;
+    if (!out) out = hb.ac;
+    me._out = out;
+
+    me._osc = hb.makeOsc(me.wave, 440);
+    me._vcf = hb.makeFilter('lowpass');
+    me._vca = hb.makeGain();
+    me._vol = hb.makeGain(me.vol);
+
+    me._lfo = hb.makeOsc(me.lfo, me.rate); // {-1, 1}
+    me._lfoAmp = hb.makeGain(me.amp);
+    me._lfoDetune = hb.makeGain(me.detune);
+
+    var normLFO = hb.makeAdder(hb.makeMultiplier(me._lfo, 0.5), 0.5);
+    hb.chain(normLFO, me._lfoAmp);
+    var modF = hb.makeAdder(1, hb.makeMultiplier(me._lfoAmp, -1));
+    var modulator = hb.makeGain(1);
+    modF.connect(modulator.gain);
+
+    var toCents = hb.makeGain(100);
+    hb.chain(me._lfo, me._lfoDetune, toCents, me._osc.detune); // detune LFO
+
+    hb.chain(me._osc, me._vcf, modulator, me._vca, me._vol, me._out.destination);
+
+    me.param = function(name, val) {
+        me[name] = val;
+
+        if (!me.quack && name=='traveller') {
+            me._vcf.frequency.setValueAtTime(me.traveller, me._ac.currentTime)
+        }
+
+        if (name=='vol') {
+            me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime)
+        }
+
+        if (name=='rate') {
+            me._lfo.frequency.setValueAtTime(me.rate, me._ac.currentTime)
+        }
+
+        if (name=='amp') {
+            me._lfoAmp.gain.setValueAtTime(me.amp, me._ac.currentTime)
+        }
+
+        if (name=='detune') {
+            me._lfoDetune.gain.setValueAtTime(me.detune, me._ac.currentTime)
+        }
+
+        if (name=='lfo') {
+            me._lfo.type = me.lfo;
+        }
+    };
+
+    me.noteOn = function(nn) {
+        me.lastN = nn;
+        var freq = hb.midi2cps(nn);
+
+        // switch OSC
+        me._osc.type = me.wave;
+        // TODO - SIN is crackling when changing freq
+        hb.moveTo(me._osc.frequency, freq, hb.clamp(0.1, me.attack / 2, 1));
+        hb.moveTo(me._vca.gain, 1, me.attack); // VCA ENV
+        me._vcf.Q.value = me.bite ? 10 : 1;
+        if (me.quack) { // VCF ENV:
+            hb.moveTo(me._vcf.frequency, me.traveller, me.attack);
+        } else {
+            hb.setNow(me._vcf.frequency, me.traveller);
+        }
+    };
+
+    me.noteOff = function(nn) {
+        if (!me.hold) return;
+        if (nn!=me.lastN) return;
+        hb.moveTo(me._vca.gain, 0, me.decay);
+        if (me.quack) {
+            hb.moveTo(me._vcf.frequency, 0, me.decay);
+        } else {
+            hb.setNow(me._vcf.frequency, me.traveller);
+        }
+    };
+
+    me.panic = function() {
+        hb.setNow(me._vca.gain, 0);
+    };
+
+    return me;
+};
+
+hb.AnalogNomad = function(out) {
+    var me = {};
+    me.vol = 0.25;
+
+    me.attack = 0.1;
+    me.decay = 0.1;
+    me.sustain = 0.8;
+    me.release = 0.5;
+
+    me.saw = 0.3;
+    me.pulse = 0.2;
+    me.sub = 0.1;
+    me.noise = 0.1;
+
+    // TODO - implement pulse width of PWM OSC
+
+    me.filter = 22000;
+    me.resonance = 5;
+    me.quack = true;
+
+    me._ac = hb.ac;
+    if (!out) out = hb.ac;
+    me._out = out;
+
+    me._vol = hb.makeGain(me.vol)
+    me._vol.connect(me._out.destination);
+
+    // me._notes = [];
+    me._voices = {};
+
+    me.param = function(name, val) {
+        me[name] = val;
+        if (name=='vol') me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
+    };
+
+    me._getEnv = function(max) {
+        return {
+            max: max,
+            attack: me.attack,
+            decay: me.decay,
+            sustain: me.sustain,
+            release: me.release
+        };
+    };
+
+    me._getFEnv = function() {
+        return {
+            max: 22000,
+            attack: me.attack,
+            decay: me.decay,
+            sustain: me.filter * me.sustain,
+            release: me.release
+        };
+    };
+
+
+    me._makeVoice = function(nn) {
+        var freq = hb.midi2cps(nn);
+        var vox = {};
+
+        vox._saw = hb.makeOsc('sawtooth', freq);
+        vox._pulse = hb.makeOsc('square', freq);
+        vox._sub = hb.makeOsc('square', freq/2);
+        vox._noise = hb.makeNoiseOsc();
+
+        vox._saw_gain = hb.makeGain(me.saw);
+        vox._pulse_gain = hb.makeGain(me.pulse);
+        vox._sub_gain = hb.makeGain(me.sub);
+        vox._noise_gain = hb.makeGain(me.noise);
+
+        vox._env = hb.makeGain();
+
+        vox._saw.connect(vox._saw_gain);
+        vox._pulse.connect(vox._pulse_gain);
+        vox._sub.connect(vox._sub_gain);
+        vox._noise.connect(vox._noise_gain);
+        vox._saw_gain.connect(vox._env);
+        vox._pulse_gain.connect(vox._env);
+        vox._sub_gain.connect(vox._env);
+        vox._noise_gain.connect(vox._env);
+
+        vox._filter = hb.makeFilter('lowpass');
+        vox._filter.Q.setValueAtTime(me.resonance, hb.ac.currentTime);
+        vox._env.connect(vox._filter);
+
+        hb.adsrStart(vox._env.gain, me._getEnv(1));
+        if (me.quack) {
+            vox._filter.frequency.setValueAtTime(0, hb.ac.currentTime);
+            hb.adsrStart(vox._filter.frequency, me._getFEnv());
+        } else {
+            vox._filter.frequency.setValueAtTime(me.filter, hb.ac.currentTime);
+        }
+
+        vox._filter.connect(me._vol);
+
+
+        vox.noteOff = function () {
+            var env = me._getEnv(1);
+            hb.adsrStop(vox._env.gain, env);
+            if (me.quack) {
+                hb.adsrStop(vox._filter.frequency, me._getFEnv());
+            }
+            vox._saw.stop(hb.ac.currentTime + env.release);
+            vox._pulse.stop(hb.ac.currentTime + env.release);
+            vox._sub.stop(hb.ac.currentTime + env.release);
+        };
+
+        return vox;
+    };
+
+    me.noteOn = function(nn) {
+        me._voices[nn] = me._makeVoice(nn);
+    };
+
+    me.noteOff = function(nn) {
+        if (!me._voices[nn]) return; // už není
+        me._voices[nn].noteOff();
+        delete me._voices[nn];
+    };
+
+    me.panic = function() {
+
+        me._vol.gain.setValueAtTime(0, me._ac.currentTime);
+    };
+
+    return me;
+};
+
 ub.on("power","click",  function(ev){
 	ub.stop(ev);
 	ub.addClass("box_welcome", 'ub-hidden');
@@ -259,7 +492,7 @@ ub.on("power","click",  function(ev){
 
 	ub.gebi('form').reset();
 	hb.start();
-	
+
 	window.traveller = hb.Traveller();
 	hb.chnget(traveller, "vol");
 	hb.chnget(traveller, "wave");
@@ -275,7 +508,7 @@ ub.on("power","click",  function(ev){
 	hb.chnget(traveller, "detune");
 
 	keyboardMidiWrap('keyboard', 'select_midi_in', traveller);
-	
+
 	window.nomad = hb.AnalogNomad();
 	hb.chnget(nomad, 'vol', 'n_vol');
 	hb.chnget(nomad, 'saw');
