@@ -44,6 +44,8 @@ partial definition, but you need to supply at least empty object (`{}`).
 
 these are complex components - synths, effect units and other devices.
 
+Each component has `input` and/or/nor `output`, zero or more params and this interface:
+
 - `var component = hb.ComponentName(out)`
 - `compoment.param(name, val)`
 - `component.noteOn(nn, vv)`
@@ -54,24 +56,38 @@ these are complex components - synths, effect units and other devices.
 
 ### MixStrip
 
-TBD
+mixing board strip-like component - it has EQ, reverb, panning and volume.
+
+Parameters are:
+
+- `hi` - gain of high frequencies (above 12 kHz)
+- `mid` - gain of mid frequencies (around 1000 Hz)
+- `low` - gain of low frequencies (below 80 Hz)
+- `pan` - panning (-1 hardleft, 0 center, +1 hardright)
+- `reverb` - how much of sound will be send to reverb (0-1)
+- `reverb_len` - length of reverb in seconds
+- `vol` - volume (0-1) 
+
+Gain is in dB (safe values are from -20 to +20). 
 
 ### TapeRecorder
 
-TBD
+simple component for recording and playing back WAV files. It has following API:
 
-### Traveller
+- `tape.record()` - starts recording
+- `tape.stop()` - stops recording/playback
+- `tape.play()` - plays back recorded audio
+- `tape.loadLocalFile(file)` - loads local `file` for playback
+- `tape.loadRemoteFile(url)` - loads remote file for playback
+- `tape.downloadFile()` - download currently loaded file to user's browser
+- `tape.makeFilename()` - used to generate filename used for recording
 
-TBD
-
-#### AnalogNomad
-
-TBD
+**Note** - this currently requires `wave-encoder-polyfill.js` as no browser currently implements WAV encoder (in `MediaRecorder`).
 
 ## cooperation with other libraries
 
-- ub - TBD
-- JZZ - TBD
+- ub - I use custom library called uboot for DOM-related stuff. There is `ub.chnget` function provided which uses this to watch inputs and use these as params for synth components.
+- JZZ - you need to use `JZZ.synth.Severak` (provided in this repo) to wrap synth components to use it with JZZ.js lib.
 - Tone.js, Pizziato.js and etc  - TBD
 
 ## coming from CSound
