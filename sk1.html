@@ -517,12 +517,15 @@
            }
         });
 
+        ub.on('recording_download', 'click', function (ev) {
+           ub.stop(ev);
+           tape.downloadFile();
+        });
+
         ub.on('stop', 'click', function (ev) {
             ub.stop(ev);
             if (tape.status=='recording') {
-                setTimeout(function () {
-                    tape.downloadFile();
-                }, 100);
+                ub.delClass('recording_download', 'ub-hidden');
             }
             tape.stop();
 
