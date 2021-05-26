@@ -346,6 +346,7 @@
 
         hb.chain(bus.output, tape.input);
         hb.chain(tape.output, hb.ac.destination);
+        hb.chain(bus.output, hb.ac.destination);
 
         window.sk = sk1(bus.input);
         hb.chnget(sk, 'vol', 'vol');
