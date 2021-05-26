@@ -521,9 +521,7 @@
             ub.stop(ev);
             if (tape.status=='recording') {
                 setTimeout(function () {
-                    var uri = tape._audio.src; // TODO - hack do this in better way
-                    ub.delClass('recording_download', 'ub-hidden');
-                    ub.gebi('recording_download').href = uri;
+                    tape.downloadFile();
                 }, 100);
             }
             tape.stop();
