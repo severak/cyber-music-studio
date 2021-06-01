@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UNO synth</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uboot.css">
+    <link rel="stylesheet" href="css/gh-fork-ribbon.css">
+    <script src="js/bluescreen.js"></script>
+    <script src="js/uboot.js"></script>
+    <script src="js/JZZ.js"></script>
+    <script src="js/JZZ.input.Kbd.js"></script>
+    <script src="js/JZZ.gui.Select.js"></script>
+    <script src="js/JZZ.synth.Severak.js"></script>
+    <script src="js/wavy-jones.js"></script>
+    <script src="js/heartbeat.js"></script>
+    <style>
+        body {
+            font-family: "Lucida Console", monospace;
+            background-color: plum;
+        }
+
+        .ub-box {
+            background-color: lightyellow;
+        }
+
+        a { color: black; text-decoration-style: dashed; }
+
+        #scope {
+            padding: 0;
+            width: 100%;
+            height: 80px;
+            background-color: #000;
+        }
+
+        #recording_download {
+            color: black;
+            text-decoration-style: dashed;
+        }
+    </style>
+    <script>if(!sessionStorage.getItem("_swa")&&document.referrer.indexOf(location.protocol+"//"+location.host)!== 0){fetch("https://counter.dev/track?"+new URLSearchParams({referrer:document.referrer,screen:screen.width+"x"+screen.height,user:"severak",utcoffset:"1"}))};sessionStorage.setItem("_swa","1");</script>
+</head>
+<body>
+
+<a class="github-fork-ribbon" href="https://github.com/severak/cyber-music-studio" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+
+<div class="ub-container">
+
+
+    <div class="ub-box" id="box_welcome">
+        <img src="img/preview.png" class="ub-fit-img">
+        <p>This is part of beta version of Cyber Music Studio™. It's not finished yet and can be broken at any moment.</p>
+        <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
+        <center><button id="power" class="ub-button"><big>OK</big></button></center>
+    </div>
+    <br><br>
+
+
+
+    <form class="ub-form ub-hidden ub-box" id="form">
+
+
+        <p>part of <a href="index.html">Cyber Music Studio™</a></p>
+
+    </form>
+</div>
+
+<script>
+
+    Metro = function(click) {
+        var me = {};
+        me._running = false;
+        me._nextStep = -1;
+
+        me.setBpm = function(bpm) {
+            me._stepTime = 60 / bpm;
+        };
+
+        me.start = function () {
+            if (me._running) {
+                return;
+            }
+            me._running = true;
+            me._nextStep = hb.ac.currentTime;
+            me.tick();
+        };
+
+        me.stop = function () {
+            me._running = false;
+        };
+
+        me.tick = function () {
+            if (hb.ac.currentTime >= me._nextStep) {
+                click();
+                me._nextStep = hb.ac.currentTime + me._stepTime;
+            }
+            if (me._running) {
+                setTimeout(me.tick, 1);
+            }
+        };
+
+        me.setBpm(120);
+        return me;
+    };
+
+
+    ub.on("power","click",  function(ev){
+        ub.stop(ev);
+        ub.addClass("box_welcome", 'ub-hidden');
+        ub.delClass("form", 'ub-hidden');
+
+        ub.gebi('form').reset();
+        hb.start();
+
+        unoIn = JZZ().openMidiIn('UNO Synth').or('no uno');
+        unoIn.and('uno ano!').connect(function(msg){ if (msg[0]!=0xF8) console.log(msg.toString()); });
+
+        unoOut = JZZ().openMidiOut('UNO Synth').or('no uno out');
+        unoOut.and('switch to program one').noteOn(0,60).wait(250).noteOff(0,60).program(0, 1);
+        // console.log(unoIn);
+
+    });
+</script>
+
+</body>
+</html>
