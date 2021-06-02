@@ -8,3 +8,5 @@ https://github.com/jazz-soft/JZZ-input-Kbd/blob/master/javascript/JZZ.input.Kbd.
 
 https://dzone.com/articles/exploring-html5-web-audio
 https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
+
+https://github.com/korinVR/mml2smf/blob/master/parser/mml.pegjs
