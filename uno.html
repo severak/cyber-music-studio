@@ -160,7 +160,10 @@
         } else if (channelCommand == 12  && synth.programChange) {
             synth.programChange(note, velocity);
         } else if (channelCommand == 14  && synth.pitchBend) {
-            synth.pitchBend(note, velocity);
+            var _14bit = velocity;
+            _14bit <<= 7;
+            _14bit |= note;
+            synth.pitchBend((_14bit - 0x2000) / 0x2000);
         } else if (channelCommand == 0xb) {
             if (note == 0x78 || note == 0x7b) {
                 synth.panic();
@@ -190,11 +193,11 @@
       CC : function (note, velocity) {
           console.log('CC', note, velocity);
       },
-      programChange : function (note, velocity) {
-        console.log('programChange', note, velocity);
+      programChange : function (program) {
+        console.log('programChange', program);
       },
-      pitchBend : function (note, velocity) {
-        console.log('pitchBend', note, velocity);
+      pitchBend : function (bend) {
+        console.log('pitchBend', bend);
       },
       sysex : function (data) {
           console.log('sysex', data);
