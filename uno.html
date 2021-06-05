@@ -44,7 +44,7 @@
 
 <a class="github-fork-ribbon" href="https://github.com/severak/cyber-music-studio" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
 
-<div class="ub-container">
+<div class="ub-container wrap">
 
 
     <div class="ub-box" id="box_welcome">
@@ -58,7 +58,10 @@
 
 
     <form class="ub-form ub-hidden ub-box" id="form">
-
+        <button id="play">play</button>
+        <button id="stop">stop</button>
+        <input class="ub-checkbutton" id="octave_up" type="checkbox"><label class="ub-checkbutton" for="octave_up">octave up</label>
+        <button id="preset" class="ub-hidden">show preset</button>
 
         <p>part of <a href="index.html">Cyber Music Studio™</a></p>
 
@@ -72,8 +75,9 @@
         me._running = false;
         me._nextStep = -1;
 
-        me.setBpm = function(bpm) {
-            me._stepTime = 60 / bpm;
+        me.setBpm = function(bpm, div) {
+            div = div || 4;
+            me._stepTime = 60 / (bpm * div);
         };
 
         me.start = function () {
@@ -136,30 +140,78 @@
 
     midi2call = function(midi_data, synth, only_channel) {
         only_channel = only_channel || -1;
-        // TODO check midi_data.length
-        var b = midi_data[0];
+        var firstByte = midi_data[0];
         var note = midi_data[1];
         var velocity = midi_data[2];
-        if (b < 0 || b > 255) return; // invalid MIDI data
-        var channel = b & 15;
-        var s = b >> 4;
+        if (firstByte < 0 || firstByte > 255) return; // invalid MIDI data
+        var channel = firstByte & 15;
+        var channelCommand = firstByte >> 4;
 
         if (only_channel > 0 && channel != only_channel) {
             return; // event on different channel
         }
 
-        if (s == 8 || (s == 9 && velocity == 0) ) {
+        if (channelCommand == 8 || (channelCommand == 9 && velocity == 0) ) {
             synth.noteOff(note);
-        } else if (s == 9) {
+        } else if (channelCommand == 9) {
             synth.noteOn(note, velocity);
-        } else if (s == 0xb) {
-            if (n == 0x78 || n == 0x7b) {
+        } else if (channelCommand == 11  && synth.CC) {
+            synth.CC(note, velocity);
+        } else if (channelCommand == 12  && synth.programChange) {
+            synth.programChange(note, velocity);
+        } else if (channelCommand == 14  && synth.pitchBend) {
+            synth.pitchBend(note, velocity);
+        } else if (channelCommand == 0xb) {
+            if (note == 0x78 || note == 0x7b) {
                 synth.panic();
-            } else if (n == 0x40) {
+            } else if (note == 0x40) {
                 // damper?
             }
+        } else if (firstByte == 0x0f && synth.sysex) {
+            synth.sysex(midi_data);
+        } else if (firstByte == 0xfa && synth.start) {
+            synth.start();
+        } else if (firstByte == 0xfc && synth.stop) {
+            synth.stop();
         }
 
+    };
+
+    dbgsyth = {
+      noteOn : function (n, v) {
+          console.log('note on', n, v);
+      },
+      noteOff : function (n, v) {
+          console.log('note off', n);
+      },
+      panic : function () {
+          console.log('PANIC!');
+      },
+      CC : function (note, velocity) {
+          console.log('CC', note, velocity);
+      },
+      programChange : function (note, velocity) {
+        console.log('programChange', note, velocity);
+      },
+      pitchBend : function (note, velocity) {
+        console.log('pitchBend', note, velocity);
+      },
+      sysex : function (data) {
+          console.log('sysex', data);
+
+          if (data.length>8) {
+              console.log('try parsing name:');
+              console.log('preset no ', data[8]);
+              console.log('name ', data.slice(8));
+          }
+
+      },
+      start : function () {
+          console.log('START!');
+      },
+      stop : function () {
+          console.log('STOP!');
+      }
     };
 
 
@@ -172,11 +224,56 @@
         hb.start();
 
         unoIn = JZZ().openMidiIn('UNO Synth').or('no uno');
-        unoIn.and('uno ano!').connect(function(msg){ if (msg[0]!=0xF8) console.log(msg.toString()); });
+        unoIn.and('uno ano!').connect(function(msg){ midi2call(msg, dbgsyth) });
 
         unoOut = JZZ().openMidiOut('UNO Synth').or('no uno out');
-        unoOut.and('switch to program one').noteOn(0,60).wait(250).noteOff(0,60).program(0, 1);
-        // console.log(unoIn);
+        unoOut.connect(function(msg){ midi2call(msg, dbgsyth) });
+
+        // official test song for sequencers - Der Mussolini by DAF
+        var notes = 'B2 E3 B2 D4 B2 B3 B2 B2 B3 B2 B3 B2 B3 A3 B2 B3'.split(' ');
+        var lastNote = false;
+        var notePos = 0;
+
+        var octaveOffset = 12;
+
+        var metro = Metro(function () {
+            var note = notes[notePos];
+            // hack transpose
+           var msg = JZZ.MIDI.noteOn(0, note, 100);
+           note = msg.getNote() + octaveOffset;
+
+            if (lastNote) {
+                unoOut.noteOff(0, lastNote);
+            }
+            unoOut.noteOn(0, note, 100);
+            lastNote = note;
+            notePos = ((notePos+ 1) % notes.length);
+        });
+        metro.setBpm(80);
+
+        ub.on('play', 'click', function (ev) {
+            ub.stop(ev);
+            metro.start();
+        });
+
+        ub.on('stop', 'click', function (ev) {
+            ub.stop(ev);
+            metro.stop();
+            unoOut.noteOff(0, lastNote);
+            lastNote = false;
+        });
+
+        ub.on('octave_up', 'change', function () {
+            octaveOffset = ub.gebi('octave_up').checked ? 24 : 12;
+        });
+
+        ub.on('preset', 'click', function (ev) {
+            ub.stop(ev);
+            console.log('tried sending MIDI');
+            unoOut.send([0xf0, 0x00, 0x21, 0x1a, 0x02, 0x01, 0x31, 0xf7]); // get active preset
+            unoOut.send([0xf0, 0x0, 0x21, 0x1a, 0x2, 0x1, 0x24, 0x1, 0x2c, 0xf7]); // get preset name
+            console.log('done');
+        });
 
     });
 </script>
