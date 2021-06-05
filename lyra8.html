@@ -11,7 +11,6 @@
     <script src="js/JZZ.js"></script>
     <script src="js/JZZ.input.Kbd.js"></script>
     <script src="js/JZZ.gui.Select.js"></script>
-    <script src="js/JZZ.synth.Severak.js"></script>
     <script src="js/wavy-jones.js"></script>
     <script src="js/heartbeat.js"></script>
     <style>
@@ -217,9 +216,9 @@
         // set up routing from external MIDI via HTML keyboard to synth itself
         var kbd = JZZ.input.Kbd({ at:keyboardElemId, pos:'N', wl: 50, ww:21, bl: 25, bw:12, from:'F4', to:'C7' });
         var midiIn = JZZ.gui.SelectMidiIn({ at: midiSelectorId });
-        var wrap = JZZ.synth.Severak();
-        wrap.setSynth(synth);
-        kbd.connect(wrap);
+        kbd.connect(function (msg) {
+           hb.midi2call(msg, synth);
+        });
 
         // handles all the selection stuff
         midiIn.onSelect = function(name) {
@@ -464,9 +463,10 @@
             I: 'C6'
         });
 
-        var wrap = JZZ.synth.Severak();
-        wrap.setSynth(lyra);
-        ascii.connect(wrap);
+
+        ascii.connect(function (msg) {
+            hb.midi2call(msg, lyra);
+        });
 
     });
 </script>
