@@ -254,6 +254,91 @@ hb.unchain = function(a) {
     return true;
 };
 
+// metronome
+hb.makeMetronome = function(click) {
+	var me = {};
+	me._running = false;
+	me._nextStep = -1;
+
+	me.setBpm = function(bpm, div) {
+		div = div || 4;
+		me._stepTime = 60 / (bpm * div);
+	};
+
+	me.setCps = function(cps) {
+		me._stepTime = 1 / cps;
+	};
+
+	me.start = function () {
+		if (me._running) {
+			return;
+		}
+		me._running = true;
+		me._nextStep = hb.ac.currentTime;
+		me.tick();
+	};
+
+	me.stop = function () {
+		me._running = false;
+	};
+
+	me.tick = function () {
+		if (hb.ac.currentTime >= me._nextStep) {
+			click();
+			me._nextStep = hb.ac.currentTime + me._stepTime;
+		}
+		if (me._running) {
+			setTimeout(me.tick, 1);
+		}
+	};
+
+	me.setBpm(120);
+	return me;
+};
+
+// MIDI stuff
+hb.midi2call = function(midi_data, synth, only_channel) {
+	// heavily inspired by JZZ.js and webmidi.js
+	only_channel = only_channel || -1;
+	var firstByte = midi_data[0];
+	var note = midi_data[1];
+	var velocity = midi_data[2];
+	if (firstByte < 0 || firstByte > 255) return; // invalid MIDI data
+	var channel = firstByte & 15;
+	var channelCommand = firstByte >> 4;
+
+	if (only_channel > 0 && channel != only_channel) {
+		return; // event on different channel
+	}
+
+	if (channelCommand == 8 || (channelCommand == 9 && velocity == 0) ) {
+		synth.noteOff(note);
+	} else if (channelCommand == 9) {
+		synth.noteOn(note, velocity);
+	} else if (channelCommand == 11  && synth.CC) {
+		synth.CC(note, velocity);
+	} else if (channelCommand == 12  && synth.programChange) {
+		synth.programChange(note, velocity);
+	} else if (channelCommand == 14  && synth.pitchBend) {
+		var _14bit = velocity;
+		_14bit <<= 7;
+		_14bit |= note;
+		synth.pitchBend((_14bit - 0x2000) / 0x2000);
+	} else if (channelCommand == 0xb) {
+		if (note == 0x78 || note == 0x7b) {
+			synth.panic();
+		} else if (note == 0x40) {
+			// damper?
+		}
+	} else if (firstByte == 0x0f && synth.sysex) {
+		synth.sysex(midi_data); // TODO - this was not tested
+	} else if (firstByte == 0xfa && synth.start) {
+		synth.start();
+	} else if (firstByte == 0xfc && synth.stop) {
+		synth.stop();
+	}
+};
+
 // components
 
 /*

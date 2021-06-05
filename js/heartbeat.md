@@ -40,6 +40,31 @@ these functions are for realtime manipulation of `AudioParam` interface.
 Default `env` definition is `{attack: 0.05, decay: 0.01, sustain: 0, release: 0.05, max: 1}`. You can supply only 
 partial definition, but you need to supply at least empty object (`{}`).
 
+### MIDI stuff
+
+- `hb.midi2call(midi_data, synth, only_channel)` - translates `midi_data` to method calls on `synth` instance, if `only_channel` is set then it uses only this channel and ignore others.
+
+Suported calls are:
+
+- `synth.noteOn(note, velocity)`
+- `synth.noteOff(note)`
+- `synth.panic()`
+- `synth.programChange(program)`
+- `synth.pitchBend(bend)` - note that raw values are recalculated to scale -1 to +1
+- `synth.CC(controller, value)` - control change
+- `synth.start()` - starts playback
+- `synth.stop()` - stops playback
+
+### metronome
+
+As `setTimeout` and `setInterval` notoriously bad at timing, there is metronome in this library. It can be used as base for your sequencers, arpegiators and stuff. It has following interface:
+
+- `metronome = hb.makeMetronome(callback)` - creates metronome instance with `callback` to be called at each tick
+- `metronome.setBpm(bpm, div=4)` - set tempo to `bpm` and `division` of whole note, default is 120 BPM (quarter notes)
+- `metronome.setCps(cps)` - set tempo in cycles per second
+- `metronome.start()` - starts metronome
+- `metronome.stop()` - stops it
+
 ## components
 
 these are complex components - synths, effect units and other devices.
@@ -87,8 +112,8 @@ simple component for recording and playing back WAV files. It has following API:
 ## cooperation with other libraries
 
 - ub - I use custom library called uboot for DOM-related stuff. There is `ub.chnget` function provided which uses this to watch inputs and use these as params for synth components.
-- JZZ - you need to use `JZZ.synth.Severak` (provided in this repo) to wrap synth components to use it with JZZ.js lib.
-- Tone.js, Pizziato.js and etc  - TBD
+- JZZ.js, webmidi.js and WebMIDI - use `hb.midi2call` to translate to synth calls
+- Tone.js, Pizziato.js and others  - as these libraries uses `audioNode` interface it's possible to connect these using `hb.chain`
 
 ## coming from CSound
 
