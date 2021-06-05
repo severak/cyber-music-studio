@@ -12,11 +12,6 @@
     <script src="js/JZZ.input.Kbd.js"></script>
     <script src="js/JZZ.gui.Select.js"></script>
     <script src="js/wavy-jones.js"></script>
-    <script type="module">
-        // TODO - tohle jinak
-        import AudioRecorder from 'https://cdn.jsdelivr.net/npm/audio-recorder-polyfill/index.js'
-        window.MediaRecorder = AudioRecorder
-    </script>
     <script src="js/heartbeat.js"></script>
     <style>
         body {
@@ -64,9 +59,8 @@
     <form class="ub-form ub-hidden ub-box" id="form">
         <h1>metro</h1>
 
-        <input type="number" min="30" max="180" value="120" id="bpm"> BMP
-        <input type="checkbox" id="every" class="ub-checkbutton"><label class="ub-checkbutton" for="every">every </label>
-        <input type="number" id="every_step" value="16">
+        <input type="number" min="30" max="180" value="120" id="bpm"> BMP /
+        <input type="number" min="30" max="180" value="4" id="div">
         <br>
         <button id="start">start</button>
         <button id="stop">stop</button>
@@ -77,44 +71,6 @@
 </div>
 
 <script>
-
-    Metro = function(click) {
-        var me = {};
-        me._running = false;
-        me._nextStep = -1;
-
-        me.setBpm = function(bpm) {
-            me._stepTime = 60 / bpm;
-        };
-
-        me.start = function () {
-            if (me._running) {
-                return;
-            }
-            me._running = true;
-            me._nextStep = hb.ac.currentTime;
-            me.tick();
-        };
-
-        me.stop = function () {
-            me._running = false;
-        };
-
-        me.tick = function () {
-            if (hb.ac.currentTime >= me._nextStep) {
-                click();
-                me._nextStep = hb.ac.currentTime + me._stepTime;
-            }
-            if (me._running) {
-                setTimeout(me.tick, 1);
-            }
-        };
-
-        me.setBpm(120);
-        return me;
-    };
-
-
     ub.on("power","click",  function(ev){
         ub.stop(ev);
         ub.addClass("box_welcome", 'ub-hidden');
@@ -136,7 +92,7 @@
             });
         };
 
-        metro = Metro(tik);
+        metro = hb.makeMetronome(tik);
 
         ub.on('start', 'click', function (ev) {
             ub.stop(ev);
@@ -149,17 +105,11 @@
         });
 
         function setBpm() {
-            if (ub.gebi('every').checked) {
-                metro.setBpm(ub.gebi('bpm').value * ub.gebi('every_step').value);
-            } else {
-                metro.setBpm(ub.gebi('bpm').value);
-            }
+            metro.setBpm(ub.gebi('bpm').value, ub.gebi('div').value);
         }
 
         ub.on('bpm', 'change', setBpm);
-        ub.on('every', 'change', setBpm);
-        ub.on('every_step', 'change', setBpm);
-
+        ub.on('div', 'change', setBpm);
     });
 </script>
 
