@@ -96,8 +96,8 @@
                 <div>
                     <div><strong>carrier</strong></div>
                     <div class="ub-cols">
-                        <div>V<input type="range" min="0" max="1" step="0.01" value="0" id="c_v"></div>
-                        <div>F<input type="range" min="0" max="16" step="1" value="0" id="c_f"></div>
+                        <div>V<input type="range" min="0" max="1" step="0.01" value="0.8" id="c_v"></div>
+                        <div>F<input type="number" min="1" max="16" step="1" value="1" id="c_f" style="width: 4em"></div>
                         <div>A<input type="range" min="0.01" max="1" step="0.01" value="0.01" id="c_a"></div>
                         <div>D<input type="range" min="0.01" max="1" step="0.01" value="0" id="c_d"></div>
                         <div>S<input type="range" min="0" max="1" step="0.01" value="0.5" id="c_s"></div>
@@ -106,7 +106,7 @@
                     <div><strong>modulator</strong></div>
                     <div class="ub-cols">
                         <div>V<input type="range" min="0" max="1" step="0.01" value="0" id="m_v"></div>
-                        <div>F<input type="range" min="0" max="16" step="1" value="0" id="m_f"></div>
+                        <div>F<input type="number" min="1" max="16" step="1" value="1" id="m_f"  style="width: 4em"></div>
                         <div>A<input type="range" min="0.01" max="1" step="0.01" value="0.01" id="m_a"></div>
                         <div>D<input type="range" min="0.01" max="1" step="0.01" value="0" id="m_d"></div>
                         <div>S<input type="range" min="0" max="1" step="0.01" value="0.8" id="m_s"></div>
@@ -230,15 +230,15 @@
         var me = {};
         me._voices = {};
 
-        me.c_v = 0.5;
-        me.c_f = 0;
+        me.c_v = 0.8;
+        me.c_f = 1;
         me.c_a = 0.01;
         me.c_d = 0.01;
         me.c_s = 0.2;
         me.c_r = 0.01;
 
         me.m_v = 0.5;
-        me.m_f = 0;
+        me.m_f = 1;
         me.m_a = 0.01;
         me.m_d = 0.01;
         me.m_s = 0.5;
@@ -253,21 +253,21 @@
         me._makeVoice = function(nn) {
             var freq = hb.midi2cps(nn);
             var vox = {};
-            vox.C = hb.makeOsc('sine', freq * (me.c_f + 1));
+            vox.C = hb.makeOsc('sine', freq);
             vox.C_env = hb.makeGain();
             hb.adsrStart(vox.C_env.gain, {attack: me.c_a, decay: me.c_d, sustain: me.c_s, release: me.c_r, max: me.c_v});
 
-            vox.M = hb.makeOsc('sine', freq / (me.m_f + 1));
+            vox.M = hb.makeOsc('sine', (freq * me.c_f) / me.m_f); // TODO - zde optimalizace
             vox.M_env = hb.makeGain();
-            hb.adsrStart(vox.M_env.gain, {attack: me.m_a, decay: me.m_d, sustain: me.m_s, release: me.m_r, max: 1});
+            hb.adsrStart(vox.M_env.gain, {attack: me.m_a, decay: me.m_d, sustain: me.m_s * 200 * me.m_v, release: me.m_r, max: me.m_v * 200});
 
             vox.M.connect(vox.M_env);
-            vox.M_env.connect(vox.C.detune);
+            vox.M_env.connect(vox.C.frequency);
             vox.C.connect(vox.C_env);
             vox.C_env.connect(me.output);
 
             vox.noteOff = function () {
-                hb.adsrStop(vox.M_env.gain, {attack: me.m_a, decay: me.m_d, sustain: me.m_s, release: me.m_r, max: 1});
+                hb.adsrStop(vox.M_env.gain, {attack: me.m_a, decay: me.m_d, sustain: me.m_s * 200 * me.m_v, release: me.m_r, max: me.m_v * 200});
                 vox.M.stop(hb.ac.currentTime + me.m_r);
 
                 hb.adsrStop(vox.C_env.gain, {attack: me.c_a, decay: me.c_d, sustain: me.c_s, release: me.c_r, max: me.c_v});
