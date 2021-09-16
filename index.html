@@ -4,7 +4,8 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<title>Severák's Cyber Music Studio</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<!-- <link rel="stylesheet" href=""> -->
+	<link rel="stylesheet" href="css/uboot.css">
+	<link rel="stylesheet" href="css/gh-fork-ribbon.css">
 	<meta property="og:title" content="Severák's Cyber Music Studio" />
 	<meta property="og:image" content="https://severak.github.io/cyber-music-studio/img/preview.png" />
 	<meta property="og:type" content="website" />
@@ -12,33 +13,43 @@
 	<script>if(!sessionStorage.getItem("_swa")&&document.referrer.indexOf(location.protocol+"//"+location.host)!== 0){fetch("https://counter.dev/track?"+new URLSearchParams({referrer:document.referrer,screen:screen.width+"x"+screen.height,user:"severak",utcoffset:"1"}))};sessionStorage.setItem("_swa","1");</script>
 	<style>
 	body {
-		background-color: #000;
-		font-family: monospace;
-		text-align: center;
-		color: deepskyblue;;
-	}
-	
-	a {
-		color: hotpink;
-		text-decoration: none;
+		font-family: "Lucida Console", monospace;
+		background: url("img/beta.jpg") #000 no-repeat fixed top center/cover;
 	}
 
-	img {
-		max-width: 100%;
-		max-height: 90vh;
+	.ub-box {
+		background-color: lightyellow;
+		margin-top: 300px;
+		padding: 1em;
+	}
+
+	a { color: black; text-decoration-style: dashed; }
+
+	.ub-container {
+		max-width: 60em !important;
 	}
 	</style>
-
 </head>
 <body>
 
-<img src="img/beta.jpg" alt="cyber music studio"><br>
-coming soon.... <strong>*</strong>
-<a href="fm.html">FM synth</a> <strong>*</strong>	
-<a href="regenschori.html">regenschori</a> <strong>*</strong>
-<a href="beta.html">beta</a> <strong>*</strong>
-<a href="sk1.html">SK1</a> <strong>*</strong>
-<a href="lyra8.html">LYRA-8</a> <strong>*</strong>
+<a class="github-fork-ribbon" href="https://github.com/severak/cyber-music-studio" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+
+<div class="ub-container">
+	<div class="ub-box">
+		<h1>Cyber Music Studio</h1>
+		<p>when finished, <strong>Cyber Music Studio</strong> will be standalone in-browser app for recording and mixing music. But it's not finished yet, so now there are only these instruments:</p>
+		<ul>
+			<li><a href="regenschori.html">Regenschori</a> - organ with tape recorder inspired by <a href="https://collection.maas.museum/object/405927">Sankei Stereo Entertainer</a></li>
+			<li><a href="fm.html">FM synth</a> - basic but usable FM synth (not finished yet)</li>
+			<li><a href="sk1.html">Sample propulsion laboratory</a> - PCM sampler playground</li>
+			<li><a href="lyra8.html">Lyra 8</a> - a parody/homage to <a href="https://somasynths.com/lyra-organismic-synthesizer/" target="_blank">Soma Laboratory Lyra-8</a></li>
+			<li><a href="beta.html">traveller and analog nomar</a> - port of <a href="http://tilde.town/~severak/studio/">my old VST plugins</a></li>
+			<li><a href="uno.html">UNO synth interface</a> - sequencer and input MIDI debugger for UNO synth (experimental)</li>
+			<li><a href="metro.html">metronome</a> test</li>
+		</ul>
+		<p><big>Have a fun!</big></p>
+	</div>
+</div>
 
 </body>
 </html>
