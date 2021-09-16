@@ -14,6 +14,7 @@
     <script src="js/wavy-jones.js"></script>
     <script src="js/wave-encoder-polyfill.js"></script>
     <script src="js/heartbeat.js"></script>
+    <script src="js/heartbeat.gm.js"></script>
     <style>
         body {
             font-family: "Lucida Console", monospace;
@@ -251,147 +252,6 @@
         };
     }
 
-    sk1 = function() {
-        var me = {};
-
-        me.vol = 0.5;
-
-        me.buffer = hb.ac.createBuffer(1, hb.ac.sampleRate * 1, hb.ac.sampleRate);
-
-        me._ac = hb.ac;
-        me.output = hb.makeGain(1);
-
-        me._vol = hb.makeGain(me.vol);
-        me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
-        me._vol.connect(me.output);
-
-        // me._notes = [];
-        me._voices = {};
-
-        me.foot16 = false;
-        me.foot8 = false;
-        me.foot4 = false;
-        me.foot2 = false;
-
-        me.strings16 = false;
-        me.strings4 = false;
-
-        me.boost = false;
-        me.vibrato = false;
-        me.vibrato_fast = false;
-        me.vibrato_heavy = false;
-
-        me._lfo = hb.makeOsc('sine', 3);
-        me._vibratoGain = hb.makeGain(0);
-        hb.chain(me._lfo, me._vibratoGain);
-
-        me.param = function(name, val) {
-            me[name] = val;
-            if (name=='vol') me._vol.gain.setValueAtTime(me.vol, me._ac.currentTime);
-            if (name=='foot16') me.makeWave();
-            if (name=='foot8') me.makeWave();
-            if (name=='foot4') me.makeWave();
-            if (name=='foot2') me.makeWave();
-            if (name=='strings16') me.makeWave();
-            if (name=='strings4') me.makeWave();
-            if (name=='boost') me.makeWave();
-            if (name=='vibrato') me.setupVibrato();
-            if (name=='vibrato_fast') me.setupVibrato();
-            if (name=='vibrato_heavy') me.setupVibrato();
-        };
-
-        me.setupVibrato = function() {
-            hb.moveTo(me._lfo.frequency, me.vibrato_fast ? 10 : 3, 0.5);
-            if (me.vibrato) {
-                hb.moveTo(me._vibratoGain.gain, me.vibrato_heavy ? 50 : 10, 0.1);
-            } else {
-                hb.moveTo(me._vibratoGain.gain, 0, 0.1);
-            }
-        };
-
-        me.makeWave = function() {
-            var sin = hb.generators.sin;
-            var saw = hb.generators.saw;
-
-            function organwave(n, p) {
-
-                var parts = 6;
-                if (p.boost) {
-                    parts = 0 + p.foot16 + p.foot8 + p.foot4 + p.foot2 + p.strings16 + p.strings4;
-                }
-
-                var out = 0;
-                if (p.foot16) out += sin(n) / parts;
-                if (p.foot8) out += sin(n * 2) / parts;
-                if (p.foot4) out += sin(n * 4) / parts;
-                if (p.foot2) out += sin(n * 8) / parts;
-
-                if (p.strings16) out += saw(n) / parts;
-                if (p.strings4) out += saw((n * 4) % 1 ) / parts;
-                return out;
-            }
-
-            me.buffer = hb.generateWaveformBuffer(organwave, {
-                foot16: me.foot16,
-                foot8: me.foot8,
-                foot4: me.foot4,
-                foot2: me.foot2,
-                strings16: me.strings16,
-                strings4: me.strings4,
-                boost: me.boost
-            }, hb.midi2cps(60) * 2);
-            showWave(me.buffer);
-        };
-
-        me._makeVoice = function(nn) {
-            var freq = hb.midi2cps(nn);
-            var vox = {};
-            vox._osc = hb.makeSamplerLoopOsc(me.buffer, freq);
-            vox._env = hb.makeGain();
-
-            vox._osc.connect(vox._env);
-            me._vibratoGain.connect(vox._osc.detune);
-
-            hb.moveTo(vox._env.gain, 1, 0.1);
-
-            vox._env.connect(me._vol);
-
-            vox.noteOff = function () {
-                hb.moveTo(vox._env.gain, 0, 0.1);
-                vox._osc.stop(hb.ac.currentTime + 0.1);
-                // TODO - GC
-            };
-
-            return vox;
-        };
-
-        me.noteOn = function(nn) {
-            // console.log('on ' + nn);
-            if (me._voices[nn]) return; // už je
-            me._voices[nn] = me._makeVoice(nn);
-        };
-
-        me.noteOff = function(nn) {
-            // console.log('off ' + nn);
-            if (!me._voices[nn]) return; // už není
-            me._voices[nn].noteOff();
-            delete me._voices[nn];
-        };
-
-
-        me.panic = function() {
-            console.log('PANIC at the disco!');
-            for (var nn in me._voices) {
-                hb.setNow(me._voices[nn]._env.gain, 0);
-                me._voices[nn]._osc.stop(hb.now());
-                delete me._voices[nn];
-            }
-            // me._vol.gain.setValueAtTime(0, me._ac.currentTime);
-        };
-
-        return me;
-    };
-
     function Mix() {
         var me = {};
         me.A = hb.makeGain(0.5);
@@ -415,26 +275,19 @@
         ub.gebi('form').reset();
         hb.start();
 
-        window.sk = sk1();
-
-        keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
+        window.synth = hb.gm.synth();
+        keyboardMidiWrap('keyboard3', 'select_midi_in3', synth);
 
         tape = hb.TapeRecorder();
-
-        bus = hb.MixStrip();
-        hb.chnget(bus, 'hi', 'bus_hi');
-        hb.chnget(bus, 'low', 'bus_low');
-        hb.chnget(bus, 'mid', 'bus_mid');
-        hb.chnget(bus, 'reverb', 'bus_reverb');
 
         mixer = Mix();
         hb.chnget(mixer, 'A');
         hb.chnget(mixer, 'B');
 
-        hb.chain(sk.output, bus.input);
-        hb.chain(bus.output, tape.input);
-        hb.chain(bus.output, mixer.A);
+        hb.chain(synth.output, mixer.A);
         hb.chain(tape.output, mixer.B);
+
+        // TAPE controls:
 
         ub.on('record', 'click', function (ev) {
             ub.stop(ev);
