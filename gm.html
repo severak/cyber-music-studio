@@ -107,7 +107,7 @@
                                 <option value="1">001 - ACCOUSTIC GRAND PIANO</option>
                                 <option value="5">005 - ELECTRIC PIANO</option>
                                 <option value="15">015 - TUBULAR BELLS</option>
-                                <option value="18">020 - PERCUSIVE ORGAN</option>
+                                <option value="18">018 - PERCUSIVE ORGAN</option>
                                 <option value="20">020 - CHURCH ORGAN</option>
                                 <option value="51">051 - SYNTH STRINGS</option>
                                 <option value="56">056 - ORCHESTRA HIT</option>
@@ -124,14 +124,14 @@
                         <div class="ub-same">
                             ATTACK <input type="range" min="0.01" max="1" step="0.01" value="0.01" id="attack">
                         </div>
-                        <div class="ub-same">
+                        <div class="ub-same ub-hidden">
                             FILTER <input type="range" min="0" max="1" step="0.01" value="1" id="filter">
                         </div>
                         <div class="ub-same">
-                            EQ HI <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_hi">
+                            EQ HI <input type="range" min="-20" max="20" step="0.01" value="0" id="eq_hi">
                         </div>
                         <div class="ub-same">
-                            CHORUS <input type="range" min="0" max="1" step="0.01" value="0.3" id="bus_chorus" disabled>
+<!--                            CHORUS <input type="range" min="0" max="1" step="0.01" value="0.3" id="chorus" disabled>-->
                         </div>
                     </div>
 
@@ -140,14 +140,14 @@
                         <div class="ub-same">
                             RELEASE <input type="range" min="0.01" max="1" step="0.01" value="0.5" id="release">
                         </div>
-                        <div class="ub-same">
+                        <div class="ub-same ub-hidden">
                             Q <input type="range" min="0" max="1" step="0.01" value="0" id="q">
                         </div>
                         <div class="ub-same">
-                            EQ LOW <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_low">
+                            EQ LOW <input type="range" min="-20" max="20" step="0.01" value="0" id="eq_low">
                         </div>
                         <div class="ub-same">
-                            REVERB <input type="range" min="0" max="1" step="0.01" value="0.3" id="bus_reverb">
+                            REVERB <input type="range" min="0" max="1" step="0.01" value="0.3" id="reverb">
                         </div>
                     </div>
 
@@ -277,6 +277,15 @@
 
         window.synth = hb.gm.synth();
         keyboardMidiWrap('keyboard3', 'select_midi_in3', synth);
+        hb.chnget(synth, 'attack', 'attack');
+        hb.chnget(synth, 'release', 'release');
+        hb.chnget(synth, 'eq_low', 'eq_low');
+        hb.chnget(synth, 'eq_hi', 'eq_hi');
+        hb.chnget(synth, 'reverb', 'reverb');
+
+        ub.on('preset', 'change', function () {
+           synth.programChange(ub.gebi('preset').value);
+        });
 
         tape = hb.TapeRecorder();
 
