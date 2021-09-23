@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KASIA / Cyber Music Studio™</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uboot.css">
+    <link rel="stylesheet" href="css/gh-fork-ribbon.css">
+    <script src="js/bluescreen.js"></script>
+    <script src="js/uboot.js"></script>
+    <script src="js/JZZ.js"></script>
+    <script src="js/JZZ.input.Kbd.js"></script>
+    <script src="js/JZZ.gui.Select.js"></script>
+    <script src="js/wavy-jones.js"></script>
+    <script src="js/wave-encoder-polyfill.js"></script>
+    <script src="js/heartbeat.js"></script>
+    <style>
+        body {
+            font-family: "Lucida Console", monospace;
+            background: url("img/1280px-Tsunami_by_hokusai_19th_century.jpg") plum no-repeat fixed top center/cover;
+        }
+
+        footer {
+            margin-top: 1em;
+            background-color: whitesmoke;
+        }
+
+        .ub-box {
+            background-color: #FFFFCC;
+        }
+
+        #box_welcome { width: 30em; margin: auto; }
+
+        a { color: black; text-decoration-style: dashed; }
+
+        #power {
+            font-weight: bold;
+            font-size: 200%;
+        }
+
+        .ub-container {
+            max-width: 60em !important;
+        }
+
+        .is-blinking {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .big-buttons button, .big-buttons label {
+            width: 98%;
+            font-weight: bold;
+            font-size: x-large;
+        }
+
+        #tape_menu {
+            width: 400px;
+            height: 250px;
+
+        }
+    </style>
+    <script>if(!sessionStorage.getItem("_swa")&&document.referrer.indexOf(location.protocol+"//"+location.host)!== 0){fetch("https://counter.dev/track?"+new URLSearchParams({referrer:document.referrer,screen:screen.width+"x"+screen.height,user:"severak",utcoffset:"1"}))};sessionStorage.setItem("_swa","1");</script>
+</head>
+<body>
+
+<a class="github-fork-ribbon" href="https://github.com/severak/cyber-music-studio" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+
+<div class="ub-container">
+    <br><br>
+
+    <div class="ub-box" id="box_welcome">
+        <img src="img/preview.png" class="ub-fit-img">
+        <p>This is part of beta version of Cyber Music Studio™. It's not finished yet and can be broken at any moment.</p>
+        <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
+        <center><button id="power" class="ub-button">OK</button></center>
+    </div>
+
+    <form class="ub-form ub-hidden" id="form">
+        <div class="ub-box" id="box_traveller">
+
+
+            <div class="ub-cols">
+                <div><h1>KASIA</h1><small>an bootleg 80s Casiotone</small></div>
+                <div>SYNTH VOL <input type="range" min="0" max="1" step="0.01" value="0.5" id="A"></div>
+                <div>TAPE VOL <input type="range" min="0" max="1" step="0.01" value="0.5" id="B"></div>
+            </div>
+
+
+            <div class="ub-cols">
+                <div>
+                    <div class="ub-cols">
+                        <div>αV<input type="range" min="0" max="1" step="0.01" value="0.8" id="a_v"></div>
+                        <div>O
+                            <select id="a_o">
+                                <option value="0.5">-1</option>
+                                <option value="1" selected>00</option>
+                                <option value="2">+1</option>
+                            </select>
+                        </div>
+                        <div>F
+                        <select id="a_f">
+                            <option value="270">270</option>
+                            <option value="2300">2300</option>
+                            <option value="3000" selected>3000</option>
+                        </select>
+                        </div>
+                        <div>A<input type="range" min="0.01" max="1" step="0.01" value="0.01" id="a_a"></div>
+                        <div>D<input type="range" min="0.01" max="1" step="0.01" value="0" id="a_d"></div>
+                        <div>S<input type="range" min="0" max="1" step="0.01" value="0.5" id="a_s"></div>
+                        <div>R<input type="range" min="0.01" max="1" step="0.01" value="0" id="a_r"></div>
+                    </div>
+                    <div class="ub-cols">
+                        <div>βV<input type="range" min="0" max="1" step="0.01" value="0" id="b_v"></div>
+                        <div>O
+                            <select id="b_o">
+                                <option value="0.5">-1</option>
+                                <option value="1" selected>00</option>
+                                <option value="2">+1</option>
+                            </select>
+                        </div>
+                        <div>F
+                            <select id="b_f">
+                                <option value="270">270</option>
+                                <option value="2300">2300</option>
+                                <option value="3000" selected>3000</option>
+                            </select>
+                        </div>
+                        <div>A<input type="range" min="0.01" max="1" step="0.01" value="0.01" id="b_a"></div>
+                        <div>D<input type="range" min="0.01" max="1" step="0.01" value="0" id="b_d"></div>
+                        <div>S<input type="range" min="0" max="1" step="0.01" value="0.8" id="b_s"></div>
+                        <div>R<input type="range" min="0.01" max="1" step="0.01" value="0.5" id="b_r"></div>
+                    </div>
+
+
+                    <div>
+                        Use computer keyboard or following widget:<br/>
+                        <div id="keyboard3"></div>
+                        or MIDI input: <select id="select_midi_in3"></select>
+                    </div>
+                    <div>
+                        <h2>presets</h2>
+                        <a href="#" class="ub-button" id="current_preset" onclick="preset(this)">CURRENT PRESET TO SHARE</a>
+                    </div>
+                </div>
+                <div>
+                    <div class="ub-cols big-buttons">
+                        <div class="ub-same"><button id="record">RECORD</button></div>
+                        <div class="ub-same"><button id="stop">STOP/EJECT</button></div>
+                        <div class="ub-same"><button id="play" >PLAY</button></div>
+                    </div>
+                    <img src="img/tape.png" id="tape_img">
+                    <div id="tape_menu" class="ub-hidden big-buttons">
+                        <button id="open_file">open file...</button>
+                        <button id="save_file">save to file...</button>
+                        <input type="file" id="choose_file" class="ub-hidden" accept=".wav,.mp3,audio/wav,audio/mp3">
+
+                        <!-- TODO - doprovody -->
+                    </div>
+
+                    <div class="ub-cols">
+                        <div class="ub-same">
+                            EQ HI <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_hi">
+                        </div>
+                        <div class="ub-same">
+                            EQ MID <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_mid">
+                        </div>
+                        <div class="ub-same">
+                            EQ LOW <input type="range" min="-20" max="20" step="0.01" value="0" id="bus_low">
+                        </div>
+                        <div class="ub-same">
+                            REVERB <input type="range" min="0" max="1" step="0.01" value="0" id="bus_reverb">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h2>vowel-consonant synthesis</h2>
+                <p>In 1980s CASIO released <a href="https://www.theguardian.com/music/2010/jul/13/hey-whats-that-sound-casiotone">series of inexpensive Casiotone keyboards</a>. Some of them were using mysteriously named <strong>vowel-consonant synthesis</strong>.</p>
+                <p>It's description in <a href="https://patents.google.com/patent/US4419919A/en?oq=us4419919">US patent 4419919A</a> sounds complicated but <a href="https://www.youtube.com/watch?v=YWGRkSGsuBw&t=222s">it's very simple</a> in fact - it uses two square waves with different envelope filtered by static low pass filters.</p>
+
+                <img src="img/casio-patent-4419919.png">
+            </div>
+
+        </div>
+
+        <footer>part of <a href="index.html">Cyber Music Studio™</a> by <a href="http://tilde.town/~severak/">Severák</a></footer>
+
+    </form>
+</div>
+
+<script>
+    function keyboardMidiWrap(keyboardElemId, midiSelectorId, synth) {
+        // set up routing from external MIDI via HTML keyboard to synth itself
+        var kbd = JZZ.input.Kbd({ at:keyboardElemId, pos:'N', wl: 50, ww:21, bl: 25, bw:12, from:'F4', to:'C7' });
+        var midiIn = JZZ.gui.SelectMidiIn({ at: midiSelectorId });
+        kbd.connect(function (msg) {
+            hb.midi2call(msg, synth)
+        });
+
+        kbd.getKey('F4').setInnerHTML('Z');
+        kbd.getKey('C5').setInnerHTML('B');
+        kbd.getKey('F5').setInnerHTML('Q');
+        kbd.getKey('C6').setInnerHTML('T');
+        kbd.getKey('F6').setInnerHTML('I');
+        kbd.getKey('C7').setInnerHTML(']');
+
+        var ascii = JZZ.input.ASCII({
+            // lower row:
+            Z: 'F4',
+            S: 'F#4',
+            X: 'G4',
+            D: 'G#4',
+            C: 'A4',
+            F: 'A#4',
+            V: 'B4',
+            B: 'C5',
+            H: 'C#5',
+            N: 'D5',
+            J: 'D#5',
+            M: 'E5',
+            // upper row:
+            Q: 'F5',
+            2: 'F#5',
+            W: 'G5',
+            3: 'G#5',
+            E: 'A5',
+            4: 'A#5',
+            R: 'B5',
+            T: 'C6',
+            6: 'C#6',
+            Y: 'D6',
+            7: 'D#6',
+            U: 'E6',
+            I: 'F6',
+            9: 'F#6',
+            O: 'G6',
+            0: 'G#6',
+            P: 'A6',
+            '%': 'A#6',
+            '[': 'B6',
+            ']': 'C7'
+        });
+
+        ascii.connect(kbd);
+
+        // handles all the selection stuff
+        midiIn.onSelect = function(name) {
+            JZZ().openMidiIn(name).and(function () {
+                if (kbd.currentExternal) kbd.currentExternal.disconnect(kbd);
+                this.connect(kbd);
+                kbd.currentExternal = this;
+            }).or(function () {
+                if (kbd.currentExternal) kbd.currentExternal.disconnect(kbd);
+            });
+        };
+    }
+
+    Kasia = function() {
+        var me = {};
+        me._voices = {};
+
+        me.a_v = 0.8;
+        me.a_o = 1;
+        me.a_f = 3000;
+        me.a_a = 0.01;
+        me.a_d = 0.01;
+        me.a_s = 0.2;
+        me.a_r = 0.01;
+
+        me.b_v = 0.5;
+        me.b_o = 1;
+        me.b_f = 3000;
+        me.b_a = 0.01;
+        me.b_d = 0.01;
+        me.b_s = 0.5;
+        me.b_r = 0.01;
+
+        me.a_filter = hb.makeFilter('lowpass', me.a_f);
+        me.b_filter = hb.makeFilter('lowpass', me.b_f);
+        me.output = hb.makeGain(0.3);
+
+        hb.chain(me.a_filter, me.output);
+        hb.chain(me.b_filter, me.output);
+
+        me.param = function(name, val) {
+            me[name] = val;
+            if (name=='a_f') hb.setNow(me.a_filter.frequency, val);
+            if (name=='b_f') hb.setNow(me.b_filter.frequency, val);
+
+            // update current preset button
+            ub.gebi('current_preset').href = '#'
+                + 'a_v=' + me.a_v + '&a_o=' + me.a_o + '&a_f=' + me.a_f + '&a_a=' + me.a_a + '&a_d=' + me.a_d + '&a_s=' + me.a_s + '&a_r=' + me.a_r + '&'
+                + 'b_v=' + me.b_v + '&b_o=' + me.b_o + '&b_f=' + me.b_f + '&b_a=' + me.b_a + '&b_d=' + me.b_d + '&b_s=' + me.b_s + '&b_r=' + me.b_r;
+        };
+
+        me._makeVoice = function(nn) {
+            var freq = hb.midi2cps(nn);
+            var vox = {};
+            vox.A = hb.makeOsc('square', freq * me.a_o);
+            vox.A_env = hb.makeGain();
+            hb.adsrStart(vox.A_env.gain, {attack: me.a_a, decay: me.a_d, sustain: me.a_s * me.a_v, release: me.a_r, max: me.a_v});
+
+            vox.B = hb.makeOsc('square', freq * me.b_o);
+            vox.B_env = hb.makeGain();
+            hb.adsrStart(vox.B_env.gain, {attack: me.b_a, decay: me.b_d, sustain: me.b_s * me.b_v, release: me.b_r, max: me.b_v});
+
+            vox.A.connect(vox.A_env);
+            vox.A_env.connect(me.a_filter);
+
+            vox.B.connect(vox.B_env);
+            vox.B_env.connect(me.b_filter);
+
+
+            vox.noteOff = function () {
+                hb.adsrStop(vox.A_env.gain, {attack: me.a_a, decay: me.a_d, sustain: me.a_s * me.a_v, release: me.a_r, max: me.a_v});
+                vox.A.stop(hb.ac.currentTime + me.a_r);
+
+                hb.adsrStop(vox.B_env.gain, {attack: me.b_a, decay: me.b_d, sustain: me.b_s * me.b_v, release: me.b_r, max: me.b_v});
+                vox.B.stop(hb.ac.currentTime + me.b_r);
+            };
+
+            return vox;
+        };
+
+        me.noteOn = function(nn) {
+            // console.log('on ' + nn);
+            if (me._voices[nn]) return; // už je
+            me._voices[nn] = me._makeVoice(nn);
+        };
+
+        me.noteOff = function(nn) {
+            // console.log('off ' + nn);
+            if (!me._voices[nn]) return; // už není
+            me._voices[nn].noteOff();
+            delete me._voices[nn];
+        };
+
+
+        me.panic = function() {
+            console.log('PANIC at the disco!');
+            for (var nn in me._voices) {
+                me._voices[nn].noteOff();
+            }
+            // me._vol.gain.setValueAtTime(0, me._ac.currentTime);
+        };
+
+        me.setPreset = function (code) {
+            var params = new URLSearchParams(code);
+            params.forEach(function(value, key) {
+                me.param(key, parseFloat(value));
+            });
+        };
+
+        return me;
+    };
+
+    function Mix() {
+        var me = {};
+        me.A = hb.makeGain(0.5);
+        me.B = hb.makeGain(0.5);
+        hb.chain(me.A, hb.ac.destination);
+        hb.chain(me.B, hb.ac.destination);
+
+        me.param = function(name, val) {
+            if (name=='A') hb.setNow(me.A.gain, val);
+            if (name=='B') hb.setNow(me.B.gain, val);
+        };
+
+        return me;
+    };
+
+    ub.on("power","click",  function(ev){
+        ub.stop(ev);
+        ub.addClass("box_welcome", 'ub-hidden');
+        ub.delClass("form", 'ub-hidden');
+
+        ub.gebi('form').reset();
+        hb.start();
+
+        synth = Kasia();
+        hb.chnget(synth, 'a_v');
+        hb.chnget(synth, 'a_o');
+        hb.chnget(synth, 'a_f');
+        hb.chnget(synth, 'a_a');
+        hb.chnget(synth, 'a_d');
+        hb.chnget(synth, 'a_s');
+        hb.chnget(synth, 'a_r');
+        hb.chnget(synth, 'b_v');
+        hb.chnget(synth, 'b_o');
+        hb.chnget(synth, 'b_f');
+        hb.chnget(synth, 'b_a');
+        hb.chnget(synth, 'b_d');
+        hb.chnget(synth, 'b_s');
+        hb.chnget(synth, 'b_r');
+
+        window.preset = function(tag) {
+            var url = new URL(tag.href);
+            synth.setPreset(url.hash.slice(1));
+        };
+
+        keyboardMidiWrap('keyboard3', 'select_midi_in3', synth);
+
+        tape = hb.TapeRecorder();
+
+        bus = hb.MixStrip();
+        hb.chnget(bus, 'hi', 'bus_hi');
+        hb.chnget(bus, 'low', 'bus_low');
+        hb.chnget(bus, 'mid', 'bus_mid');
+        hb.chnget(bus, 'reverb', 'bus_reverb');
+
+        mixer = Mix();
+        hb.chnget(mixer, 'A');
+        hb.chnget(mixer, 'B');
+
+        hb.chain(synth.output, bus.input);
+        hb.chain(bus.output, tape.input);
+        hb.chain(bus.output, mixer.A);
+        hb.chain(tape.output, mixer.B);
+
+        ub.on('record', 'click', function (ev) {
+            ub.stop(ev);
+            ub.addClass('tape_menu', 'ub-hidden');
+            ub.delClass('tape_img', 'ub-hidden');
+            if (tape.status=='standby') {
+                tape.record();
+                ub.addClass('tape_img', 'is-blinking');
+            }
+        });
+
+        ub.on('stop', 'click', function (ev) {
+            ub.stop(ev);
+            if (tape.status=='standby') {
+                ub.delClass('tape_menu', 'ub-hidden');
+                ub.addClass('tape_img', 'ub-hidden');
+            }
+
+            tape.stop();
+            ub.delClass('tape_img', 'is-blinking');
+        });
+
+        ub.on('play', 'click', function (ev) {
+            ub.stop(ev);
+            ub.addClass('tape_menu', 'ub-hidden');
+            ub.delClass('tape_img', 'ub-hidden');
+            if (tape.status=='standby') {
+                ub.addClass('tape_img', 'is-blinking');
+                tape.play(function () {
+                    ub.delClass('tape_img', 'is-blinking');
+                });
+            }
+        });
+
+        ub.on('open_file', 'click', function (ev) {
+            ub.stop(ev);
+            ub.addClass('tape_menu', 'ub-hidden');
+            ub.delClass('tape_img', 'ub-hidden');
+            ub.gebi('choose_file').click();
+        });
+
+        ub.on('save_file', 'click', function (ev) {
+            ub.stop(ev);
+            ub.addClass('tape_menu', 'ub-hidden');
+            ub.delClass('tape_img', 'ub-hidden');
+            tape.downloadFile();
+        });
+
+        ub.on('choose_file', 'change', function (ev) {
+            var file = ev.target.files[0];
+            if (!file) {
+                return;
+            }
+            tape.loadLocalFile(file);
+        });
+
+
+    });
+</script>
+
+</body>
+</html>
