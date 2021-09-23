@@ -399,6 +399,14 @@
         hb.chnget(synth, 'b_s');
         hb.chnget(synth, 'b_r');
 
+        if (document.location.hash!='') {
+            synth.setPreset(document.location.hash.slice(1));
+            var params = new URLSearchParams(document.location.hash.slice(1));
+            params.forEach(function(value, key) {
+                ub.gebi(key).value = value;
+            });
+        }
+
         window.preset = function(tag) {
             var url = new URL(tag.href);
             synth.setPreset(url.hash.slice(1));
