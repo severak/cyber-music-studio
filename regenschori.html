@@ -111,6 +111,7 @@
                         <div><input type="checkbox" class="ub-checkbutton" id="vibrato"><label for="vibrato" class="ub-checkbutton">VIBRATO</label></div>
                         <div><input type="checkbox" class="ub-checkbutton" id="vibrato_fast"><label for="vibrato_fast" class="ub-checkbutton">FAST</label></div>
                         <div><input type="checkbox" class="ub-checkbutton" id="vibrato_heavy"><label for="vibrato_heavy" class="ub-checkbutton">HEAVY</label></div>
+                        <div><input type="checkbox" class="ub-checkbutton" id="a432"><label for="a432" class="ub-checkbutton">A=432hz</label></div>
                     </div>
                     <br>
                     <div>
@@ -281,6 +282,7 @@
         me.vibrato = false;
         me.vibrato_fast = false;
         me.vibrato_heavy = false;
+        me.a432 = false;
 
         me._lfo = hb.makeOsc('sine', 3);
         me._vibratoGain = hb.makeGain(0);
@@ -345,7 +347,7 @@
         };
 
         me._makeVoice = function(nn) {
-            var freq = hb.midi2cps(nn);
+            var freq = hb.midi2cps(nn, me.a432 ? 432 : 440);
             var vox = {};
             vox._osc = hb.makeSamplerLoopOsc(me.buffer, freq);
             vox._env = hb.makeGain();
@@ -427,6 +429,7 @@
         hb.chnget(sk, 'vibrato');
         hb.chnget(sk, 'vibrato_fast');
         hb.chnget(sk, 'vibrato_heavy');
+        hb.chnget(sk, 'a432');
         keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
 
         tape = hb.TapeRecorder();
