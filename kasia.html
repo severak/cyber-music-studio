@@ -31,7 +31,7 @@
 
         #box_welcome { width: 30em; margin: auto; }
 
-        a { color: black; text-decoration-style: dashed; }
+        a { color: black; text-decoration: underline dashed; text-decoration-skip-ink: none; }
 
         #power {
             font-weight: bold;
@@ -62,6 +62,10 @@
             width: 400px;
             height: 250px;
 
+        }
+
+        .presets a {
+            display: inline-block;
         }
     </style>
     <script>if(!sessionStorage.getItem("_swa")&&document.referrer.indexOf(location.protocol+"//"+location.host)!== 0){fetch("https://counter.dev/track?"+new URLSearchParams({referrer:document.referrer,screen:screen.width+"x"+screen.height,user:"severak",utcoffset:"1"}))};sessionStorage.setItem("_swa","1");</script>
@@ -107,6 +111,14 @@
                             <option value="270">270</option>
                             <option value="2300">2300</option>
                             <option value="3000" selected>3000</option>
+                            <option value="110">110</option>
+                            <option value="220">220</option>
+                            <option value="440">440</option>
+                            <option value="880">880</option>
+                            <option value="1760">1760</option>
+                            <option value="3520">3520</option>
+                            <option value="7040">7040</option>
+                            <option value="14080">14080</option>
                         </select>
                         </div>
                         <div>A<input type="range" min="0.01" max="1" step="0.01" value="0.01" id="a_a"></div>
@@ -128,6 +140,14 @@
                                 <option value="270">270</option>
                                 <option value="2300">2300</option>
                                 <option value="3000" selected>3000</option>
+                                <option value="110">110</option>
+                                <option value="220">220</option>
+                                <option value="440">440</option>
+                                <option value="880">880</option>
+                                <option value="1760">1760</option>
+                                <option value="3520">3520</option>
+                                <option value="7040">7040</option>
+                                <option value="14080">14080</option>
                             </select>
                         </div>
                         <div>A<input type="range" min="0.01" max="1" step="0.01" value="0.01" id="b_a"></div>
@@ -142,7 +162,7 @@
                         <div id="keyboard3"></div>
                         or MIDI input: <select id="select_midi_in3"></select>
                     </div>
-                    <div>
+                    <div class="presets">
                         <h2>presets</h2>
                         <a href="#" class="ub-button" id="current_preset" onclick="preset(this)">CURRENT PRESET TO SHARE</a><br><br>
                         <a href="#a_v=1&a_o=1&a_f=270&a_a=0.06&a_d=0.01&a_s=1&a_r=0.12&b_v=1&b_o=1&b_f=3000&b_a=0.01&b_d=0.05&b_s=0&b_r=0.01" class="ub-button" onclick="preset(this)">percusive organ</a>
@@ -150,6 +170,7 @@
                         <a href="#a_v=0.36&a_o=2&a_f=2300&a_a=0.04&a_d=0.01&a_s=1&a_r=0.47&b_v=0.72&b_o=1&b_f=270&b_a=0.04&b_d=0.01&b_s=0.74&b_r=0.29" class="ub-button" onclick="preset(this)">church organ</a><br>
                         <a href="#a_v=1&a_o=0.5&a_f=2300&a_a=0.01&a_d=0.09&a_s=0&a_r=0.2&b_v=0.93&b_o=1&b_f=2300&b_a=0.06&b_d=0.49&b_s=0&b_r=0.14" class="ub-button" onclick="preset(this)">eletric guitar</a>
                         <a href="#a_v=0.54&a_o=2&a_f=2300&a_a=0.21&a_d=0.53&a_s=0&a_r=0.75&b_v=1&b_o=2&b_f=3000&b_a=0.01&b_d=0.13&b_s=0&b_r=0.05" class="ub-button" onclick="preset(this)">bells</a>
+                        <a href="#a_v=1&a_o=0.5&a_f=2300&a_a=0.01&a_d=0.49&a_s=0.04&a_r=0.03&b_v=1&b_o=1&b_f=270&b_a=0.01&b_d=0.7&b_s=0.07&b_r=0.06" class="ub-button" onclick="preset(this)">piano</a>
 
                     </div>
                 </div>
@@ -310,11 +331,13 @@
             var vox = {};
             vox.A = hb.makeOsc('square', freq * me.a_o);
             vox.A_env = hb.makeGain();
-            hb.adsrStart(vox.A_env.gain, {attack: me.a_a, decay: me.a_d, sustain: me.a_s * me.a_v, release: me.a_r, max: me.a_v});
+            if (me.a_v)
+                hb.adsrStart(vox.A_env.gain, {attack: me.a_a, decay: me.a_d, sustain: me.a_s * me.a_v, release: me.a_r, max: me.a_v + 0.00001});
 
             vox.B = hb.makeOsc('square', freq * me.b_o);
             vox.B_env = hb.makeGain();
-            hb.adsrStart(vox.B_env.gain, {attack: me.b_a, decay: me.b_d, sustain: me.b_s * me.b_v, release: me.b_r, max: me.b_v});
+            if (me.b_v)
+                hb.adsrStart(vox.B_env.gain, {attack: me.b_a, decay: me.b_d, sustain: me.b_s * me.b_v, release: me.b_r, max: me.b_v + 0.00001});
 
             vox.A.connect(vox.A_env);
             vox.A_env.connect(me.a_filter);
@@ -416,6 +439,10 @@
         window.preset = function(tag) {
             var url = new URL(tag.href);
             synth.setPreset(url.hash.slice(1));
+            var params = new URLSearchParams(document.location.hash.slice(1));
+            params.forEach(function(value, key) {
+                ub.gebi(key).value = value;
+            });
         };
 
         keyboardMidiWrap('keyboard3', 'select_midi_in3', synth);
