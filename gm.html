@@ -295,6 +295,7 @@
 
         hb.chain(synth.output, mixer.A);
         hb.chain(tape.output, mixer.B);
+        hb.chain(synth.output, tape.input);
 
         // TAPE controls:
 
