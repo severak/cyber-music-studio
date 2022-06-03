@@ -255,7 +255,7 @@
             var vox = {};
             vox.C = hb.makeOsc('sine', freq);
             vox.C_env = hb.makeGain();
-            hb.adsrStart(vox.C_env.gain, {attack: me.c_a, decay: me.c_d, sustain: me.c_s, release: me.c_r, max: me.c_v});
+            hb.adsrStart(vox.C_env.gain, {attack: me.c_a, decay: me.c_d, sustain: hb.clamp(0.01, me.c_s, 1), release: me.c_r, max: me.c_v});
 
             vox.M = hb.makeOsc('sine', (freq * me.c_f) / me.m_f); // TODO - zde optimalizace
             vox.M_env = hb.makeGain();
