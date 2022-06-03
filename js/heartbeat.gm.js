@@ -176,7 +176,6 @@ hb.gm.synth = function() {
 
         vox._osc.connect(vox._filter);
         vox._filter.connect(vox._env);
-        hb.adsrStart(vox._env.gain, me._getEnv(1));
 
         hb.adsrStart(vox._env.gain, me._getEnv(1));
         if (me.quack) {
