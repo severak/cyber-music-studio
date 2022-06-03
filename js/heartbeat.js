@@ -189,7 +189,8 @@ hb.makeConstantOsc = function(n) {
 hb.makeGain = function(vol) {
     if (!vol) vol = 0;
 	var gainNode = hb.ac.createGain();
-	gainNode.gain.setValueAtTime(vol, hb.ac.currentTime);
+	// for some unknown reason this has to be set this way, unless Chrome starts our ENV at maximum loudness
+	gainNode.gain.value = vol;
 	return gainNode;
 };
 
