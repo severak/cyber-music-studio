@@ -30,6 +30,10 @@
             font-size: 30pt;
         }
 
+        button.on {
+            background-color: yellow;
+        }
+
         .tuners div {
             background-image: url("img/krizek.png");
             background-repeat: no-repeat;
@@ -439,6 +443,20 @@
         ub.on('tlacitka', 'mouseup', function (ev) {
             ub.stop(ev);
             var vid = ev.target.getAttribute('data-midi');
+            if (vid) lyra.boff(vid);
+        });
+
+        ub.on('tlacitka', 'touchstart', function (ev) {
+            // ub.stop(ev);
+            var vid = ev.target.getAttribute('data-midi');
+            ub.addClass(ev.target, 'on');
+            if (vid) lyra.bon(vid);
+        });
+
+        ub.on('tlacitka', 'touchend', function (ev) {
+            // ub.stop(ev);
+            var vid = ev.target.getAttribute('data-midi');
+            ub.delClass(ev.target, 'on');
             if (vid) lyra.boff(vid);
         });
 
