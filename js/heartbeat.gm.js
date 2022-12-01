@@ -46,9 +46,9 @@ function _base64ToArrayBuffer(base64) {
 
 hb.gm.presets = {
     // piano
-    1: { attack: 0.01, release: 0.1, reverb: 0.1, decay: 0.5, sustain: 0.05, generator: 'unpack', generator_params: 'akwf_piano_0001', filter: 4186, quack: true},
+    1: { attack: 0.01, release: 0.1, reverb: 0.1, decay: 0.5, sustain: 0.05, generator: 'unpack', generator_params: 'akwf_piano_0001', filter: 4186, quack: true, baseNote: 62},
     // epiano
-    5: { attack: 0.01, release: 0.5, reverb: 0.1, decay: 0.1, sustain: 0.3, generator: 'unpack', generator_params: 'akwf_epiano_0014', baseNote: 48 },
+    5: { attack: 0.01, release: 0.5, reverb: 0.1, decay: 0.1, sustain: 0.3, generator: 'unpack', generator_params: 'akwf_epiano_0014', baseNote: 50 },
     // tubular bells
     15: { attack: 0.01, release: 0, reverb: 0, decay: 0.5, sustain: 0, generator: 'metalik', filter: 4186},
     // percussive organ
