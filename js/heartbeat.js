@@ -54,7 +54,6 @@ hb.adsrStop = function(audioParam, env) {
 	env.sustain = env.sustain || 0;
 	env.release = env.release || 0.05;
 	var curr = audioParam.value;
-	if (curr==0 || env.sustain==0) return; // not moving ENV
 	audioParam.cancelScheduledValues(hb.ac.currentTime);
 	audioParam.setValueAtTime(curr, hb.ac.currentTime); // stop ENV at current point
 	audioParam.linearRampToValueAtTime(0, hb.ac.currentTime + env.release); // move to 0
