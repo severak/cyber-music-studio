@@ -123,6 +123,8 @@
               release: ub.tonumber(ub.gebi('sk1_release').value),
             };
 
+            console.log(env);
+
             // console.log(env);
 
             pos = 1;
@@ -159,6 +161,7 @@
                 release: ub.tonumber(ub.gebi('sk1_release').value),
             };
             hb.adsrStop(cv.gain, env);
+            console.log(env);
 
             isRunning = false;
         });
