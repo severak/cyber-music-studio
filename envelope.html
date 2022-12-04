@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>envelope tester</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uboot.css">
+    <link rel="stylesheet" href="css/gh-fork-ribbon.css">
+    <script src="js/bluescreen.js"></script>
+    <script src="js/uboot.js"></script>
+    <script src="js/heartbeat.js"></script>
+    <style>
+        body {
+            font-family: "Lucida Console", monospace;
+            background-color: plum;
+        }
+
+        .ub-box {
+            background-color: lightyellow;
+        }
+
+        a { color: black; text-decoration-style: dashed; text-decoration-thickness: 1px; }
+    </style>
+</head>
+<body>
+
+<a class="github-fork-ribbon" href="https://github.com/severak/cyber-music-studio" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+
+<div class="ub-container">
+
+    <div class="ub-box" id="box_welcome">
+        <h1>Firefox's broken envelope tester</h1>
+        <img src="img/panda.gif" style="width: 100%; height: auto">
+        <p>This is part of beta version of Cyber Music Studio™. It's not finished yet and can be broken at any moment.</p>
+        <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
+        <center><button id="power" class="ub-button"><big>OK</big></button></center>
+    </div>
+    <br><br>
+
+
+
+    <form class="ub-form ub-hidden" id="form">
+        <div class="ub-box" id="box_traveller" style="background-color: lightseagreen">
+            <div class="ub-cols">
+                <div class="ub-same" style="text-align: center">
+                    <h1>Firefox's broken envelope tester</h1>
+                    <canvas style="width: 400px; height: 100px; background-color: white" id="waveform" width="400" height="100"></canvas>
+                </div>
+            </div>
+
+            <div><strong>ENVELOPE</strong></div>
+
+            <div class="ub-cols">
+                <div class="ub-same">
+                    A <input type="range" min="0" max="1" step="0.01" value="0.5" id="sk1_attack">
+                </div>
+                <div class="ub-same">
+                    D <input type="range" min="0" max="1" step="0.01" value="0.5" id="sk1_decay">
+                </div>
+                <div class="ub-same">
+                    S <input type="range" min="0" max="1" step="0.1" value="0.5" id="sk1_sustain">
+                </div>
+                <div class="ub-same">
+                    R <input type="range" min="0" max="1" step="0.01" value="0.5" id="sk1_release">
+                </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same">
+                    <button id="fire">Fire</button>
+                </div>
+                <div class="ub-same">
+                    <button id="stop">Stop</button>
+                </div>
+                <div class="ub-same">
+                    TEST SOUND VOL <input type="range" min="0" max="1" step="0.01" value="0" id="vol">
+                </div>
+            </div>
+
+
+
+        </div>
+
+        <p>part of <a href="index.html">Cyber Music Studio™</a></p>
+
+    </form>
+</div>
+
+<script>
+
+
+    ub.on("power","click",  function(ev){
+        ub.stop(ev);
+        ub.addClass("box_welcome", 'ub-hidden');
+        ub.delClass("form", 'ub-hidden');
+
+        ub.gebi('form').reset();
+        hb.start();
+
+
+        var ctx = ub.gebi('waveform').getContext("2d");
+        var cv = hb.makeGain();
+        var osc = hb.makeOsc('sine', 1000);
+        var sink = hb.makeGain(0);
+        // webaudio will not process audio params if they are not used. LOL
+        hb.chain(osc, cv, sink, hb.ac.destination);
+
+        ub.on('vol', 'change', function(){
+            sink.gain.value = ub.tonumber(ub.gebi('vol').value);
+        });
+
+        var pos = 0;
+        var isRunning = false;
+
+        ub.on('fire', 'click', function (ev) {
+            ub.stop(ev);
+            // console.log('Start');
+
+            var env = {
+              attack: ub.tonumber(ub.gebi('sk1_attack').value),
+              decay: ub.tonumber(ub.gebi('sk1_decay').value),
+              sustain: ub.tonumber(ub.gebi('sk1_sustain').value),
+              release: ub.tonumber(ub.gebi('sk1_release').value),
+            };
+
+            // console.log(env);
+
+            pos = 1;
+            isRunning = true;
+
+            hb.setNow(cv.gain, 0);
+            hb.adsrStart(cv.gain, env);
+
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0,0,400,100);
+            ctx.fillStyle = '#000';
+
+            var raf = function () {
+
+                ctx.fillRect(pos, 100 - (cv.gain.value * 100), 1, 1);
+                pos++;
+
+                if (pos < 400) {
+                    window.requestAnimationFrame(raf);
+                }
+            };
+
+            window.requestAnimationFrame(raf);
+        });
+
+        ub.on('stop', 'click', function (ev) {
+            ub.stop(ev);
+            // console.log(cv.gain.value);
+
+            var env = {
+                attack: ub.tonumber(ub.gebi('sk1_attack').value),
+                decay: ub.tonumber(ub.gebi('sk1_decay').value),
+                sustain: ub.tonumber(ub.gebi('sk1_sustain').value),
+                release: ub.tonumber(ub.gebi('sk1_release').value),
+            };
+            hb.adsrStop(cv.gain, env);
+
+            isRunning = false;
+        });
+
+    });
+</script>
+
+<script src="//million.svita.cz/millions_v1.js"></script>
+</body>
+</html>
