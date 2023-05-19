@@ -59,6 +59,54 @@ hb.adsrStop = function(audioParam, env) {
 	audioParam.linearRampToValueAtTime(0, hb.ac.currentTime + env.release); // move to 0
 };
 
+if (window.firefoxEnvelopeWorkaround1) {
+	hb.adsrStart = function(audioParam, env) {
+		env.max = env.max || 1;
+		env.attack = env.attack || 0.05;
+		env.decay = env.decay || 0.01;
+		env.sustain = env.sustain || 0;
+
+		var lenAttack = env.attack * hb.ac.sampleRate;
+		var lenDecay = env.decay * hb.ac.sampleRate;
+		var stepAttack = env.max / lenAttack;
+		var stepDecay = (env.max - env.sustain) / lenDecay;
+
+		var buffer = hb.ac.createBuffer(1, lenAttack + lenDecay, hb.ac.sampleRate);
+		var chan = buffer.getChannelData(0);
+		var stepVal = 0;
+		for (var i = 0; i < lenAttack; i++) {
+			stepVal += stepAttack;
+			chan[i] = stepVal;
+		}
+		for (var i = lenAttack; i < lenAttack + lenDecay; i++) {
+			stepVal -= stepDecay;
+			chan[i] = stepVal;
+		}
+
+		var osc = hb.ac.createBufferSource();
+		osc.buffer = buffer;
+		osc.connect(audioParam);
+		osc.start();
+
+		var stopTime = hb.ac.currentTime + env.attack + env.decay + 0.02;
+		console.log('stop time = ' + stopTime)
+		//audioParam.setValueAtTime(stepVal,  stopTime);
+
+		osc.onended = function () {
+			var nau = hb.ac.currentTime;
+			console.log('ended= ' + nau);
+			osc.disconnect();
+			audioParam.setValueAtTime(stepVal,hb.ac.currentTime);
+			if (stopTime < nau) {
+				console.log('under');
+			} else {
+				console.log('over');
+			}
+			console.log('diff = ' + (nau - stopTime));
+		}
+	};
+}
+
 hb.moveTo = function(audioParam, target, time) {
 	var curr = audioParam.value;
 	audioParam.cancelScheduledValues(hb.ac.currentTime);
