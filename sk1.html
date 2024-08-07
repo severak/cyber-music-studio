@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SK1</title>
+    <title>Sample propulsion laboratory / Cyber Music Studio™</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/uboot.css">
     <link rel="stylesheet" href="css/gh-fork-ribbon.css">
@@ -17,7 +17,10 @@
     <style>
         body {
             font-family: "Lucida Console", monospace;
-            background-color: plum;
+            background-color: #000;
+            background-image: url("img/wavetable.png");
+            background-repeat: no-repeat;
+            background-size: cover;
         }
 
         .ub-box {
@@ -25,6 +28,15 @@
         }
 
         a { color: black; text-decoration-style: dashed; text-decoration-thickness: 1px; }
+
+        h1 {
+            color: yellowgreen;
+        }
+
+        .footer {
+            margin-top: 1em;
+            background-color: whitesmoke;
+        }
 
         #scope {
             padding: 0;
@@ -45,7 +57,7 @@
 
 <div class="ub-container">
 
-    <h1>sample propulsion laboratory</h1>
+    <h1>Sample propulsion laboratory</h1>
 
     <div class="ub-box" id="box_welcome">
         <img src="img/preview.png" class="ub-fit-img">
@@ -176,7 +188,7 @@
 
         </div>
 
-    <p>part of <a href="index.html">Cyber Music Studio™</a></p>
+    <p class="footer">part of <a href="index.html">Cyber Music Studio™</a></p>
 
     </form>
 </div>
@@ -366,18 +378,21 @@
         ub.on('sin', 'click', function (ev) {
             ub.stop(ev);
             sk.buffer = hb.generateWaveformBuffer(hb.generators.sin);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
         ub.on('sqr', 'click', function (ev) {
             ub.stop(ev);
             sk.buffer = hb.generateWaveformBuffer(hb.generators.sqr);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
         ub.on('pwm', 'click', function (ev) {
             ub.stop(ev);
             sk.buffer = hb.generateWaveformBuffer(hb.generators.pulse, {width: 0.2});
+            sk.once = false;
             showWave(sk.buffer);
         });
 
@@ -388,18 +403,21 @@
         ub.on('noise', 'click', function (ev) {
             ub.stop(ev);
             sk.buffer = hb.generateWaveformBuffer(noisefunc, {}, 2 * hb.ac.sampleRate);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
         ub.on('saw', 'click', function (ev) {
             ub.stop(ev);
             sk.buffer = hb.generateWaveformBuffer(hb.generators.saw);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
         ub.on('tri', 'click', function (ev) {
             ub.stop(ev);
             sk.buffer = hb.generateWaveformBuffer(hb.generators.triangle);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
@@ -412,6 +430,7 @@
         ub.on('triasin', 'click', function (ev) {
             ub.stop(ev);
             sk.buffer = hb.generateWaveformBuffer(triasin);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
@@ -424,6 +443,7 @@
         ub.on('triasin2', 'click', function (ev) {
             ub.stop(ev);
             sk.buffer = hb.generateWaveformBuffer(triasin2);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
@@ -435,6 +455,7 @@
         ub.on('cirkule', 'click', function (ev) {
             ub.stop(ev);
             sk.buffer = hb.generateWaveformBuffer(cirkule);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
@@ -446,6 +467,7 @@
         ub.on('metalik', 'click', function (ev) {
             ub.stop(ev);
             sk.buffer = hb.generateWaveformBuffer(metalik);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
@@ -473,8 +495,8 @@
         };
 
         ub.on('unowave', 'input', function (ev) {
-
             sk.buffer = hb.generateWaveformBuffer(unowave);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
@@ -484,6 +506,7 @@
             sk.buffer = hb.generateWaveformBuffer(function (n) {
                 return Math.random() * 2 - 1;
             });
+            sk.once = false;
             showWave(sk.buffer);
         });
 
@@ -508,6 +531,7 @@
                 org3: ub.gebi('org3').checked,
                 org4: ub.gebi('org4').checked,
             }, hb.midi2cps(60) * 2);
+            sk.once = false;
             showWave(sk.buffer);
         });
 
@@ -516,10 +540,11 @@
             if (!file) {
                 return;
             }
+            ub.stop(ev);
             var reader = new FileReader();
             reader.onload = function(loadEvent) {
-                if (loadEvent.loaded < 500*1024) {
-                    // less then 500kB
+                if (loadEvent.loaded < 1024*1024) {
+                    // less then 1MB
                     hb.ac.decodeAudioData(reader.result, function (buffer) {
                         sk.buffer = buffer;
 
@@ -527,6 +552,8 @@
 
                         showWave(buffer);
                     });
+                } else {
+                    alert('Maximum supported size is 1MB.');
                 }
             };
 
