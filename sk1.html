@@ -188,7 +188,7 @@
 
         </div>
 
-    <p class="footer">part of <a href="index.html">Cyber Music Studio™</a></p>
+    <p class="footer">Part of <a href="index.html">Cyber Music Studio™</a>. Supports <a href="https://www.g200kg.com/en/docs/webmidilink/index.html" target="_blank">WebMidiLink</a>.</p>
 
     </form>
 </div>
@@ -368,6 +368,7 @@
         hb.chnget(sk, 'sustain', 'sk1_sustain');
         hb.chnget(sk, 'release', 'sk1_release');
         keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
+        hb.enableWebMidiLink(sk);
 
         var violin = 'UklGRsACAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YZwCAABGAFAAZQBpAGsAYQBdAG4AXQBjABAAbgC4AL4AtgDEALUAsAC4AOQAJgErAf4AJwFWATsDfgThATD9d/gG9aXykPFL8T7xivEH8ofyQvPV8030GPXf9ZL2z/Yb95/3Wfjr+F75z/ks+sX69vpT+8r7Qvy9/CL9Qf2p/SP+hP64/hH/R/93/9n/YAB2AJ4AzQAhAZoBuQHSAS0CQQJnAq0CAwNhA6EDmwPCA+gDGwRKBGAEiAS8BKkE2AQ0BTcFRAVqBUIFkgXbBbcF1gXSBdcFAAYBBukF4QUEBrcEMwLrAxkKTBGlFjoaXRxxHbMdcx0FHXIcXBuqGvAZJhlbGJwX5RYQFmEVsBTfEyMTOxK0ESwRTxDDDzEPnw76DW8N9gw/DFQLNQuyClUK2AlBCb0IQgjSBzgHsQaHBiMGpQVWBf0ErQQbBKoDYwPcAo0CUQIQAq0BhgEtAdcArwAYALr/gP9p/1H/v/52/nf+NP7P/aH9m/1Q/e/82vzu/Jz8XfxA/O/7c/yA/Az73fgz9wT23PQu9LTziPOO87nzs/PX8wD0HvQ69Ev0uvTS9On0/PQ89Uv1ifWQ9cH1BfYg9k72SvaW9rr21vYA9xn3I/dB93/3s/fL99f32/f/9w/4X/iY+Nz49PjT+Pv4FflA+X35fvmt+dL5GvoV+vX5Gfo4+iL6Wfqx+rL6xfrm+vD6JPtJ+3b7lfua+5D7hvuH+5j75PsJ/BL8MvyY/I/8h/zT/Cj9K/3z/Gn9Sf1A/Uz9UP1p/Zj9i/2N/aP9zP0G/mb+H/4e/mX+Vv4X/hT+Kv5B/kz+q/6n/vf+7P7r/vD+Cv/+/jT/Nv8u/zX/cP96/4T/fP+q/8f/4f+u/4j/lv/A/9D/7/9BAG8ANgAFAA==';
         hb.ac.decodeAudioData(_base64ToArrayBuffer(violin), function (buffer) {

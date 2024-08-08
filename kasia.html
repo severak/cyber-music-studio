@@ -215,7 +215,7 @@
 
         </div>
 
-        <footer>part of <a href="index.html">Cyber Music Studio™</a> by <a href="http://tilde.town/~severak/">Severák</a></footer>
+        <footer>Part of <a href="index.html">Cyber Music Studio™</a> by <a href="http://tilde.town/~severak/">Severák</a>. Supports <a href="https://www.g200kg.com/en/docs/webmidilink/index.html" target="_blank">WebMidiLink</a>.</footer>
 
     </form>
 </div>
@@ -445,6 +445,7 @@
         };
 
         keyboardMidiWrap('keyboard3', 'select_midi_in3', synth);
+        hb.enableWebMidiLink(synth);
 
         tape = hb.TapeRecorder();
 

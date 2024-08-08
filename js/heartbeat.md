@@ -28,7 +28,7 @@ these function creates various audio nodes and connects them.
 - `hb.chain(a, b [, c ...])` - connects `a` and `b` or more nodes, stops on first thing which is not `AudioNode`
 - `hb.unchain(a, b [, c ...])` - disconnects `a` and `b` or more nodes, stops on first thing which is not `AudioNode`
 
-### audioParam stuff
+## audioParam stuff
 
 these functions are for realtime manipulation of `AudioParam` interface.
 
@@ -40,9 +40,9 @@ these functions are for realtime manipulation of `AudioParam` interface.
 Default `env` definition is `{attack: 0.05, decay: 0.01, sustain: 0, release: 0.05, max: 1}`. You can supply only 
 partial definition, but you need to supply at least empty object (`{}`).
 
-### MIDI stuff
+## MIDI stuff
 
-- `hb.midi2call(midi_data, synth, only_channel)` - translates `midi_data` to method calls on `synth` instance, if `only_channel` is set then it uses only this channel and ignore others.
+Function `hb.midi2call(midi_data, synth, only_channel)` - translates `midi_data` to method calls on `synth` instance, if `only_channel` is set then it uses only this channel and ignore others.
 
 Suported calls are:
 
@@ -55,7 +55,9 @@ Suported calls are:
 - `synth.start()` - starts playback
 - `synth.stop()` - stops playback
 
-### metronome
+There is a basic support for [WebMidiLink](https://www.g200kg.com/en/docs/webmidilink/index.html). You can call function `hb.enableWebMidiLink(synth)` and register your `synth` to receive events via WebMidiLink. Only channel 1 is now supported. 
+
+## metronome
 
 As `setTimeout` and `setInterval` notoriously bad at timing, there is metronome in this library. It can be used as base for your sequencers, arpegiators and stuff. It has following interface:
 

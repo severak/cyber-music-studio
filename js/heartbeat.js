@@ -387,6 +387,42 @@ hb.midi2call = function(midi_data, synth, only_channel) {
 	}
 };
 
+// WebMidiLink support - https://www.g200kg.com/en/docs/webmidilink/index.html
+hb.enableWebMidiLink = function(synth) {
+	// TODO - rewrite to support more channels, pitchBend and other things
+	var webMidiLinkRecv = function (event) {
+		var msg = event.data.split(",");
+		switch (msg[0]) {
+			case "midi":
+				switch (parseInt(msg[1], 16) & 0xf0) {
+					case 0x80:
+						//console.log('note off', parseInt(msg[2], 16));
+						synth.noteOff(parseInt(msg[2], 16));
+						break;
+					case 0x90:
+						var velo = parseInt(msg[3], 16);
+						if (velo > 0) {
+							//console.log('note on', parseInt(msg[2], 16), velo);
+							synth.noteOn(parseInt(msg[2], 16), velo);
+						} else {
+							//console.log('note on', parseInt(msg[2], 16), velo);
+							synth.noteOff(parseInt(msg[2], 16));
+						}
+						break;
+					case 0xb0:
+						if (parseInt(msg[2], 16) == 0x78) {
+							//console.log('panik!');
+							synth.panic();
+						}
+						break;
+				}
+				break;
+		}
+	}
+
+	window.addEventListener("message", webMidiLinkRecv, false);
+};
+
 // components
 
 /*

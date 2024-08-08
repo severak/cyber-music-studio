@@ -154,7 +154,7 @@
 
         </div>
 
-        <footer>part of <a href="index.html">Cyber Music Studio™</a> by <a href="http://tilde.town/~severak/">Severák</a></footer>
+        <footer>Part of <a href="index.html">Cyber Music Studio™</a> by <a href="http://tilde.town/~severak/">Severák</a>. Supports <a href="https://www.g200kg.com/en/docs/webmidilink/index.html" target="_blank">WebMidiLink</a>.</footer>
 
     </form>
 </div>
@@ -430,6 +430,7 @@
         hb.chnget(sk, 'vibrato_heavy');
         hb.chnget(sk, 'a432');
         keyboardMidiWrap('keyboard3', 'select_midi_in3', sk);
+        hb.enableWebMidiLink(sk);
 
         tape = hb.TapeRecorder();
 

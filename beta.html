@@ -507,6 +507,9 @@ ub.on("power","click",  function(ev){
 
 	keyboardMidiWrap('keyboard', 'select_midi_in', traveller);
 
+    // this is easter egg for those who can read in code
+    hb.enableWebMidiLink(traveller);
+
 	window.nomad = hb.AnalogNomad();
 	hb.chnget(nomad, 'vol', 'n_vol');
 	hb.chnget(nomad, 'saw');

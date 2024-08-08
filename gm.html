@@ -179,7 +179,7 @@
 
         </div>
 
-        <footer>part of <a href="index.html">Cyber Music Studio™</a> by <a href="http://tilde.town/~severak/">Severák</a></footer>
+        <footer>Part of <a href="index.html">Cyber Music Studio™</a> by <a href="http://tilde.town/~severak/">Severák</a>. Supports <a href="https://www.g200kg.com/en/docs/webmidilink/index.html" target="_blank">WebMidiLink</a>.</footer>
 
     </form>
 </div>
@@ -276,6 +276,7 @@
 
         window.synth = hb.gm.synth();
         keyboardMidiWrap('keyboard3', 'select_midi_in3', synth);
+        hb.enableWebMidiLink(synth);
         hb.chnget(synth, 'attack', 'attack');
         hb.chnget(synth, 'release', 'release');
         hb.chnget(synth, 'eq_low', 'eq_low');
@@ -352,41 +353,6 @@
             }
             tape.loadLocalFile(file);
         });
-
-
-        // TODO - put this into heartbeat.js, wrap it and link to https://www.g200kg.com/en/docs/webmidilink/spec.html
-        function webMidiLinkRecv(event) {
-            var msg = event.data.split(",");
-            switch (msg[0]) {
-                case "midi":
-                    switch (parseInt(msg[1], 16) & 0xf0) {
-                        case 0x80:
-                            console.log('note off', parseInt(msg[2], 16));
-                            synth.noteOff(parseInt(msg[2], 16));
-                            break;
-                        case 0x90:
-                            var velo = parseInt(msg[3], 16);
-                            if (velo > 0) {
-                                console.log('note on', parseInt(msg[2], 16), velo);
-                                synth.noteOn(parseInt(msg[2], 16), velo);
-                            } else {
-                                console.log('note on', parseInt(msg[2], 16), velo);
-                                synth.noteOff(parseInt(msg[2], 16));
-                            }
-                            break;
-                        case 0xb0:
-                            if (parseInt(msg[2], 16) == 0x78) {
-                                console.log('panik!');
-                                synth.panic();
-                            }
-                            break;
-                    }
-                    break;
-            }
-        }
-
-        window.addEventListener("message", webMidiLinkRecv, false);
-
 
     });
 </script>
