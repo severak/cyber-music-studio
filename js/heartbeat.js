@@ -25,6 +25,8 @@ hb.clamp = function(min, v, max) {
 	return v;
 };
 
+// TODO - hb.lerp
+
 hb.midi2cps = function(midi, A4) {
 	A4 = A4 || 440;
 	return A4 * Math.pow(2, (midi - 69) / 12);
@@ -35,7 +37,27 @@ hb.cps2midi = function(cps, A4) {
 	return 69 + 12 * Math.log2(cps / A4);
 };
 
+// TODO - hb.db2amp
+// TODO - hb.amp2db
+
 // ADSR & audioParam stuff
+
+// Here be multithreaded dragons!
+// Every time something is broken is because if the AudioParam
+
+hb.moveTo = function(audioParam, target, time) {
+	var curr = audioParam.value;
+	var now = hb.ac.currentTime;
+	audioParam.cancelScheduledValues(now);
+	audioParam.setValueAtTime(curr, now); // stop ENV at current point
+	audioParam.linearRampToValueAtTime(target, now + time); // move to target
+};
+
+hb.setNow = function(audioParam, target) {
+	var now = hb.ac.currentTime;
+	audioParam.cancelScheduledValues(now);
+	audioParam.setValueAtTime(target, now);
+};
 
 hb.adsrStart = function(audioParam, env) {
 	env.max = env.max || 1;
@@ -43,10 +65,11 @@ hb.adsrStart = function(audioParam, env) {
 	env.decay = env.decay || 0.01;
 	env.sustain = env.sustain || 0;
 	var curr = audioParam.value;
-	audioParam.cancelScheduledValues(hb.ac.currentTime);
-	audioParam.setValueAtTime(curr, hb.ac.currentTime); // stop ENV at current point
-	audioParam.linearRampToValueAtTime(env.max, hb.ac.currentTime + env.attack); // move to max
-	audioParam.linearRampToValueAtTime(env.sustain, hb.ac.currentTime + env.attack + env.decay); // move to sustain level
+	var now = hb.ac.currentTime;
+	audioParam.cancelScheduledValues(now);
+	audioParam.setValueAtTime(curr, now); // stop ENV at current point
+	audioParam.linearRampToValueAtTime(env.max, now + env.attack); // move to max
+	audioParam.linearRampToValueAtTime(env.sustain, now + env.attack + env.decay); // move to sustain level
 };
 
 hb.adsrStop = function(audioParam, env) {
@@ -57,66 +80,6 @@ hb.adsrStop = function(audioParam, env) {
 	audioParam.cancelScheduledValues(hb.ac.currentTime);
 	audioParam.setValueAtTime(curr, hb.ac.currentTime); // stop ENV at current point
 	audioParam.linearRampToValueAtTime(0, hb.ac.currentTime + env.release); // move to 0
-};
-
-if (window.firefoxEnvelopeWorkaround1) {
-	hb.adsrStart = function(audioParam, env) {
-		env.max = env.max || 1;
-		env.attack = env.attack || 0.05;
-		env.decay = env.decay || 0.01;
-		env.sustain = env.sustain || 0;
-
-		var lenAttack = env.attack * hb.ac.sampleRate;
-		var lenDecay = env.decay * hb.ac.sampleRate;
-		var stepAttack = env.max / lenAttack;
-		var stepDecay = (env.max - env.sustain) / lenDecay;
-
-		var buffer = hb.ac.createBuffer(1, lenAttack + lenDecay, hb.ac.sampleRate);
-		var chan = buffer.getChannelData(0);
-		var stepVal = 0;
-		for (var i = 0; i < lenAttack; i++) {
-			stepVal += stepAttack;
-			chan[i] = stepVal;
-		}
-		for (var i = lenAttack; i < lenAttack + lenDecay; i++) {
-			stepVal -= stepDecay;
-			chan[i] = stepVal;
-		}
-
-		var osc = hb.ac.createBufferSource();
-		osc.buffer = buffer;
-		osc.connect(audioParam);
-		osc.start();
-
-		var stopTime = hb.ac.currentTime + env.attack + env.decay + 0.02;
-		console.log('stop time = ' + stopTime)
-		//audioParam.setValueAtTime(stepVal,  stopTime);
-
-		osc.onended = function () {
-			var nau = hb.ac.currentTime;
-			console.log('ended= ' + nau);
-			osc.disconnect();
-			audioParam.setValueAtTime(stepVal,hb.ac.currentTime);
-			if (stopTime < nau) {
-				console.log('under');
-			} else {
-				console.log('over');
-			}
-			console.log('diff = ' + (nau - stopTime));
-		}
-	};
-}
-
-hb.moveTo = function(audioParam, target, time) {
-	var curr = audioParam.value;
-	audioParam.cancelScheduledValues(hb.ac.currentTime);
-	audioParam.setValueAtTime(curr, hb.ac.currentTime); // stop ENV at current point
-	audioParam.linearRampToValueAtTime(target, hb.ac.currentTime + time); // move to 0
-};
-
-hb.setNow = function(audioParam, target) {
-    audioParam.cancelScheduledValues(hb.ac.currentTime);
-    audioParam.setValueAtTime(target, hb.ac.currentTime);
 };
 
 // primitives
@@ -246,11 +209,11 @@ hb.makeFilter = function(type, freq) {
     if (!type) type = 'lowpass';
     var filter = hb.ac.createBiquadFilter();
     filter.type = type;
-    filter.frequency.setValueAtTime(freq, hb.ac.currentTime);
+	filter.frequency.value = freq;
     return filter;
 };
 
-// TODO - adder and multiplier
+// TODO - explain adder and multiplier
 
 hb.makeAdder = function(a, b) {
 	var adder = hb.makeGain(1);
@@ -271,7 +234,7 @@ hb.makeMultiplier = function(a, b) {
 		multiplier = hb.makeGain(1);
 		multiplier.connect(b);
 	}
-	if (!isNaN(a)) a = makeConstant(a);
+	if (!isNaN(a)) a = makeConstant(a); // TODO - fix this as this is bug
 	a.connect(multiplier);
 	return multiplier;
 };
@@ -494,6 +457,12 @@ hb.MixStrip = function() {
 	return me;
 };
 
+//  TODO - distortion effect - implement ideas from - https://www.youtube.com/watch?v=GKAWnT1WA58
+// https://www.nickwritesablog.com/sound-design-in-web-audio-neurofunk-bass-part-1/
+// http://kevincennis.github.io/transfergraph/
+
+// TODO - juno-esque chorus - https://github.com/looshi/wavetable-synth-2/blob/main/src/audio/Chorus.js
+
 hb.TapeRecorder = function() {
 	var me = {};
 	me.playtrough = false;
@@ -587,8 +556,6 @@ hb.TapeRecorder = function() {
 	return me;
 };
 
-// - tape - https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioDestinationNode
-
 window.hb = hb;
 
 // bonus - hb.chnget
@@ -600,7 +567,7 @@ if (window.ub && ub.on) {
 		if (ub.gebi(elem).tagName=="SELECT") {
 			// select -> string
 			ub.on(elem, 'change', function(){
-				synth.param(param, ub.gebi(param).value);
+				synth.param(param, ub.gebi(param).value); // TODO - fix elem param confusion
 			});
 			synth.param(param, ub.gebi(param).value);
 		} else if (ub.gebi(elem).getAttribute("type")=="checkbox") {
