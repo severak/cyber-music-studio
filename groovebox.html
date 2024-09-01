@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Groovebox / Cyber Music Studio™</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uboot.css">
+    <link rel="stylesheet" href="css/gh-fork-ribbon.css">
+    <script src="js/bluescreen.js"></script>
+    <script src="js/uboot.js"></script>
+    <script src="js/JZZ.js"></script>
+    <script src="js/JZZ.input.Kbd.js"></script>
+    <script src="js/JZZ.gui.Select.js"></script>
+    <script src="js/wavy-jones.js"></script>
+    <script src="js/wave-encoder-polyfill.js"></script>
+    <script src="js/heartbeat.js"></script>
+    <script src="js/heartbeat.gm.js"></script>
+    <script>
+        WebAudioControlsOptions={
+            // useMidi:1,
+            knobDiameter: 32,
+            knobColors: "#fc0;#000;#fc0"
+        };
+    </script>
+    <script src="js/webaudio-controls.js"></script>
+    <script src="js/webaudio-pianoroll.js"></script>
+    <style>
+        body {
+            font-family: "Lucida Console", monospace;
+            background-color: plum;
+            background-image: url("img/carpet.jpg");
+        }
+
+        footer {
+            margin-top: 1em;
+            background-color: whitesmoke;
+        }
+
+        .ub-box {
+            background-color: lightgray;
+        }
+
+        #box_welcome { width: 30em; margin: auto; }
+
+        a { color: black; text-decoration-style: dashed; text-decoration-thickness: 1px; }
+
+        #power {
+            font-weight: bold;
+            font-size: 200%;
+        }
+
+        .ub-container {
+            max-width: 60em !important;
+        }
+
+        .is-blinking {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .big-buttons button, .big-buttons label, .big-select {
+            width: 98%;
+            font-weight: bold;
+            font-size: x-large;
+        }
+
+        .ub-box { padding-left: 0; padding-right: 0; }
+
+        .device summary { font-weight: bold; }
+
+        .device { padding: 10px; border-bottom: 1px double black; }
+        .lpad { padding-left: 1em;}
+
+        .drum-tones { border-collapse: collapse; border-right: 1px solid darkgray; }
+        .drum-tones td { border-left: 1px solid darkgray; max-width: 4em; overflow: clip; text-align: center; }
+
+        .drum-sequencer { border-collapse: collapse; background-color: #ddd;  }
+        .drum-sequencer td, .drum-sequencer th { border: 1px solid black; }
+        .drum-sequencer td { width: 1em; text-align: center; color: transparent; }
+        .drum-sequencer td.tmavsi { background-color: #ccc; }
+        .drum-sequencer td.active { background-color: #777; }
+        .drum-sequencer td.accent { background-color: #333; }
+
+        .pattern-selector button { width: 2em; }
+        .pattern-selector button.live { width: auto; }
+        .pattern-selector button.current { background-color: yellow; }
+        .pattern-selector button.next { background-color: orange; }
+
+        .bass-tones { border-collapse: collapse; border-right: 1px solid darkgray; }
+        .bass-tones td { border-left: 1px solid darkgray; text-align: center; padding: 0 3px; }
+    </style>
+</head>
+<body>
+
+<a class="github-fork-ribbon" href="https://github.com/severak/cyber-music-studio" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+
+<div class="ub-container">
+    <br><br>
+
+    <div class="ub-box ub-hidden" id="box_welcome">
+        <img src="img/preview.png" class="ub-fit-img">
+        <p>As Cyber Music Studio™ is not finished yet I wanted to make something already usable. This one is your generic 90s General MIDI keyboard (or a subset of this).</p>
+        <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
+        <center><button id="power" class="ub-button">OK</button></center>
+    </div>
+
+    <form class="ub-form" id="form">
+        <div class="ub-box" id="box_traveller">
+
+            <div class="device">
+                <h1><small>Cyber Music Studio's</small> Groovebox</h1>
+
+                <p>This is only non-working mockup for now to test out UI.</p>
+                <p>TODO - transport controls, BPM...</p>
+            </div>
+
+
+
+            <div class="device" style="background-color: #FFFFCC">
+                <details open>
+                    <summary>Dr. GROOVE</summary>
+                    <div class="lpad">
+                        <details open>
+                            <summary>SOUND <button>load preset -></button> <select><option>trash</option></select></summary>
+                            <table class="drum-tones">
+                                <tr><td>Kick</td><td>Snare</td><td>ClosedHat</td><td>OpenHat</td><td>HiTom</td><td>LowTom</td><td>MidTom</td><td>Clap</td></tr>
+                                <tr><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td></tr>
+                                <tr><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td></tr>
+                                <tr><td>tune</td><td>tune</td><td>tune</td><td>tune</td><td>tune</td><td>tune</td><td>tune</td><td>tune</td></tr>
+                                <tr><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td></tr>
+                                <tr><td>pan</td><td>tune</td><td>pan</td><td>pan</td><td>pan</td><td>pan</td><td>pan</td><td>pan</td></tr>
+                                <tr><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td></tr>
+                                <tr><td>vol</td><td>vol</td><td>vol</td><td>vol</td><td>vol</td><td>vol</td><td>vol</td><td>vol</td></tr>
+                                <tr><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td></tr>
+                            </table>
+                        </details>
+
+
+
+                    <details>
+                        <summary>PATTERN <span class="pattern-selector"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
+                        <table class="drum-sequencer">
+                            <tr class="index"><td></td><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th>Kick</th><td>1</td><td>2</td><td>3</td><td class="tmavsi active">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th>Snare</th><td>1</td><td class="active">2</td><td>3</td><td class="tmavsi accent">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th>ClosedHat</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th>OpenHat</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th>HiTom</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th>LowTom</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th>MidTom</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th>Clap</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                        </table>
+                    </details>
+
+                    </div>
+                </details>
+
+
+            </div>
+
+            <div class="device" style="background-color: #CCFFCC">
+                <details open>
+                    <summary>MonoBass</summary>
+                    <div class="lpad">
+                    <table class="bass-tones">
+                        <tr><td><button class="active">SIN</button><button>TRI</button><br><button>SQR</button><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><button class="active">SQR</button><br><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td rowspan="2"><webaudio-knob diameter="64"></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td></tr>
+                        <tr><td><strong>LFO</strong></td><td>RATE</td><td>AMP</td><td>VCF</td><td><strong>WAVE</strong></td><td>SUB</td><TD>DECAY</TD><td>OOMPH</td></tr>
+                    </table>
+
+                        <p>(todo - parametry domyslet)</p>
+
+
+
+                    <details>
+                        <summary>PATTERN <span class="pattern-selector"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
+                        <webaudio-pianoroll editmode="gridmono"></webaudio-pianoroll>
+                        <p>(todo - nastylovat)</p>
+                    </details>
+
+
+                    </div>
+                </details>
+            </div>
+
+            <div class="device" style="background-image: url('img/camo.jpg'); background-repeat: repeat;">
+                <details>
+                    <summary><span style="background-color: black; color: white;">SERGEANT MIDI</span></summary>
+                    <span style="background-color: black; color: white;">There will be polysynth ala Hearthbeat GM.</span>
+                </details>
+            </div>
+
+            <div class="device">
+                <details>
+                    <summary>SKA sampler</summary>
+                    <p>There will be Casio SK-1 like sampler.</p>
+                </details>
+            </div>
+
+            <div class="device">
+                <details>
+                    <summary>Mix:UP recorder</summary>
+                    <p>Here will be mixer and recorder...</p>
+                </details>
+            </div>
+
+
+        </div>
+
+        <footer>Part of <a href="index.html">Cyber Music Studio™</a> by <a href="http://tilde.town/~severak/">Severák</a>.</footer>
+
+    </form>
+</div>
+
+<script src="//million.svita.cz/millions_v1.js"></script>
+</body>
+</html>
+

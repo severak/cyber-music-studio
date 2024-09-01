@@ -40,6 +40,8 @@ hb.cps2midi = function(cps, A4) {
 // TODO - hb.db2amp
 // TODO - hb.amp2db
 
+// TODO - hb.cent2tune https://sengpielaudio.com/calculator-centsratio.htm http://www.csounds.com/manual/html/cent.html https://www.omnicalculator.com/other/semitone
+
 // ADSR & audioParam stuff
 
 // Here be multithreaded dragons!
