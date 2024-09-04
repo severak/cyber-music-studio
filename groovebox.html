@@ -80,9 +80,10 @@
         .drum-tones td { border-left: 1px solid darkgray; max-width: 4em; overflow: clip; text-align: center; }
 
         .drum-sequencer { border-collapse: collapse; background-color: #ddd;  }
-        .drum-sequencer td, .drum-sequencer th { border: 1px solid black; }
+        .drum-sequencer td, .drum-sequencer th { border: 1px solid darkgray; }
+        .drum-sequencer th { max-width: 10em; overflow: clip; }
         .drum-sequencer td { width: 1em; text-align: center; color: transparent; }
-        .drum-sequencer td.tmavsi { background-color: #ccc; }
+        .drum-sequencer td.tmavsi { border-right: 1px solid black; }
         .drum-sequencer td.active { background-color: #777; }
         .drum-sequencer td.accent { background-color: #333; }
 
@@ -102,58 +103,141 @@
 <div class="ub-container">
     <br><br>
 
-    <div class="ub-box ub-hidden" id="box_welcome">
+    <div class="ub-box" id="box_welcome">
         <img src="img/preview.png" class="ub-fit-img">
-        <p>As Cyber Music Studio™ is not finished yet I wanted to make something already usable. This one is your generic 90s General MIDI keyboard (or a subset of this).</p>
+        <p>This is work-in-progress groovebox. It's not finished yet.</p>
         <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
         <center><button id="power" class="ub-button">OK</button></center>
     </div>
 
-    <form class="ub-form" id="form">
-        <div class="ub-box" id="box_traveller">
+    <form class="ub-form ub-hidden" id="form">
+        <div class="ub-box" id="box_groovebox">
 
             <div class="device">
                 <h1><small>Cyber Music Studio's</small> Groovebox</h1>
-
-                <p>This is only non-working mockup for now to test out UI.</p>
-                <p>TODO - transport controls, BPM, MIDI in / out...</p>
+                <p>BPM: <input type="number" min="20" max="160" step="1" id="bpm" value="120" id="bpm"> <button id="start">start</button> <button id="stop">stop</button></p>
             </div>
-
-
 
             <div class="device" style="background-color: #FFFFCC">
                 <details open>
                     <summary>Dr. GROOVE</summary>
                     <div class="lpad">
                         <details open>
-                            <summary>SOUND <button>load preset -></button> <select><option>trash</option></select></summary>
+                            <summary>DRUM KIT
+                                <!--  <button>load preset -></button>
+                                <select>
+                                    <option>trash</option>
+                                </select> -->
+                            </summary>
                             <table class="drum-tones">
-                                <tr><td>Kick</td><td>Snare</td><td>ClosedHat</td><td>OpenHat</td><td>HiTom</td><td>LowTom</td><td>MidTom</td><td>Clap</td></tr>
-                                <tr><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td><td><button>CHANGE</button></td></tr>
-                                <tr><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td></tr>
-                                <tr><td>tune</td><td>tune</td><td>tune</td><td>tune</td><td>tune</td><td>tune</td><td>tune</td><td>tune</td></tr>
-                                <tr><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td></tr>
-                                <tr><td>pan</td><td>tune</td><td>pan</td><td>pan</td><td>pan</td><td>pan</td><td>pan</td><td>pan</td></tr>
-                                <tr><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td><td><webaudio-knob id="knb3" value="63" min="0" max="127" step="1"></webaudio-knob></td></tr>
-                                <tr><td>vol</td><td>vol</td><td>vol</td><td>vol</td><td>vol</td><td>vol</td><td>vol</td><td>vol</td></tr>
-                                <tr><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td><td><button>PLAY</button></td></tr>
+                                <tr>
+                                    <td id="dr_name_1">---</td>
+                                    <td id="dr_name_2">---</td>
+                                    <td id="dr_name_3">---</td>
+                                    <td id="dr_name_4">---</td>
+                                    <td id="dr_name_5">---</td>
+                                    <td id="dr_name_6">---</td>
+                                    <td id="dr_name_7">---</td>
+                                    <td id="dr_name_8">---</td>
+                                </tr>
+                                <tr>
+                                    <td id="dr_change_1"><button>CHANGE</button></td>
+                                    <td id="dr_change_2"><button>CHANGE</button></td>
+                                    <td id="dr_change_3"><button>CHANGE</button></td>
+                                    <td id="dr_change_4"><button>CHANGE</button></td>
+                                    <td id="dr_change_5"><button>CHANGE</button></td>
+                                    <td id="dr_change_6"><button>CHANGE</button></td>
+                                    <td id="dr_change_7"><button>CHANGE</button></td>
+                                    <td id="dr_change_8"><button>CHANGE</button></td>
+                                </tr>
+                                <tr>
+                                    <td><webaudio-knob id="dr_tune_1" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_2" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_3" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_4" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_5" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_6" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_7" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_8" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
+                                </tr>
+                                <tr>
+                                    <td>tune</td>
+                                    <td>tune</td>
+                                    <td>tune</td>
+                                    <td>tune</td>
+                                    <td>tune</td>
+                                    <td>tune</td>
+                                    <td>tune</td>
+                                    <td>tune</td>
+                                </tr>
+                                <tr>
+                                    <td><webaudio-knob id="dr_pan_1" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_pan_2" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_pan_3" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_pan_4" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_pan_5" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_pan_6" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_pan_7" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_pan_8" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                                </tr>
+                                <tr>
+                                    <td>pan</td>
+                                    <td>tune</td>
+                                    <td>pan</td>
+                                    <td>pan</td>
+                                    <td>pan</td>
+                                    <td>pan</td>
+                                    <td>pan</td>
+                                    <td>pan</td>
+                                </tr>
+                                <tr>
+                                    <td><webaudio-knob id="dr_vol_1" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_vol_2" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_vol_3" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_vol_4" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_vol_5" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_vol_6" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_vol_7" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_vol_8" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                                </tr>
+                                <tr>
+                                    <td>vol</td>
+                                    <td>vol</td>
+                                    <td>vol</td>
+                                    <td>vol</td>
+                                    <td>vol</td>
+                                    <td>vol</td>
+                                    <td>vol</td>
+                                    <td>vol</td>
+                                </tr>
+                                <tr>
+                                    <td><button id="dr_play_1">PLAY</button></td>
+                                    <td><button id="dr_play_2">PLAY</button></td>
+                                    <td><button id="dr_play_3">PLAY</button></td>
+                                    <td><button id="dr_play_4">PLAY</button></td>
+                                    <td><button id="dr_play_5">PLAY</button></td>
+                                    <td><button id="dr_play_6">PLAY</button></td>
+                                    <td><button id="dr_play_7">PLAY</button></td>
+                                    <td><button id="dr_play_8">PLAY</button></td>
+                                </tr>
                             </table>
+                            <input id="dr_load_sample" type="file" accept=".wav,.mp3" class="ub-hidden">
                         </details>
 
 
-
-                    <details>
-                        <summary>PATTERN <span class="pattern-selector"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
-                        <table class="drum-sequencer">
+                    <details open>
+                        <summary>PATTERN
+                            <span class="pattern-selector ub-hidden"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
+                        <table class="drum-sequencer" id="drum_sequencer">
                             <tr class="index"><td></td><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th>Kick</th><td>1</td><td>2</td><td>3</td><td class="tmavsi active">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th>Snare</th><td>1</td><td class="active">2</td><td>3</td><td class="tmavsi accent">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th>ClosedHat</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th>OpenHat</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th>HiTom</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th>LowTom</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th>MidTom</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th>Clap</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th id="drseq_name_1">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th id="drseq_name_2">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th id="drseq_name_3">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th id="drseq_name_4">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th id="drseq_name_5">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th id="drseq_name_6">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th id="drseq_name_7">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr><th id="drseq_name_8">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
                         </table>
 
                         <p>TODO - copy from A B C D ... CLEAR</p>
@@ -217,6 +301,150 @@
 
     </form>
 </div>
+
+<script>
+DrRhytmh = function () {
+    var me = {};
+    me.output = hb.makeGain(0.3);
+
+    me.loading = -1;
+
+    var silence = hb.generateWaveformBuffer(function (){return 0;}, {}, 0);
+
+    for (let ch = 1; ch < 9; ch++) {
+        me['samples_' + ch] = silence;
+        me['panner_' + ch] = hb.ac.createStereoPanner();
+        me['gain_' + ch] = hb.makeGain(1);
+        hb.chain(me['panner_' + ch], me['gain_' + ch], me.output);
+    }
+
+    // generated sounds as preset
+    ub.gebi('dr_name_1').innerText = 'noise';
+    ub.gebi('drseq_name_1').innerText = 'noise';
+    me.samples_1 = hb.generateWaveformBuffer(function(n) { return (Math.random() * 2 -1)  * (1 - n); }, {}, hb.ac.sampleRate * 0.1);
+    ub.gebi('dr_name_2').innerText = 'sin';
+    ub.gebi('drseq_name_2').innerText = 'sin';
+    me.samples_2 = hb.generateWaveformBuffer(hb.generators.sin, {}, hb.midi2cps(36));
+    ub.gebi('dr_name_3').innerText = 'triangle';
+    ub.gebi('drseq_name_3').innerText = 'triangle';
+    me.samples_3 = hb.generateWaveformBuffer(hb.generators.triangle);
+    ub.gebi('dr_name_4').innerText = 'saw';
+    ub.gebi('drseq_name_4').innerText = 'saw';
+    me.samples_4 = hb.generateWaveformBuffer(hb.generators.saw);
+    ub.gebi('dr_name_5').innerText = 'sqr';
+    ub.gebi('drseq_name_5').innerText = 'sqe';
+    me.samples_5 = hb.generateWaveformBuffer(hb.generators.sqr);
+    ub.gebi('dr_name_6').innerText = 'pulse';
+    ub.gebi('drseq_name_6').innerText = 'pulse';
+    me.samples_6 = hb.generateWaveformBuffer(hb.generators.pulse);
+
+    me.param = function (name, val) {
+        me[name] = val;
+        [paramName, paramNo] = name.split('_');
+        //console.log(paramName, '[' + paramNo + ']', val);
+        if (paramName=='pan') {
+            hb.setNow(me['panner_'+paramNo].pan, val);
+        }
+        if (paramName=='vol') {
+            hb.setNow(me['gain_'+paramNo].gain, val);
+        }
+    };
+
+    me.trigger = function (ch, vel) {
+        var osc = hb.makeDrumOsc(me['samples_'+ch]);
+        hb.setNow(osc.detune, me['tune_'+ch]);
+        // osc.detune = (me['tune'+ch] * 12);
+        hb.chain(osc, me['panner_' + ch]);
+    };
+
+    me.loadSample = function (ch) {
+        me.loading = ch;
+        ub.gebi('dr_load_sample').click();
+    };
+
+    ub.on('dr_load_sample', 'change', function (ev){
+        var file = ev.target.files[0];
+        if (!file) {
+            return;
+        }
+        ub.stop(ev);
+        var reader = new FileReader();
+        reader.onload = function(loadEvent) {
+            if (loadEvent.loaded < 1024*1024) {
+                // less then 1MB
+                hb.ac.decodeAudioData(reader.result, function (buffer) {
+                    me['samples_' + me.loading] = buffer;
+                    ub.gebi('dr_name_'+me.loading).innerText = file.name;
+                    ub.gebi('drseq_name_'+me.loading).innerText = file.name;
+                    // TODO - seq_name_x
+                });
+            } else {
+                alert('Maximum supported size is 1MB.');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    return me;
+}
+
+ub.on("power","click",  function(ev){
+    ub.stop(ev);
+    ub.addClass("box_welcome", 'ub-hidden');
+    ub.delClass("form", 'ub-hidden');
+
+    ub.gebi('form').reset();
+    hb.start();
+
+    drums = DrRhytmh();
+    for (let ch = 1; ch < 9; ch++) {
+        ub.on('dr_change_'+ch, 'click', function (ev) {ub.stop(ev); drums.loadSample(ch);});
+        hb.chnget(drums, 'tune_'+ch, 'dr_tune_'+ch);
+        hb.chnget(drums, 'pan_'+ch, 'dr_pan_'+ch);
+        hb.chnget(drums, 'vol_'+ch, 'dr_vol_'+ch);
+        ub.on('dr_play_'+ch, 'click', function (ev){ ub.stop(ev); drums.trigger(ch, 100); });
+    }
+    hb.chain(drums.output, hb.ac.destination);
+
+    ub.on('drum_sequencer', 'click', 'td', function (ev) {
+        if (ub.hasClass(ev.target, 'active')) {
+            ub.delClass(ev.target, 'active');
+        } else {
+            ub.addClass(ev.target, 'active');
+        }
+    });
+
+    var step = -1;
+
+    metro = hb.makeMetronome(function (){
+        ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[step+1], 'active');
+        var rows = ub.gebi('drum_sequencer').querySelectorAll('tr');
+        for (let ch = 1; ch < 9; ch++) {
+            var td = rows[ch].querySelectorAll('td')[step];
+            if (td && ub.hasClass(td, 'active')) {
+                drums.trigger(ch, 100);
+            }
+        }
+        step = (step + 1) % 16;
+        ub.addClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[step+1], 'active');
+    });
+
+    ub.on('start', 'click', function (ev) {
+        ub.stop(ev);
+        metro.setBpm(ub.gebi('bpm').value);
+        metro.start();
+        step = 0;
+    });
+
+    ub.on('stop', 'click', function (ev) {
+        ub.stop(ev);
+        metro.stop();
+        ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[step+1], 'active');
+        step = 0;
+    });
+
+});
+</script>
 
 <script src="//million.svita.cz/millions_v1.js"></script>
 </body>
