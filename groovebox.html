@@ -254,7 +254,7 @@
                     <summary>MonoBass</summary>
                     <div class="lpad">
                     <table class="bass-tones">
-                        <tr><td><button class="active">SIN</button><button>TRI</button><br><button>SQR</button><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><button class="active">SQR</button><br><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td rowspan="2"><webaudio-knob diameter="64"></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td></tr>
+                        <tr><td><button class="active">SIN</button><button>TRI</button><br><button>SQR</button><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><button class="active">SQR</button><br><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td rowspan="2"><webaudio-knob diameter="64" id="bigknob" min="20" max="20000" value="2000" log="1"></webaudio-knob></td><td><webaudio-knob id="oomph" min="0" max="10" step="0.1"></webaudio-knob></td></tr>
                         <tr><td><strong>LFO</strong></td><td>RATE</td><td>AMP</td><td>VCF</td><td><strong>WAVE</strong></td><td>SUB</td><TD>DECAY</TD><td>OOMPH</td></tr>
                     </table>
 
@@ -262,9 +262,9 @@
 
 
 
-                    <details>
-                        <summary>PATTERN <span class="pattern-selector"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
-                        <webaudio-pianoroll editmode="gridmono"></webaudio-pianoroll>
+                    <details open>
+                        <summary>PATTERN <span class="pattern-selector ub-hidden"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
+                        <webaudio-pianoroll id="bass_sequencer" editmode="gridmono" markstart="17" markend="17" yoffset="48" yrange="32"></webaudio-pianoroll>
                         <p>(todo - nastylovat)</p>
                     </details>
 
@@ -273,21 +273,21 @@
                 </details>
             </div>
 
-            <div class="device" style="background-image: url('img/camo.jpg'); background-repeat: repeat;">
+            <div class="device ub-hidden" style="background-image: url('img/camo.jpg'); background-repeat: repeat;">
                 <details>
                     <summary><span style="background-color: black; color: white;">SERGEANT MIDI</span></summary>
                     <span style="background-color: black; color: white;">There will be polysynth ala Hearthbeat GM.</span>
                 </details>
             </div>
 
-            <div class="device">
+            <div class="device ub-hidden">
                 <details>
                     <summary>SKA sampler</summary>
                     <p>There will be Casio SK-1 like sampler.</p>
                 </details>
             </div>
 
-            <div class="device">
+            <div class="device ub-hidden">
                 <details>
                     <summary>Mix:UP recorder</summary>
                     <p>Here will be mixer and recorder...</p>
@@ -388,6 +388,26 @@ DrRhytmh = function () {
     return me;
 }
 
+// most primitive monophonic synth ever
+Rudiment = function () {
+    var me = {};
+    me.output = hb.makeGain(0.3);
+
+    me.osc = hb.makeOsc('sawtooth', 440);
+    me.env = hb.makeGain(0);
+
+    hb.chain(me.osc, me.env, me.output);
+
+    me.noteOn = function (nn, vel) {
+        hb.moveTo(me.osc.frequency, hb.midi2cps(nn), 0.01);
+        hb.adsrStart(me.env.gain, {
+            decay: 0.1
+        });
+    };
+
+    return me;
+}
+
 ub.on("power","click",  function(ev){
     ub.stop(ev);
     ub.addClass("box_welcome", 'ub-hidden');
@@ -414,6 +434,22 @@ ub.on("power","click",  function(ev){
         }
     });
 
+    bass = Rudiment();
+    lefilter = hb.makeFilter('lowpass', 20000);
+
+    ub.on('bigknob', 'input', function (ev){
+       var freq = ub.gebi('bigknob').value;
+       hb.setNow(lefilter.frequency, freq);
+    });
+
+    ub.on('oomph', 'input', function (ev){
+        var Q = ub.gebi('oomph').value;
+        console.log('Q', Q);
+        hb.setNow(lefilter.Q, Q);
+    });
+
+    hb.chain(bass.output, lefilter, hb.ac.destination);
+
     var step = -1;
 
     metro = hb.makeMetronome(function (){
@@ -425,6 +461,15 @@ ub.on("power","click",  function(ev){
                 drums.trigger(ch, 100);
             }
         }
+        ub.gebi('bass_sequencer').cursor = step;
+
+        var sequence = ub.gebi('bass_sequencer').sequence;
+        for (const event of sequence) {
+            if (event.t==step) {
+                bass.noteOn(event.n);
+            }
+        }
+
         step = (step + 1) % 16;
         ub.addClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[step+1], 'active');
     });
@@ -440,6 +485,7 @@ ub.on("power","click",  function(ev){
         ub.stop(ev);
         metro.stop();
         ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[step+1], 'active');
+        ub.gebi('bass_sequencer').cursor = 0;
         step = 0;
     });
 
