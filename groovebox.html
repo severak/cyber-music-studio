@@ -115,7 +115,7 @@
 
             <div class="device">
                 <h1><small>Cyber Music Studio's</small> Groovebox</h1>
-                <p>BPM: <input type="number" min="20" max="160" step="1" id="bpm" value="120" id="bpm"> <button id="start">start</button> <button id="stop">stop</button></p>
+                <p>BPM: <input type="number" min="20" max="160" step="1" id="bpm" value="90" id="bpm"> <button id="start">start</button> <button id="stop">stop</button></p>
             </div>
 
             <div class="device" style="background-color: #FFFFCC">
@@ -399,7 +399,7 @@ Rudiment = function () {
     hb.chain(me.osc, me.env, me.output);
 
     me.noteOn = function (nn, vel) {
-        hb.moveTo(me.osc.frequency, hb.midi2cps(nn), 0.01);
+        hb.moveTo(me.osc.frequency, hb.midi2cps(nn-12), 0.01);
         hb.adsrStart(me.env.gain, {
             decay: 0.1
         });
@@ -426,6 +426,9 @@ ub.on("power","click",  function(ev){
     }
     hb.chain(drums.output, hb.ac.destination);
 
+    ub.gebi('bass_sequencer').sequence = [{"t":0,"c":144,"n":59,"g":1,"v":100},{"t":1,"c":144,"n":64,"g":1,"v":100},{"t":2,"c":144,"n":59,"g":1,"v":100},{"t":3,"c":144,"n":74,"g":1,"v":100},{"t":4,"c":144,"n":59,"g":1,"v":100},{"t":5,"c":144,"n":71,"g":1,"v":100},{"t":6,"c":144,"n":59,"g":1,"v":100},{"t":7,"c":144,"n":59,"g":1,"v":100},{"t":8,"c":144,"n":71,"g":1,"v":100},{"t":9,"c":144,"n":59,"g":1,"v":100},{"t":10,"c":144,"n":71,"g":1,"v":100},{"t":11,"c":144,"n":59,"g":1,"v":100},{"t":12,"c":144,"n":71,"g":1,"v":100},{"t":13,"c":144,"n":69,"g":1,"v":100},{"t":14,"c":144,"n":59,"g":1,"v":100},{"t":15,"c":144,"n":71,"g":1,"v":100}];
+    ub.gebi('bass_sequencer').redraw();
+
     ub.on('drum_sequencer', 'click', 'td', function (ev) {
         if (ub.hasClass(ev.target, 'active')) {
             ub.delClass(ev.target, 'active');
@@ -444,7 +447,6 @@ ub.on("power","click",  function(ev){
 
     ub.on('oomph', 'input', function (ev){
         var Q = ub.gebi('oomph').value;
-        console.log('Q', Q);
         hb.setNow(lefilter.Q, Q);
     });
 
