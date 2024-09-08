@@ -227,7 +227,7 @@
 
                     <details open>
                         <summary>PATTERN
-                            <span class="pattern-selector ub-hidden"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
+                            <span class="pattern-selector ub-hidden"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button></span></summary>
                         <table class="drum-sequencer" id="drum_sequencer">
                             <tr class="index"><th></th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
                             <tr class="notes"><th id="drseq_name_1">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
@@ -239,8 +239,6 @@
                             <tr class="notes"><th id="drseq_name_7">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
                             <tr class="notes"><th id="drseq_name_8">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
                         </table>
-
-                        <p>TODO - copy from A B C D ... CLEAR</p>
                     </details>
 
                     </div>
@@ -250,7 +248,7 @@
             </div>
 
             <div class="device" style="background-color: #CCFFCC">
-                <details >
+                <details open>
                     <summary>MonoBass</summary>
                     <div class="lpad">
                     <table class="bass-tones">
@@ -258,15 +256,10 @@
                         <tr><td><button class="active">SIN</button><button>TRI</button><br><button>SQR</button><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><button class="active">SQR</button><br><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td rowspan="2"><webaudio-knob diameter="64" id="bigknob" min="20" max="20000" value="2000" log="1"></webaudio-knob></td><td><webaudio-knob id="oomph" min="0" max="10" step="0.1"></webaudio-knob></td></tr>
                         <tr><td><strong>LFO</strong></td><td>RATE</td><td>AMP</td><td>VCF</td><td><strong>WAVE</strong></td><td>SUB</td><TD>DECAY</TD><td>OOMPH</td></tr>
                     </table>
-
-                        <p>(todo - parametry domyslet)</p>
-
-
-
+                    <small>Only BIG filter cutoff knob works for now...</small>
                     <details open>
-                        <summary>PATTERN <span class="pattern-selector ub-hidden"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
+                        <summary>PATTERN <span class="pattern-selector" id="bass_patterns"><button class="current">A</button> <button>B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
                         <webaudio-pianoroll id="bass_sequencer" editmode="gridmono" markstart="17" markend="17" yoffset="48" yrange="32" yscroll="1" cursor="17" width="450"></webaudio-pianoroll>
-                        <p>(todo - nastylovat)</p>
                     </details>
 
 
@@ -428,6 +421,9 @@ Rudiment = function () {
         });
     };
 
+    me.noteOff = function () {};
+    me.panic = function () {};
+
     return me;
 }
 
@@ -578,6 +574,7 @@ ub.on("power","click",  function(ev){
         return me;
     }
 
+    bass_sequencer = Sequencer('bass_patterns', 'bass_sequencer', bass);
     general_sequencer = Sequencer('general_patterns', 'general_sequencer', general, 'general_copyfrom');
 
     var step = -1;
@@ -594,15 +591,8 @@ ub.on("power","click",  function(ev){
                 drums.trigger(ch, 100);
             }
         }
-        ub.gebi('bass_sequencer').cursor = step;
 
-        var sequence = ub.gebi('bass_sequencer').sequence;
-        for (const event of sequence) {
-            if (event.t==step) {
-                bass.noteOn(event.n);
-            }
-        }
-
+        bass_sequencer.tick();
         general_sequencer.tick();
 
         step = (step + 1) % 16;
@@ -613,6 +603,7 @@ ub.on("power","click",  function(ev){
         metro.setBpm(ub.gebi('bpm').value);
         step = 0;
         metro.start();
+        bass_sequencer.start();
         general_sequencer.start();
     });
 
@@ -622,6 +613,7 @@ ub.on("power","click",  function(ev){
         metro.stop();
         ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[prevStep], 'active');
         ub.gebi('bass_sequencer').cursor = 17;
+        bass_sequencer.stop();
         general_sequencer.stop();
         step = -1;
     });
