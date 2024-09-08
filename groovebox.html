@@ -115,12 +115,31 @@
         <div class="ub-box" id="box_groovebox">
 
             <div class="device">
-                <h1><small>Cyber Music Studio's</small> Groovebox</h1>
-                <p>BPM: <input type="number" min="20" max="160" step="1" id="bpm" value="90" id="bpm"> <button id="start">start</button> <button id="stop">stop</button></p>
+                <div class="ub-cols ub-same">
+                    <div>
+                        <h1><small>Cyber Music Studio's</small> Groovebox</h1>
+                        <p>BPM: <input type="number" min="20" max="160" step="1" id="bpm" value="90" id="bpm"> <button id="start">start</button> <button id="stop">stop</button></p>
+                    </div>
+                    <div>
+                        <table style="text-align: center">
+                            <tr>
+                                <th>drums</th>
+                                <th>bass</th>
+                                <th>sergeant</th>
+                            </tr>
+                            <tr>
+                                <td><webaudio-knob id="drums_vol" min="0" max="1" step="0.01" value="1" diameter="64"></webaudio-knob></td>
+                                <td><webaudio-knob id="bass_vol" min="0" max="1" step="0.01" value="1" diameter="64"></webaudio-knob></td>
+                                <td><webaudio-knob id="general_vol" min="0" max="1" step="0.01" value="1" diameter="64"></webaudio-knob></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
             <div class="device" style="background-color: #FFFFCC">
-                <details >
+                <details open>
                     <summary>Dr. GROOVE</summary>
                     <div class="lpad">
                         <details open>
@@ -227,8 +246,8 @@
 
                     <details open>
                         <summary>PATTERN
-                            <span class="pattern-selector ub-hidden"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button></span></summary>
-                        <table class="drum-sequencer" id="drum_sequencer">
+                            <span class="pattern-selector" id="drum_patterns"><button class="current">A</button> <button>B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button></span></summary>
+                        <table class="drum-sequencer ub-hidden" id="drum_sequencer">
                             <tr class="index"><th></th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
                             <tr class="notes"><th id="drseq_name_1">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
                             <tr class="notes"><th id="drseq_name_2">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
@@ -239,6 +258,8 @@
                             <tr class="notes"><th id="drseq_name_7">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
                             <tr class="notes"><th id="drseq_name_8">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
                         </table>
+                        <webaudio-pianoroll id="drum_sequencer2" editmode="gridpoly" markstart="17" markend="17" yoffset="60" yrange="8" yscroll="0" cursor="17" width="450" height="200"></webaudio-pianoroll>
+
                     </details>
 
                     </div>
@@ -258,7 +279,7 @@
                     </table>
                     <small>Only BIG filter cutoff knob works for now...</small>
                     <details open>
-                        <summary>PATTERN <span class="pattern-selector" id="bass_patterns"><button class="current">A</button> <button>B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
+                        <summary>PATTERN <span class="pattern-selector" id="bass_patterns"><button class="current">A</button> <button>B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> </span></summary>
                         <webaudio-pianoroll id="bass_sequencer" editmode="gridmono" markstart="17" markend="17" yoffset="48" yrange="32" yscroll="1" cursor="17" width="450"></webaudio-pianoroll>
                     </details>
 
@@ -321,7 +342,7 @@
 <script>
 DrRhytmh = function () {
     var me = {};
-    me.output = hb.makeGain(0.3);
+    me.output = hb.makeGain(1);
 
     me.loading = -1;
 
@@ -372,6 +393,23 @@ DrRhytmh = function () {
         // osc.detune = (me['tune'+ch] * 12);
         hb.chain(osc, me['panner_' + ch]);
     };
+
+    // TODO - temporary solution until I got proper drum piano roll
+    var noteMap = {
+        67: 1,
+        66: 2,
+        65: 3,
+        64: 4,
+        63: 5,
+        62: 6,
+        61: 7,
+        60: 8
+    }
+    me.noteOn = function (nn,v) {
+        me.trigger(noteMap[nn], 100);
+    };
+    me.noteOff = function () {};
+    me.panic = function () {};
 
     me.loadSample = function (ch) {
         me.loading = ch;
@@ -443,7 +481,6 @@ ub.on("power","click",  function(ev){
         hb.chnget(drums, 'vol_'+ch, 'dr_vol_'+ch);
         ub.on('dr_play_'+ch, 'click', function (ev){ ub.stop(ev); drums.trigger(ch, 100); });
     }
-    hb.chain(drums.output, hb.ac.destination);
 
     ub.on('drum_sequencer', 'click', 'tr.notes td', function (ev) {
         if (ub.hasClass(ev.target, 'active')) {
@@ -466,14 +503,24 @@ ub.on("power","click",  function(ev){
         hb.setNow(lefilter.Q, Q);
     });
 
-    hb.chain(bass.output, lefilter, hb.ac.destination);
-
     general = hb.gm.synth();
     ub.on('general_preset', 'change', function () {
         general.programChange(ub.gebi('general_preset').value);
     });
 
-    hb.chain(general.output, hb.ac.destination);
+    // mixer
+    var drums_vol = hb.makeGain(ub.gebi('drums_vol').value);
+    ub.on(ub.gebi('drums_vol'), 'input', function (ev) { hb.setNow(drums_vol.gain, ev.target.value); });
+    hb.chain(drums.output, drums_vol, hb.ac.destination);
+
+    var bass_vol = hb.makeGain(ub.gebi('bass_vol').value);
+    ub.on(ub.gebi('bass_vol'), 'input', function (ev) { hb.setNow(bass_vol.gain, ev.target.value); });
+    hb.chain(bass.output, lefilter, bass_vol, hb.ac.destination); // TODO - filter is outside synth for now
+
+    var general_vol = hb.makeGain(ub.gebi('general_vol').value);
+    ub.on(ub.gebi('general_vol'), 'input', function (ev) { hb.setNow(general_vol.gain, ev.target.value); });
+    hb.chain(general.output, general_vol, hb.ac.destination);
+
 
     Sequencer = function (patternSelector, pianoroll, synth, copyFrom) {
         var me = {};
@@ -574,6 +621,7 @@ ub.on("power","click",  function(ev){
         return me;
     }
 
+    drum_sequencer = Sequencer('drum_patterns', 'drum_sequencer2', drums);
     bass_sequencer = Sequencer('bass_patterns', 'bass_sequencer', bass);
     general_sequencer = Sequencer('general_patterns', 'general_sequencer', general, 'general_copyfrom');
 
@@ -582,6 +630,7 @@ ub.on("power","click",  function(ev){
 
     metro = hb.makeMetronome(function (){
         if (step==0) { prevStep=15 } else { prevStep = step-1;}
+        /*
         ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[prevStep], 'active');
         ub.addClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[step], 'active');
         var rows = ub.gebi('drum_sequencer').querySelectorAll('tr');
@@ -591,7 +640,9 @@ ub.on("power","click",  function(ev){
                 drums.trigger(ch, 100);
             }
         }
+         */
 
+        drum_sequencer.tick();
         bass_sequencer.tick();
         general_sequencer.tick();
 
@@ -603,6 +654,7 @@ ub.on("power","click",  function(ev){
         metro.setBpm(ub.gebi('bpm').value);
         step = 0;
         metro.start();
+        drum_sequencer.start();
         bass_sequencer.start();
         general_sequencer.start();
     });
@@ -613,6 +665,7 @@ ub.on("power","click",  function(ev){
         metro.stop();
         ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[prevStep], 'active');
         ub.gebi('bass_sequencer').cursor = 17;
+        drum_sequencer.stop();
         bass_sequencer.stop();
         general_sequencer.stop();
         step = -1;
