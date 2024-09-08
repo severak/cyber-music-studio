@@ -120,7 +120,7 @@
             </div>
 
             <div class="device" style="background-color: #FFFFCC">
-                <details open>
+                <details >
                     <summary>Dr. GROOVE</summary>
                     <div class="lpad">
                         <details open>
@@ -250,7 +250,7 @@
             </div>
 
             <div class="device" style="background-color: #CCFFCC">
-                <details open>
+                <details >
                     <summary>MonoBass</summary>
                     <div class="lpad">
                     <table class="bass-tones">
@@ -274,10 +274,27 @@
                 </details>
             </div>
 
-            <div class="device ub-hidden" style="background-image: url('img/camo.jpg'); background-repeat: repeat;">
-                <details>
-                    <summary><span style="background-color: black; color: white;">SERGEANT MIDI</span></summary>
-                    <span style="background-color: black; color: white;">There will be polysynth ala Hearthbeat GM.</span>
+            <div class="device" style="background-color: #CCCC66;">
+                <details open>
+                    <summary><span>SERGEANT MIDI</span></summary>
+                    <div class="lpad">
+                        <select id="general_preset" class="big-select">
+                            <option value="1">001 - ACCOUSTIC GRAND PIANO</option>
+                            <option value="5">005 - ELECTRIC PIANO</option>
+                            <option value="15">015 - TUBULAR BELLS</option>
+                            <option value="18">018 - PERCUSIVE ORGAN</option>
+                            <option value="20">020 - CHURCH ORGAN</option>
+                            <option value="51">051 - SYNTH STRINGS</option>
+                            <option value="56">056 - ORCHESTRA HIT</option>
+                            <option value="74">074 - FLUTE</option>
+                            <option value="81">081 - SQUARE LEAD</option>
+                            <option value="82">082 - SAW LEAD</option>
+                        </select>
+                        <details open>
+                            <summary>PATTERN <span class="pattern-selector" id="general_patterns"><button class="current">A</button> <button>B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> </span></summary>
+                            <webaudio-pianoroll id="general_sequencer" editmode="gridpoly" markstart="17" markend="17" yoffset="48" yrange="32" yscroll="1" cursor="17" width="450"></webaudio-pianoroll>
+                        </details>
+                    </div>
                 </details>
             </div>
 
@@ -431,9 +448,6 @@ ub.on("power","click",  function(ev){
     }
     hb.chain(drums.output, hb.ac.destination);
 
-    ub.gebi('bass_sequencer').sequence = [{"t":0,"c":144,"n":59,"g":1,"v":100},{"t":1,"c":144,"n":64,"g":1,"v":100},{"t":2,"c":144,"n":59,"g":1,"v":100},{"t":3,"c":144,"n":74,"g":1,"v":100},{"t":4,"c":144,"n":59,"g":1,"v":100},{"t":5,"c":144,"n":71,"g":1,"v":100},{"t":6,"c":144,"n":59,"g":1,"v":100},{"t":7,"c":144,"n":59,"g":1,"v":100},{"t":8,"c":144,"n":71,"g":1,"v":100},{"t":9,"c":144,"n":59,"g":1,"v":100},{"t":10,"c":144,"n":71,"g":1,"v":100},{"t":11,"c":144,"n":59,"g":1,"v":100},{"t":12,"c":144,"n":71,"g":1,"v":100},{"t":13,"c":144,"n":69,"g":1,"v":100},{"t":14,"c":144,"n":59,"g":1,"v":100},{"t":15,"c":144,"n":71,"g":1,"v":100}];
-    ub.gebi('bass_sequencer').redraw();
-
     ub.on('drum_sequencer', 'click', 'tr.notes td', function (ev) {
         if (ub.hasClass(ev.target, 'active')) {
             ub.delClass(ev.target, 'active');
@@ -456,6 +470,102 @@ ub.on("power","click",  function(ev){
     });
 
     hb.chain(bass.output, lefilter, hb.ac.destination);
+
+    general = hb.gm.synth();
+    ub.on('general_preset', 'change', function () {
+        general.programChange(ub.gebi('general_preset').value);
+    });
+
+    hb.chain(general.output, hb.ac.destination);
+
+    Sequencer = function (patternSelector, pianoroll, synth) {
+        var me = {};
+        me.patternSelector = ub.gebi(patternSelector);
+        me.pianoroll = ub.gebi(pianoroll);
+        me.synth = synth;
+
+        me.current = 'A';
+        me.next = 'A';
+        me.running = false;
+        me.step = -1;
+
+        me.patterns = {A: [], B: [], C:[], D:[], E:[], F:[], G:[], H:[]};
+
+        me.start = function (){
+            me.running = true;
+            me.step = 0;
+            me.pianoroll.cursor = 0;
+        };
+
+        me.stop = function () {
+            me.running = false;
+            me.step = -1;
+            me.pianoroll.cursor = 17;
+            me.next = me.current;
+            me.synth.panic();
+            if (me.patternSelector.querySelector('.next')) ub.delClass(me.patternSelector.querySelector('.next'), 'next');
+        };
+
+        me.tick = function () {
+            // firstly, remove old notes
+            var prevStep;
+            if (step==0) { prevStep=15 } else { prevStep = step-1;}
+            var sequence = me.pianoroll.sequence;
+            for (const event of sequence) {
+                if (event.t==prevStep) {
+                    me.synth.noteOff(event.n);
+                }
+            }
+            // then change pattern if needed
+            if (step==0 && (me.current != me.next)) {
+                console.log('Switch to', me.next);
+                if (me.patternSelector.querySelector('.next')) {
+                    ub.delClass(me.patternSelector.querySelector('.current'), 'current');
+                    ub.addClass(me.patternSelector.querySelector('.next'), 'current');
+                    ub.delClass(me.patternSelector.querySelector('.next'), 'next');
+                }
+                me.current = me.next;
+                me.pianoroll.sequence = me.patterns[me.current];
+                me.pianoroll.redraw();
+            }
+            // sync sequencer with piano roll and make new notes
+            sequence = me.pianoroll.sequence;
+            for (const event of sequence) {
+                if (event.t==step) {
+                    me.synth.noteOn(event.n, event.v);
+                }
+            }
+            // jump to the next step and mark what we are at
+            me.step = (me.step + 1) % 16;
+            me.pianoroll.cursor = me.step;
+        };
+
+        ub.on(me.patternSelector, 'click', 'button', function (ev) {
+            ub.stop(ev);
+            var which = ev.target.innerText;
+            if (me.current==which) {
+                return; // pattern is the same, no need to change
+            }
+            if (me.running) {
+                me.next = which;
+                if (me.patternSelector.querySelector('.next')) ub.delClass(me.patternSelector.querySelector('.next'), 'next');
+                ub.addClass(ev.target, 'next');
+            } else {
+                me.patterns[me.current] = me.pianoroll.sequence; // saving current sequence to memory
+                me.current = which;
+                me.next = which;
+                ub.delClass(me.patternSelector.querySelector('.current'), 'current');
+                ub.addClass(ev.target, 'current');
+                me.pianoroll.sequence = me.patterns[me.current]; // loading current sequence from memory
+                me.pianoroll.redraw();
+            }
+        });
+
+        return me;
+    }
+
+    general_sequencer = Sequencer('general_patterns', 'general_sequencer', general);
+
 
     var step = -1;
     var prevStep = -1;
@@ -480,6 +590,8 @@ ub.on("power","click",  function(ev){
             }
         }
 
+        general_sequencer.tick();
+
         step = (step + 1) % 16;
     });
 
@@ -488,6 +600,7 @@ ub.on("power","click",  function(ev){
         metro.setBpm(ub.gebi('bpm').value);
         step = 0;
         metro.start();
+        general_sequencer.start();
     });
 
     ub.on('stop', 'click', function (ev) {
@@ -496,6 +609,7 @@ ub.on("power","click",  function(ev){
         metro.stop();
         ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[prevStep], 'active');
         ub.gebi('bass_sequencer').cursor = 17;
+        general_sequencer.stop();
         step = -1;
     });
 
