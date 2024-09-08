@@ -82,7 +82,7 @@
         .drum-sequencer { border-collapse: collapse; background-color: #ddd;  }
         .drum-sequencer td, .drum-sequencer th { border: 1px solid darkgray; }
         .drum-sequencer th { max-width: 10em; overflow: clip; }
-        .drum-sequencer td { width: 1em; text-align: center; color: transparent; }
+        .drum-sequencer td { width: 20px; text-align: center; color: transparent; }
         .drum-sequencer td.tmavsi { border-right: 1px solid black; }
         .drum-sequencer td.active { background-color: #777; }
         .drum-sequencer td.accent { background-color: #333; }
@@ -229,15 +229,15 @@
                         <summary>PATTERN
                             <span class="pattern-selector ub-hidden"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
                         <table class="drum-sequencer" id="drum_sequencer">
-                            <tr class="index"><td></td><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th id="drseq_name_1">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th id="drseq_name_2">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th id="drseq_name_3">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th id="drseq_name_4">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th id="drseq_name_5">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th id="drseq_name_6">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th id="drseq_name_7">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
-                            <tr><th id="drseq_name_8">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr class="index"><th></th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr class="notes"><th id="drseq_name_1">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr class="notes"><th id="drseq_name_2">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr class="notes"><th id="drseq_name_3">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr class="notes"><th id="drseq_name_4">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr class="notes"><th id="drseq_name_5">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr class="notes"><th id="drseq_name_6">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr class="notes"><th id="drseq_name_7">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
+                            <tr class="notes"><th id="drseq_name_8">---</th><td>1</td><td>2</td><td>3</td><td class="tmavsi">4</td><td>5</td><td>6</td><td>7</td><td class="tmavsi">8</td><td>9</td><td>10</td><td>11</td><td class="tmavsi">12</td><td>13</td><td>14</td><td>15</td><td class="tmavsi">16</td></tr>
                         </table>
 
                         <p>TODO - copy from A B C D ... CLEAR</p>
@@ -254,6 +254,7 @@
                     <summary>MonoBass</summary>
                     <div class="lpad">
                     <table class="bass-tones">
+                        <tr><td colspan="4">MODULATION</td><td colspan="5">OSCILLATOR</td></tr>
                         <tr><td><button class="active">SIN</button><button>TRI</button><br><button>SQR</button><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><button class="active">SQR</button><br><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td rowspan="2"><webaudio-knob diameter="64" id="bigknob" min="20" max="20000" value="2000" log="1"></webaudio-knob></td><td><webaudio-knob id="oomph" min="0" max="10" step="0.1"></webaudio-knob></td></tr>
                         <tr><td><strong>LFO</strong></td><td>RATE</td><td>AMP</td><td>VCF</td><td><strong>WAVE</strong></td><td>SUB</td><TD>DECAY</TD><td>OOMPH</td></tr>
                     </table>
@@ -264,7 +265,7 @@
 
                     <details open>
                         <summary>PATTERN <span class="pattern-selector ub-hidden"><button class="current">A</button> <button class="next">B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> <button class="live">LIVE</button> <select><option>all</option><option>lower</option><option>upper</option></select> </span></summary>
-                        <webaudio-pianoroll id="bass_sequencer" editmode="gridmono" markstart="17" markend="17" yoffset="48" yrange="32"></webaudio-pianoroll>
+                        <webaudio-pianoroll id="bass_sequencer" editmode="gridmono" markstart="17" markend="17" yoffset="48" yrange="32" yscroll="1" cursor="17" width="450"></webaudio-pianoroll>
                         <p>(todo - nastylovat)</p>
                     </details>
 
@@ -401,6 +402,7 @@ Rudiment = function () {
     me.noteOn = function (nn, vel) {
         hb.moveTo(me.osc.frequency, hb.midi2cps(nn-12), 0.01);
         hb.adsrStart(me.env.gain, {
+            attack: 0.05,
             decay: 0.1
         });
     };
@@ -429,7 +431,7 @@ ub.on("power","click",  function(ev){
     ub.gebi('bass_sequencer').sequence = [{"t":0,"c":144,"n":59,"g":1,"v":100},{"t":1,"c":144,"n":64,"g":1,"v":100},{"t":2,"c":144,"n":59,"g":1,"v":100},{"t":3,"c":144,"n":74,"g":1,"v":100},{"t":4,"c":144,"n":59,"g":1,"v":100},{"t":5,"c":144,"n":71,"g":1,"v":100},{"t":6,"c":144,"n":59,"g":1,"v":100},{"t":7,"c":144,"n":59,"g":1,"v":100},{"t":8,"c":144,"n":71,"g":1,"v":100},{"t":9,"c":144,"n":59,"g":1,"v":100},{"t":10,"c":144,"n":71,"g":1,"v":100},{"t":11,"c":144,"n":59,"g":1,"v":100},{"t":12,"c":144,"n":71,"g":1,"v":100},{"t":13,"c":144,"n":69,"g":1,"v":100},{"t":14,"c":144,"n":59,"g":1,"v":100},{"t":15,"c":144,"n":71,"g":1,"v":100}];
     ub.gebi('bass_sequencer').redraw();
 
-    ub.on('drum_sequencer', 'click', 'td', function (ev) {
+    ub.on('drum_sequencer', 'click', 'tr.notes td', function (ev) {
         if (ub.hasClass(ev.target, 'active')) {
             ub.delClass(ev.target, 'active');
         } else {
@@ -453,9 +455,12 @@ ub.on("power","click",  function(ev){
     hb.chain(bass.output, lefilter, hb.ac.destination);
 
     var step = -1;
+    var prevStep = -1;
 
     metro = hb.makeMetronome(function (){
-        ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[step+1], 'active');
+        if (step==0) { prevStep=15 } else { prevStep = step-1;}
+        ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[prevStep], 'active');
+        ub.addClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[step], 'active');
         var rows = ub.gebi('drum_sequencer').querySelectorAll('tr');
         for (let ch = 1; ch < 9; ch++) {
             var td = rows[ch].querySelectorAll('td')[step];
@@ -473,22 +478,22 @@ ub.on("power","click",  function(ev){
         }
 
         step = (step + 1) % 16;
-        ub.addClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[step+1], 'active');
     });
 
     ub.on('start', 'click', function (ev) {
         ub.stop(ev);
         metro.setBpm(ub.gebi('bpm').value);
-        metro.start();
         step = 0;
+        metro.start();
     });
 
     ub.on('stop', 'click', function (ev) {
+        if (step==0) { prevStep=15 } else { prevStep = step-1;}
         ub.stop(ev);
         metro.stop();
-        ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[step+1], 'active');
-        ub.gebi('bass_sequencer').cursor = 0;
-        step = 0;
+        ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[prevStep], 'active');
+        ub.gebi('bass_sequencer').cursor = 17;
+        step = -1;
     });
 
 });
