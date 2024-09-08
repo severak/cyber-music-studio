@@ -72,6 +72,7 @@
         .ub-box { padding-left: 0; padding-right: 0; }
 
         .device summary { font-weight: bold; }
+        summary { margin-bottom: 5px; }
 
         .device { padding: 10px; border-bottom: 1px double black; }
         .lpad { padding-left: 1em;}
@@ -221,7 +222,6 @@
                                     <td><button id="dr_play_8">PLAY</button></td>
                                 </tr>
                             </table>
-                            <input id="dr_load_sample" type="file" accept=".wav,.mp3" class="ub-hidden">
                         </details>
 
 
@@ -303,6 +303,10 @@
     </form>
 </div>
 
+<form id="dr_file_loader">
+    <input id="dr_load_sample" type="file" accept=".wav,.mp3" class="ub-hidden">
+</form>
+
 <script>
 DrRhytmh = function () {
     var me = {};
@@ -368,16 +372,15 @@ DrRhytmh = function () {
         if (!file) {
             return;
         }
-        ub.stop(ev);
         var reader = new FileReader();
         reader.onload = function(loadEvent) {
             if (loadEvent.loaded < 1024*1024) {
-                // less then 1MB
+                // less than 1MB
                 hb.ac.decodeAudioData(reader.result, function (buffer) {
                     me['samples_' + me.loading] = buffer;
                     ub.gebi('dr_name_'+me.loading).innerText = file.name;
                     ub.gebi('drseq_name_'+me.loading).innerText = file.name;
-                    // TODO - seq_name_x
+                    ub.gebi('dr_file_loader').reset();
                 });
             } else {
                 alert('Maximum supported size is 1MB.');
