@@ -553,6 +553,11 @@ ub.on("power","click",  function(ev){
 
         me.patterns = {A: [], B: [], C:[], D:[], E:[], F:[], G:[], H:[]};
 
+        me.pianoroll.addedNoteCallback(function (n){
+           me.synth.noteOn(n);
+           setTimeout(function (){me.synth.noteOff(n);}, 500);
+        });
+
         me.start = function (){
             me.running = true;
             me.step = 0;

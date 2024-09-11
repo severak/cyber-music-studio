@@ -15,7 +15,7 @@ customElements.define("webaudio-pianoroll", class Pianoroll extends HTMLElement 
                         this[v.observer]();
                 }
             });
-        }        
+        }
     }
     connectedCallback(){
         let root;
@@ -434,6 +434,9 @@ customElements.define("webaudio-pianoroll", class Pianoroll extends HTMLElement 
         };
         this.addNote=function(t,n,g,v,f){
             if(t>=0 && n>=0 && n<128){
+                if (this.noteAddCallback) {
+                    this.noteAddCallback(n);
+                }
                 const ev={t:t,c:0x90,n:n,g:g,v:v,f:f};
                 this.sequence.push(ev);
                 this.sortSequence();
@@ -1159,4 +1162,8 @@ customElements.define("webaudio-pianoroll", class Pianoroll extends HTMLElement 
         return v;
     }
     disconnectedCallback(){}
+
+    addedNoteCallback(callback) {
+        this.noteAddCallback = callback;
+    }
 });
