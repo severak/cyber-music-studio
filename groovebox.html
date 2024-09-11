@@ -559,11 +559,13 @@ ub.on("power","click",  function(ev){
             var sequence = me.pianoroll.sequence;
             for (const event of sequence) {
                 if (event.t==prevStep) {
+                    // TODO - this works only if sequence is made of 16ths, custom note lenghts break this
                     me.synth.noteOff(event.n);
                 }
             }
             // then change pattern if needed
             if (step==0 && (me.current != me.next)) {
+                me.patterns[me.current] = me.pianoroll.sequence; // save current pattern before changing it
                 console.log('Switch to', me.next);
                 if (me.patternSelector.querySelector('.next')) {
                     ub.delClass(me.patternSelector.querySelector('.current'), 'current');
