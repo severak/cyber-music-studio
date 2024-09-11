@@ -75,6 +75,7 @@
         summary { margin-bottom: 5px; }
 
         .device { padding: 10px; border-bottom: 1px double black; }
+        .pad { padding: 1em; }
         .lpad { padding-left: 1em;}
 
         .drum-tones { border-collapse: collapse; border-right: 1px solid darkgray; }
@@ -104,9 +105,9 @@
 <div class="ub-container">
     <br><br>
 
-    <div class="ub-box lpad" id="box_welcome">
+    <div class="ub-box pad" id="box_welcome">
         <img src="img/groovebox-mixing.jpg" class="ub-fit-img" alt="cherrypicking depiction">
-        <p>This is my attempt to construct ideal software groovebox. It's not finished yet but it works already.</p>
+        <p>This is my attempt to construct ideal software groovebox. It's not finished yet but you can use it already.</p>
         <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
         <center><button id="power" class="ub-button">OK</button></center>
     </div>
@@ -143,42 +144,46 @@
                     <summary>Dr. GROOVE</summary>
                     <div class="lpad">
                         <details open>
-                            <summary>DRUM KIT
-                                <!--  <button>load preset -></button>
-                                <select>
-                                    <option>trash</option>
-                                </select> -->
-                            </summary>
+                            <summary>DRUM KIT</summary>
+
+                            <select id="drum_preset_selector">
+                                <option value="presets/mc3a.json">cheap keyboard drums</option>
+                                <option value="presets/dr660.json">DR660</option>
+                                <option value="presets/dr660industrial.json">DR660 (Industrial edition)</option>
+                                <option value="presets/empty.json">=== empty ===</option>
+                            </select>
+                            <button id="load_drum_preset">load kit</button> <small>&lt;-- use this or load some samples from your machine</small>
+
                             <table class="drum-tones">
                                 <tr>
-                                    <td id="dr_name_1">---</td>
-                                    <td id="dr_name_2">---</td>
-                                    <td id="dr_name_3">---</td>
-                                    <td id="dr_name_4">---</td>
-                                    <td id="dr_name_5">---</td>
-                                    <td id="dr_name_6">---</td>
-                                    <td id="dr_name_7">---</td>
-                                    <td id="dr_name_8">---</td>
+                                    <td id="dr_name_1" class="name">---</td>
+                                    <td id="dr_name_2" class="name">---</td>
+                                    <td id="dr_name_3" class="name">---</td>
+                                    <td id="dr_name_4" class="name">---</td>
+                                    <td id="dr_name_5" class="name">---</td>
+                                    <td id="dr_name_6" class="name">---</td>
+                                    <td id="dr_name_7" class="name">---</td>
+                                    <td id="dr_name_8" class="name">---</td>
                                 </tr>
                                 <tr>
-                                    <td id="dr_change_1"><button>CHANGE</button></td>
-                                    <td id="dr_change_2"><button>CHANGE</button></td>
-                                    <td id="dr_change_3"><button>CHANGE</button></td>
-                                    <td id="dr_change_4"><button>CHANGE</button></td>
-                                    <td id="dr_change_5"><button>CHANGE</button></td>
-                                    <td id="dr_change_6"><button>CHANGE</button></td>
-                                    <td id="dr_change_7"><button>CHANGE</button></td>
-                                    <td id="dr_change_8"><button>CHANGE</button></td>
+                                    <td id="dr_change_1"><button>LOAD...</button></td>
+                                    <td id="dr_change_2"><button>LOAD...</button></td>
+                                    <td id="dr_change_3"><button>LOAD...</button></td>
+                                    <td id="dr_change_4"><button>LOAD...</button></td>
+                                    <td id="dr_change_5"><button>LOAD...</button></td>
+                                    <td id="dr_change_6"><button>LOAD...</button></td>
+                                    <td id="dr_change_7"><button>LOAD...</button></td>
+                                    <td id="dr_change_8"><button>LOAD...</button></td>
                                 </tr>
                                 <tr>
-                                    <td><webaudio-knob id="dr_tune_1" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
-                                    <td><webaudio-knob id="dr_tune_2" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
-                                    <td><webaudio-knob id="dr_tune_3" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
-                                    <td><webaudio-knob id="dr_tune_4" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
-                                    <td><webaudio-knob id="dr_tune_5" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
-                                    <td><webaudio-knob id="dr_tune_6" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
-                                    <td><webaudio-knob id="dr_tune_7" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
-                                    <td><webaudio-knob id="dr_tune_8" value="0" min="-100" max="100" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_1" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_2" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_3" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_4" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_5" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_6" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_7" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                                    <td><webaudio-knob id="dr_tune_8" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
                                 </tr>
                                 <tr>
                                     <td>tune</td>
@@ -202,7 +207,7 @@
                                 </tr>
                                 <tr>
                                     <td>pan</td>
-                                    <td>tune</td>
+                                    <td>pan</td>
                                     <td>pan</td>
                                     <td>pan</td>
                                     <td>pan</td>
@@ -355,28 +360,6 @@ DrRhytmh = function () {
         hb.chain(me['panner_' + ch], me['gain_' + ch], me.output);
     }
 
-    // generated sounds as preset
-    ub.gebi('dr_name_1').innerText = 'noise';
-    ub.gebi('drseq_name_1').innerText = 'noise';
-    me.samples_1 = hb.generateWaveformBuffer(function(n) { return (Math.random() * 2 -1)  * (1 - n); }, {}, hb.ac.sampleRate * 0.1);
-    ub.gebi('dr_name_2').innerText = 'sin';
-    ub.gebi('drseq_name_2').innerText = 'sin';
-    me.samples_2 = hb.generateWaveformBuffer(hb.generators.sin, {}, hb.midi2cps(36));
-    /*
-    ub.gebi('dr_name_3').innerText = 'triangle';
-    ub.gebi('drseq_name_3').innerText = 'triangle';
-    me.samples_3 = hb.generateWaveformBuffer(hb.generators.triangle);
-    ub.gebi('dr_name_4').innerText = 'saw';
-    ub.gebi('drseq_name_4').innerText = 'saw';
-    me.samples_4 = hb.generateWaveformBuffer(hb.generators.saw);
-    ub.gebi('dr_name_5').innerText = 'sqr';
-    ub.gebi('drseq_name_5').innerText = 'sqe';
-    me.samples_5 = hb.generateWaveformBuffer(hb.generators.sqr);
-    ub.gebi('dr_name_6').innerText = 'pulse';
-    ub.gebi('drseq_name_6').innerText = 'pulse';
-    me.samples_6 = hb.generateWaveformBuffer(hb.generators.pulse);
-     */
-
     me.param = function (name, val) {
         me[name] = val;
         [paramName, paramNo] = name.split('_');
@@ -440,6 +423,19 @@ DrRhytmh = function () {
         reader.readAsArrayBuffer(file);
     });
 
+    me.loadSampleIntoSlot = function (slot, filename, buffer, tune, vol) {
+        if (!buffer) buffer = hb.generateWaveformBuffer(function (){return 0;}, {}, 0);
+        me['samples_' + slot] = buffer;
+        ub.gebi('dr_name_'+slot).innerText = filename;
+        ub.gebi('drseq_name_'+slot).innerText = filename;
+        if (!tune) tune = 0;
+        me['tune_' + slot] = tune;
+        ub.gebi('dr_tune_'+slot).value = tune;
+        if (!vol) vol = 0.5;
+        me['vol_' + slot] = vol;
+        ub.gebi('dr_vol_'+slot).value = vol;
+    };
+
     return me;
 }
 
@@ -483,6 +479,26 @@ ub.on("power","click",  function(ev){
         hb.chnget(drums, 'vol_'+ch, 'dr_vol_'+ch);
         ub.on('dr_play_'+ch, 'click', function (ev){ ub.stop(ev); drums.trigger(ch, 100); });
     }
+
+    ub.on('load_drum_preset', 'click', function (ev){
+        ub.stop(ev);
+        fetch(ub.gebi('drum_preset_selector').value).then((response) => {
+            return response.json();
+        }).then(function (presetData){
+            //console.log(presetData);
+            for (let ch = 0; ch < 7; ch++) {
+                console.log(presetData.samples[ch]);
+                if (presetData.samples[ch]) {
+                    hb.ac.decodeAudioData(_base64ToArrayBuffer(presetData.samples[ch].b64), function (buffer) {
+                        drums.loadSampleIntoSlot(ch+1, presetData.samples[ch].name, buffer, presetData.samples[ch].tune, presetData.samples[ch].vol);
+                    });
+                } else {
+                    drums.loadSampleIntoSlot(ch+1, '---');
+                }
+            }
+        });
+
+    });
 
     ub.on('drum_sequencer', 'click', 'tr.notes td', function (ev) {
         if (ub.hasClass(ev.target, 'active')) {
