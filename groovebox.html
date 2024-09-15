@@ -69,6 +69,8 @@
             font-size: x-large;
         }
 
+        button.active { background-color: yellow; }
+
         .ub-box { padding-left: 0; padding-right: 0; }
 
         .device summary { font-weight: bold; }
@@ -264,12 +266,41 @@
                 <details open>
                     <summary>MonoBass <span class="nobold">pan:</span> <input type="range" min="-1" max="1" step="0.1" value="0" id="bass_pan" style="width: 100px;"> <span class="nobold">vol:</span> <input type="range" min="0" max="1" step="0.01" value="0.8" id="bass_vol" style="width: 100px;"></summary>
                     <div class="lpad">
-                    <table class="bass-tones">
-                        <tr><td colspan="4">MODULATION</td><td colspan="5">OSCILLATOR</td></tr>
-                        <tr><td><button class="active">SIN</button><button>TRI</button><br><button>SQR</button><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td><button class="active">SQR</button><br><button>SAW</button></td><td><webaudio-knob></webaudio-knob></td><td><webaudio-knob></webaudio-knob></td><td rowspan="2"><webaudio-knob diameter="64" id="bigknob" min="20" max="20000" value="2000" log="1"></webaudio-knob></td><td><webaudio-knob id="oomph" min="0" max="10" step="0.1"></webaudio-knob></td></tr>
-                        <tr><td><strong>LFO</strong></td><td>RATE</td><td>AMP</td><td>VCF</td><td><strong>WAVE</strong></td><td>SUB</td><TD>DECAY</TD><td>OOMPH</td></tr>
-                    </table>
-                    <small>Only BIG filter cutoff knob works for now...</small>
+                    <details open>
+                        <summary>TONE</summary>
+                        <div>
+                            <table class="bass-tones">
+                                <tr>
+
+                                    <td colspan="5">OSCILLATOR</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button class="" id="bass_wave_sqr">SQR</button><br>
+                                        <button class="active" id="bass_wave_saw">SAW</button><br>
+                                    </td>
+                                    <td>
+                                        <webaudio-knob id="bass_sub" min="0" max="1" value="0" step="0.01"></webaudio-knob>
+                                    </td>
+                                    <td>
+                                        <webaudio-knob id="bass_env" min="0" max="1" value="0" step="0.01"></webaudio-knob>
+                                    </td>
+                                    <td rowspan="2">
+                                        <webaudio-knob diameter="64" id="bass_freq" min="20" max="20000" value="2000" log="1"></webaudio-knob>
+                                    </td>
+                                    <td>
+                                        <webaudio-knob id="bass_res" min="0" max="10" step="0.1"></webaudio-knob>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>WAVE</strong></td>
+                                    <td>SUB</td>
+                                    <TD>ENV</TD>
+                                    <td>OOMPH</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </details>
                     <details open>
                         <summary>PATTERN <span class="pattern-selector" id="bass_patterns"><button class="current">A</button> <button>B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button> </span></summary>
                         <webaudio-pianoroll id="bass_sequencer" editmode="gridmono" markstart="17" markend="17" yoffset="48" yrange="17" yscroll="1" cursor="17" width="450"></webaudio-pianoroll>
@@ -426,26 +457,47 @@ DrRhytmh = function () {
     return me;
 }
 
-// most primitive monophonic synth ever
-Rudiment = function () {
+MonoBass = function () {
     var me = {};
     me.output = hb.makeGain(0.3);
 
-    me.osc = hb.makeOsc('sawtooth', 440);
-    me.env = hb.makeGain(0);
+    me.lfo = hb.makeOsc('sine', 5);
 
-    hb.chain(me.osc, me.env, me.output);
+    me.wave = 'sawtooth';
+    me.osc = hb.makeOsc('sawtooth', 440);
+    me.subosc = hb.makeOsc('square', 220);
+    me.suboscGain = hb.makeGain(0);
+    me._env = hb.makeGain(0);
+    me.freq = 20000;
+    me.filter = hb.makeFilter('lowpass', 0);
+
+    hb.chain(me.osc, me.filter, me._env, me.output);
+    hb.chain(me.subosc, me.suboscGain, me.filter);
 
     me.noteOn = function (nn, vel) {
-        hb.moveTo(me.osc.frequency, hb.midi2cps(nn-12), 0.01);
-        hb.adsrStart(me.env.gain, {
-            attack: 0.05,
+        hb.moveTo(me.osc.frequency, hb.midi2cps(nn), 0.01);
+        hb.moveTo(me.subosc.frequency, hb.midi2cps(nn-12), 0.01);
+        hb.adsrStart(me._env.gain, {
+            attack: 0.01,
             decay: 0.1
+        });
+        hb.adsrStart(me.filter.frequency, {
+            attack: 0.01,
+            decay: 0.1,
+            max: me.freq,
+            sustain: ((1-me.env) * me.freq)
         });
     };
 
     me.noteOff = function () {};
     me.panic = function () {};
+
+    me.param = function (name, val) {
+        me[name] = val;
+        if (name=='sub') hb.setNow(me.suboscGain.gain, val);
+        if (name=='res') hb.setNow(me.filter.Q, val);
+        if (name=='wave') me.osc.type = val;
+    }
 
     return me;
 }
@@ -474,7 +526,7 @@ ub.on("power","click",  function(ev){
         }).then(function (presetData){
             //console.log(presetData);
             for (let ch = 0; ch < 7; ch++) {
-                console.log(presetData.samples[ch]);
+                //console.log(presetData.samples[ch]);
                 if (presetData.samples[ch]) {
                     hb.ac.decodeAudioData(_base64ToArrayBuffer(presetData.samples[ch].b64), function (buffer) {
                         drums.loadSampleIntoSlot(ch+1, presetData.samples[ch].name, buffer, presetData.samples[ch].tune, presetData.samples[ch].vol);
@@ -495,18 +547,15 @@ ub.on("power","click",  function(ev){
         }
     });
 
-    bass = Rudiment();
-    lefilter = hb.makeFilter('lowpass', 20000);
+    bass = MonoBass();
+    hb.chnget(bass, 'sub', 'bass_sub');
+    hb.chnget(bass, 'env', 'bass_env');
+    hb.chnget(bass, 'freq', 'bass_freq');
+    hb.chnget(bass, 'res', 'bass_res');
 
-    ub.on('bigknob', 'input', function (ev){
-       var freq = ub.gebi('bigknob').value;
-       hb.setNow(lefilter.frequency, freq);
-    });
+    ub.on('bass_wave_sqr', 'click', function (ev){ ub.stop(ev); ub.addClass('bass_wave_sqr', 'active'); ub.delClass('bass_wave_saw', 'active'); bass.param('wave', 'square');  })
+    ub.on('bass_wave_saw', 'click', function (ev){ ub.stop(ev); ub.addClass('bass_wave_saw', 'active'); ub.delClass('bass_wave_sqr', 'active'); bass.param('wave', 'sawtooth');  })
 
-    ub.on('oomph', 'input', function (ev){
-        var Q = ub.gebi('oomph').value;
-        hb.setNow(lefilter.Q, Q);
-    });
 
     general = hb.gm.synth();
     ub.on('general_preset', 'change', function () {
@@ -514,21 +563,26 @@ ub.on("power","click",  function(ev){
     });
 
     // mixer
+    var masterOut = hb.makeGain(1);
+
     var drums_vol = hb.makeGain(ub.gebi('drums_vol').value);
     ub.on(ub.gebi('drums_vol'), 'input', function (ev) { hb.setNow(drums_vol.gain, ev.target.value); });
-    hb.chain(drums.output, drums_vol, hb.ac.destination);
+    hb.chain(drums.output, drums_vol, masterOut);
 
     var bass_vol = hb.makeGain(ub.gebi('bass_vol').value);
     ub.on(ub.gebi('bass_vol'), 'input', function (ev) { hb.setNow(bass_vol.gain, ev.target.value); });
     var bass_pan = hb.ac.createStereoPanner();
     ub.on(ub.gebi('bass_pan'), 'input', function (ev) { hb.setNow(bass_pan.pan, ev.target.value); });
-    hb.chain(bass.output, lefilter, bass_vol, bass_pan, hb.ac.destination); // TODO - filter is outside synth for now
+    hb.chain(bass.output, bass_pan, bass_vol, masterOut);
 
     var general_vol = hb.makeGain(ub.gebi('general_vol').value);
     ub.on(ub.gebi('general_vol'), 'input', function (ev) { hb.setNow(general_vol.gain, ev.target.value); });
     var general_pan = hb.ac.createStereoPanner();
     ub.on(ub.gebi('general_pan'), 'input', function (ev) { hb.setNow(general_pan.pan, ev.target.value); });
-    hb.chain(general.output, general_pan, general_vol, hb.ac.destination);
+    hb.chain(general.output, general_pan, general_vol, masterOut);
+
+    // TODO - link tape to masterOut
+    hb.chain(masterOut, hb.ac.destination);
 
 
     Sequencer = function (patternSelector, pianoroll, synth, copyFrom) {
@@ -679,8 +733,7 @@ ub.on("power","click",  function(ev){
         if (step==0) { prevStep=15 } else { prevStep = step-1;}
         ub.stop(ev);
         metro.stop();
-        ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[prevStep], 'active');
-        ub.gebi('bass_sequencer').cursor = 17;
+        //ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[prevStep], 'active');
         drum_sequencer.stop();
         bass_sequencer.stop();
         general_sequencer.stop();
