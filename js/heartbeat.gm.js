@@ -112,6 +112,8 @@ hb.gm.synth = function() {
     };
 
     me.programChange = function(no) {
+        // TODO fix - it's offset by one
+        // TODO - show that patch was changed via MIDI by switching select or something like that
         var program = hb.gm.presets[no] || hb.gm.presets.fallback;
 
         me.attack = program.attack || 0.01;
@@ -216,7 +218,7 @@ hb.gm.synth = function() {
 
 
     me.panic = function() {
-        console.log('PANIC at the disco!');
+        //console.log('PANIC at the disco!');
         for (var nn in me._voices) {
             hb.setNow(me._voices[nn]._env.gain, 0);
             me._voices[nn]._osc.stop(hb.now());
