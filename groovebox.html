@@ -343,6 +343,17 @@
                 </details>
             </div>
 
+            <div class="device">
+                <details>
+                    <summary>SAVE / LOAD PATTERNS</summary>
+                    <div class="lpad">
+                        <textarea id="patterns_json" style="width: 98%"></textarea>
+                        <button id="save_patterns">save</button> <button id="load_patterns">load</button> <button id="clear_patterns">clear workspace</button>
+
+                    </div>
+                </details>
+            </div>
+
             <div class="device ub-hidden">
                 <details>
                     <summary>Mix:UP recorder</summary>
@@ -598,6 +609,12 @@ ub.on("power","click",  function(ev){
 
         me.patterns = {A: [], B: [], C:[], D:[], E:[], F:[], G:[], H:[]};
 
+        // TODO - this is hacky as hell
+        me.buttons = {};
+        [].forEach.call(me.patternSelector.children, function(child) {
+            me.buttons[child.innerText] = child;
+        });
+
         me.pianoroll.addedNoteCallback(function (n){
            me.synth.noteOn(n);
            setTimeout(function (){me.synth.noteOff(n);}, 500);
@@ -654,6 +671,28 @@ ub.on("power","click",  function(ev){
             me.pianoroll.cursor = me.step;
         };
 
+        me.getPatterns = function () {
+            me.patterns[me.current] = me.pianoroll.sequence;
+            return me.patterns;
+        };
+
+        me.setPatterns = function (newPatterns, current) {
+            if (me.running) {
+                console.error('No setPatterns while running!');
+                return;
+            }
+            if (!current) {
+                current = 'A';
+            }
+            me.patterns = newPatterns;
+            me.current = me.next = current;
+            console.log(newPatterns);
+            me.pianoroll.sequence = me.patterns[me.current];
+            ub.delClass(me.patternSelector.querySelector('.current'), 'current');
+            ub.addClass(me.buttons[me.current], 'current');
+            me.pianoroll.redraw();
+        };
+
         ub.on(me.patternSelector, 'click', 'button', function (ev) {
             ub.stop(ev);
             var which = ev.target.innerText;
@@ -674,19 +713,6 @@ ub.on("power","click",  function(ev){
                 me.pianoroll.redraw();
             }
         });
-
-        if (copyFrom) {
-            ub.on(ub.gebi(copyFrom), 'click', 'button', function (ev) {
-                ub.stop(ev);
-                var which = ev.target.innerText;
-                if (which=='CLEAR') {
-                    me.pianoroll.sequence = [];
-                } else {
-                    me.pianoroll.sequence = me.patterns[which];
-                }
-                me.pianoroll.redraw();
-            });
-        }
 
         return me;
     }
@@ -738,6 +764,53 @@ ub.on("power","click",  function(ev){
         bass_sequencer.stop();
         general_sequencer.stop();
         step = -1;
+    });
+
+    ub.on('load_patterns', 'click', function (ev){
+       ub.stop(ev);
+       if (metro._running) {
+           alert('Cannot load patterns while sequencer is running!')
+           return;
+       }
+       if (ub.gebi('patterns_json').value=='') {
+           return;
+       }
+       var pats = {};
+       try {
+           pats = JSON.parse(ub.gebi('patterns_json').value);
+
+       } catch (e) {
+           alert('Badly formatted JSON!');
+           return;
+       }
+       if (pats.cyber_music_studio && pats.cyber_music_studio=='groovebox') {
+            drum_sequencer.setPatterns(pats.drum_patterns);
+            bass_sequencer.setPatterns(pats.bass_patterns);
+            general_sequencer.setPatterns(pats.general_patterns);
+       } else {
+            alert('This is not JSON of saved patterns from this groovebox!');
+       }
+    });
+
+    ub.on('save_patterns', 'click', function (ev){
+        ub.stop(ev);
+        if (metro._running) {
+            alert('Cannot save patterns while sequencer is running!')
+            return;
+        }
+        var pats = {cyber_music_studio:'groovebox'}
+        pats.bpm = ub.gebi('bpm').value;
+        // TODO - instrument config, volumes, etc...
+        pats.drum_patterns = drum_sequencer.getPatterns();
+        pats.bass_patterns = bass_sequencer.getPatterns();
+        pats.general_patterns = general_sequencer.getPatterns();
+
+        ub.gebi('patterns_json').value = JSON.stringify(pats);
+    });
+
+    ub.on('clear_patterns', 'click', function (ev){
+        ub.stop(ev);
+        ub.gebi('patterns_json').value = '';
     });
 
 });
