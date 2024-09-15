@@ -569,13 +569,19 @@ if (window.ub && ub.on) {
 		if (ub.gebi(elem).tagName=="SELECT") {
 			// select -> string
 			ub.on(elem, 'change', function(){
-				synth.param(param, ub.gebi(param).value); // TODO - fix elem param confusion
+				synth.param(param, ub.gebi(elem).value);
 			});
 			synth.param(param, ub.gebi(param).value);
+		} else if (ub.gebi(elem).tagName=="WEBAUDIO-KNOB") {
+				// select -> string
+				ub.on(elem, 'input', function(){
+					synth.param(param, ub.gebi(elem).value);
+				});
+				synth.param(param, ub.gebi(elem).value);
 		} else if (ub.gebi(elem).getAttribute("type")=="checkbox") {
 			// checkbox -> bool
 			ub.on(elem, 'change', function(){
-				synth.param(param, ub.gebi(param).checked);
+				synth.param(param, ub.gebi(elem).checked);
 			});
 			synth.param(param, ub.gebi(elem).checked);
 		} else {
