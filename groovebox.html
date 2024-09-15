@@ -72,6 +72,7 @@
         .ub-box { padding-left: 0; padding-right: 0; }
 
         .device summary { font-weight: bold; }
+        .device .nobold { font-weight: normal; }
         summary { margin-bottom: 5px; }
 
         .device { padding: 10px; border-bottom: 1px double black; }
@@ -118,22 +119,8 @@
             <div class="device">
                 <div class="ub-cols ub-same">
                     <div>
-                        <h1>Severák's ideal Groovebox</h1>
+                        <h1>Severák's ideal groovebox</h1>
                         <p>BPM: <input type="number" min="20" max="160" step="1" id="bpm" value="90" id="bpm"> <button id="start">start</button> <button id="stop">stop</button></p>
-                    </div>
-                    <div>
-                        <table style="text-align: center">
-                            <tr>
-                                <th>drums</th>
-                                <th>bass</th>
-                                <th>sergeant</th>
-                            </tr>
-                            <tr>
-                                <td><webaudio-knob id="drums_vol" min="0" max="1" step="0.01" value="1" diameter="64"></webaudio-knob></td>
-                                <td><webaudio-knob id="bass_vol" min="0" max="1" step="0.01" value="1" diameter="64"></webaudio-knob></td>
-                                <td><webaudio-knob id="general_vol" min="0" max="1" step="0.01" value="1" diameter="64"></webaudio-knob></td>
-                            </tr>
-                        </table>
                     </div>
                 </div>
 
@@ -141,7 +128,7 @@
 
             <div class="device" style="background-color: #FFFFCC">
                 <details open>
-                    <summary>Dr. GROOVE</summary>
+                    <summary>Dr. Groove <span class="nobold">vol:</span> <input type="range" min="0" max="1" step="0.01" value="0.8" id="drums_vol" style="width: 100px;"></summary>
                     <div class="lpad">
                         <details open>
                             <summary>DRUM KIT</summary>
@@ -275,7 +262,7 @@
 
             <div class="device" style="background-color: #CCFFCC">
                 <details open>
-                    <summary>MonoBass</summary>
+                    <summary>MonoBass <span class="nobold">pan:</span> <input type="range" min="-1" max="1" step="0.1" value="0" id="bass_pan" style="width: 100px;"> <span class="nobold">vol:</span> <input type="range" min="0" max="1" step="0.01" value="0.8" id="bass_vol" style="width: 100px;"></summary>
                     <div class="lpad">
                     <table class="bass-tones">
                         <tr><td colspan="4">MODULATION</td><td colspan="5">OSCILLATOR</td></tr>
@@ -295,7 +282,7 @@
 
             <div class="device" style="background-color: #CCCC66;">
                 <details open>
-                    <summary><span>SERGEANT MIDI</span></summary>
+                    <summary><span>Captain Midi</span>  <span class="nobold">pan:</span> <input type="range" min="-1" max="1" step="0.1" value="0" id="general_pan" style="width: 100px;"> <span class="nobold">vol:</span> <input type="range" min="0" max="1" step="0.01" value="0.8" id="general_vol" style="width: 100px;"></summary>
                     <div class="lpad">
                         <select id="general_preset" class="big-select">
                             <option value="1">001 - ACCOUSTIC GRAND PIANO</option>
@@ -533,11 +520,15 @@ ub.on("power","click",  function(ev){
 
     var bass_vol = hb.makeGain(ub.gebi('bass_vol').value);
     ub.on(ub.gebi('bass_vol'), 'input', function (ev) { hb.setNow(bass_vol.gain, ev.target.value); });
-    hb.chain(bass.output, lefilter, bass_vol, hb.ac.destination); // TODO - filter is outside synth for now
+    var bass_pan = hb.ac.createStereoPanner();
+    ub.on(ub.gebi('bass_pan'), 'input', function (ev) { hb.setNow(bass_pan.pan, ev.target.value); });
+    hb.chain(bass.output, lefilter, bass_vol, bass_pan, hb.ac.destination); // TODO - filter is outside synth for now
 
     var general_vol = hb.makeGain(ub.gebi('general_vol').value);
     ub.on(ub.gebi('general_vol'), 'input', function (ev) { hb.setNow(general_vol.gain, ev.target.value); });
-    hb.chain(general.output, general_vol, hb.ac.destination);
+    var general_pan = hb.ac.createStereoPanner();
+    ub.on(ub.gebi('general_pan'), 'input', function (ev) { hb.setNow(general_pan.pan, ev.target.value); });
+    hb.chain(general.output, general_pan, general_vol, hb.ac.destination);
 
 
     Sequencer = function (patternSelector, pianoroll, synth, copyFrom) {
