@@ -15,8 +15,9 @@ Also it uses custom javascript library and CSS framework (both called `uboot`) a
 - [JZZ.js](https://github.com/jazz-soft/JZZ) for MIDI connectivity and keyboard widget
 - [Audio Recorder Polyfill](https://github.com/ai/audio-recorder-polyfill) for WAV recording
 - [Wavy Jones](https://github.com/stuartmemo/wavy-jones) oscilloscope
+- [webaudio-controls](https://github.com/g200kg/webaudio-controls) and [webaudio-pianoroll](https://github.com/g200kg/webaudio-pianoroll) fo UI elements
 - cliparts from [OpenClipArt](https://openclipart.org/) and textures from [3D Jugle](https://3djungle.net/textures/)
 
-Created by [Severák](http://tilde.town/~severak/) since 2021.
+Created (and semi-maintained) by [Severák](http://tilde.town/~severak/) since 2021. Thanks for all the fish!
 
-Thanks for all the fish.
+See also [awesome-webaudio](https://github.com/notthetup/awesome-webaudio) and [this thread on lines](https://llllllll.co/t/web-apps-for-music-video-etc-making/18096) for more webaudio based tools.
