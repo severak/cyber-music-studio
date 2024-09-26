@@ -100,7 +100,7 @@
                     feedback len:<br><input type="range" min="0.001" max="0.5" step="0.001" id="flen" value="0.001">
                 </div>
                 <div>
-                    feedback depth:<br><input type="range" min="0.9" max="0.999" step="0.001" id="fdepth">
+                    feedback depth:<br><input type="range" min="0.7" max="0.999" step="0.001" id="fdepth">
                 </div>
                 <div>
                     freq2:<br><input type="range" min="80" max="20000" step="1" id="freq2" value="20000">
@@ -228,7 +228,7 @@
             var noise = makeNoice();
             var env = hb.makeGain(0);
             vox.env= env;
-            hb.adsrStart(env.gain, {attack: 0.001, decay: 0.05});
+
 
             //console.log('flen=' + me.flen + ' fdepth='+me.fdepth + ' freq='+me.freq);
 
@@ -243,6 +243,8 @@
             //hb.setNow(filter2.Q, 0.3);
 
             //hb.chain(ping, env);
+
+            // TODO - https://itnext.io/algorithmic-reverb-and-web-audio-api-e1ccec94621a
 
             hb.chain(noise, prefilter, env, delay, me.output)
             hb.chain(delay, feedback, delay)
