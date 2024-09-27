@@ -120,7 +120,7 @@
                             <tr><td>width (<i>w</i>):</td><td><input id="width" value="14" min="1" max="3001" type="number"> cm</td></tr>
                             <tr><td>hole height (<i>d</i>):</td><td><input id="hole_height" value="11" min="1" max="1501" type="number"> cm</td></tr>
                         </table>
-                        <p>Don't be afraid to use some crazy dimensions, those sounds more interesting.</p>
+                        <p>Try both real and some crazy dimensions.</p>
                         <p><button id="ping_resonator">Hit resonator</button> to test how it sounds.</p>
                     </div>
 
@@ -282,6 +282,11 @@
         hb.chain(me.input, hb.makeGain(1), me.dZA, me.output);
         hb.chain(me.input, hb.makeGain(1), me.dZC, me.output);
 
+        // This is feedback to play these echoes over and over:
+        hb.chain(me.output, hb.ac.createDelay(), hb.makeFilter('highpass', 20), hb.makeFilter('lowpass', 10000), hb.makeGain(0.16), me.input);
+        // Gain is selected to be noticeable but not overflow.
+        // And those filters are there to prevent build-up of DC bias. It happens with waveguides.
+
         me.param = function(name, val) {
             me[name] = val;
             if (name=='width' || name=='height' || name=='hole_height') {
@@ -296,6 +301,8 @@
             let w = me.width;
             let h = me.height;
             let d = me.hole_height;
+
+            if (d > h) d = h; // check if soundhole is not oustide of box
 
             let ZH = w / 2; // from soundhole to side
             let ZE = d; // from soundhole down
@@ -319,12 +326,12 @@
 
             // and thus how long echoes should be...
 
-            // Scary stuff, isn't it?
             hb.setNow(me.dZH.delayTime, ZH * 2 / SOUND_SPEED_CM);
             hb.setNow(me.dZE.delayTime, ZE * 2 / SOUND_SPEED_CM);
             hb.setNow(me.dZG.delayTime, ZG * 2 / SOUND_SPEED_CM);
             hb.setNow(me.dZA.delayTime, ZA * 2 / SOUND_SPEED_CM);
             hb.setNow(me.dZC.delayTime, ZC * 2 / SOUND_SPEED_CM);
+            // Scary stuff, isn't it?
         }
 
         me.resize(); // sets initial size
@@ -377,6 +384,7 @@
                 // clean old voices to force some GC
                 hb.unchain(me.filteredNoise, vox.karplus, vox.allpass, vox.env, me.output);
                 if (me._voices[nn]===vox) delete me._voices[nn];
+                // console.log('removed old voice');
             }, 5000);
 
             return vox;
