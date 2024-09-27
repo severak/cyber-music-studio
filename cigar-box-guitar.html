@@ -464,7 +464,7 @@
             //var testNoise = hb.makeOsc('sine', 220);
             //var testEnv = hb.makeGain(0);
             // hb.adsrStart(testEnv.gain, {attack:0.01, decay: 0.01, max:0.6});
-            hb.chain(hb.makeDrumOsc(samples.stul), resonator.input);
+            hb.chain(hb.makeDrumOsc(samples.stul), hb.makeGain(0.3), resonator.input);
         });
 
         keyboardMidiWrap('keyboard3', 'select_midi_in3', synth);
