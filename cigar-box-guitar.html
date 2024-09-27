@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Physical modelling test / Cyber Music Studio™</title>
+    <title>Virtual Cigar box guitar / Cyber Music Studio™</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/uboot.css">
     <link rel="stylesheet" href="css/gh-fork-ribbon.css">
@@ -94,27 +94,33 @@
             <div class="ub-cols">
                 <div><img src="img/cigar-box-guitar.png"> </div>
                 <div style="width: 100%">
-                    <h1>Cigar box synth <small>(original handmade)</small></h1>
+                    <h1><small>(Virtual) </small>Cigar box guitar</h1>
+                    <p>Also everything from harpsichord to banjo.</p>
                     <div>
                         <strong>String:</strong>
                     </div>
                     <div>
                         nylon <input type="range" min="1000" max="10000" step="1" id="noise_lpf" value="10000" style="width: 80%"> steel
+                        <br/><br/>
                     </div>
                     <div>
                         <strong>String tension:</strong>
                     </div>
                     <div>
                         high <input type="range" min="0.960" max="0.999" step="0.001" id="feedback" value="0.997" style="width: 80%"> normal
+                        <br/><br/>
+                    </div>
+                    <div>
+                        <p><input id="silence_strings" value="1" type="checkbox" class="ub-checkbutton"><label class="ub-checkbutton" for="silence_strings">Silence strings on note off</label> as harpsichord does.</p>
                     </div>
                     <div>
                         <strong>Resonator dimensions:</strong> (see diagram at left side)
                         <table class="dimensions">
-                            <tr><td>height:</td><td><input id="height" value="70" min="1" max="3001" type="number"> cm</td></tr>
-                            <tr><td>width:</td><td><input id="width" value="14" min="1" max="3001" type="number"> cm</td></tr>
-                            <tr><td>hole height:</td><td><input id="hole_height" value="11" min="1" max="1501" type="number"> cm</td></tr>
+                            <tr><td>height (<i>h</i>):</td><td><input id="height" value="70" min="1" max="3001" type="number"> cm</td></tr>
+                            <tr><td>width (<i>w</i>):</td><td><input id="width" value="14" min="1" max="3001" type="number"> cm</td></tr>
+                            <tr><td>hole height (<i>d</i>):</td><td><input id="hole_height" value="11" min="1" max="1501" type="number"> cm</td></tr>
                         </table>
-                        <p>Don't be afraid to use some crazy dimensions.</p>
+                        <p>Don't be afraid to use some crazy dimensions, those sounds more interesting.</p>
                         <p><button id="ping_resonator">Hit resonator</button> to test how it sounds.</p>
                     </div>
 
@@ -122,6 +128,16 @@
                         Use computer keyboard or following widget:<br/>
                         <div id="keyboard3"></div>
                         or MIDI input: <select id="select_midi_in3"></select>
+
+                        <p>When lagging try different buffer size: <select id="buffer_size">
+                            <option value="256">256</option>
+                            <option value="1024">1024</option>
+                            <option value="2048" selected>2048</option>
+                            <option value="4096">4096</option>
+                        </select></p>
+                        <p>Note that there is a <a href="https://www.sweetwater.com/sweetcare/articles/which-buffer-size-setting-should-i-use-in-my-daw/" target="_blank">tradeoff between latency and CPU intensity</a>.</p>
+                    </div>
+                    <div>
                     </div>
                 </div>
             </div>
@@ -205,11 +221,11 @@
     // I just modified it to accept external noise to be able to shape sound more.
     //
     // See https://github.com/luciopaiva/karplus/
-    function makeKarplusStrongNode(frequencyInHz, feedback = 0.997) {
+    function makeKarplusStrongNode(frequencyInHz, feedback = 0.997, buffer_size = 4096) {
         const impulseDurationInSeconds = 0.0005; // volume
         const impulseDurationInSamples = Math.round(impulseDurationInSeconds * hb.ac.sampleRate);
         let impulseCountdownInSamples = impulseDurationInSamples;
-        const karplusStrongNode = hb.ac.createScriptProcessor(4096, 1, 1); // optimize/switch buffer size for CPU power / responsivity
+        const karplusStrongNode = hb.ac.createScriptProcessor(buffer_size, 1, 1); // optimize/switch buffer size for CPU power / responsivity
         const delaySizeInSamples = Math.round(hb.ac.sampleRate / frequencyInHz);
         const delayBuffer = new Float32Array(delaySizeInSamples);
         let delayBufferIndex = 0;
@@ -316,58 +332,13 @@
         return me;
     }
 
-
-
-    // this is my invention and it's crazy
-    function makeBoxResonator(w, h, d)
-    {
-        let resonator = {};
-        resonator.input = hb.makeGain(1);
-        resonator.output = hb.makeGain(1);
-
-        const SOUND_SPEED_CM = 34300 / 1;
-
-        let ZH = w / 2;
-        let ZE = d;
-        let ZG = h - d;
-        let ZA = Math.sqrt(Math.pow(w/2,2)+Math.pow(d,2));
-        let ZC = Math.sqrt(Math.pow(w/2,2)+Math.pow(h-d,2));
-
-        console.log('ZH = ' + ZH + ' cm');
-        console.log('ZE = ' + ZE + ' cm');
-        console.log('ZG = ' + ZG + ' cm');
-        console.log('ZA = ' + ZA + ' cm');
-        console.log('ZC = ' + ZC + ' cm');
-
-        console.log('ZH = ' + ZH*2/SOUND_SPEED_CM + ' s');
-        console.log('ZE = ' + ZE*2/SOUND_SPEED_CM + ' s');
-        console.log('ZG = ' + ZG*2/SOUND_SPEED_CM + ' s');
-        console.log('ZA = ' + ZA*2/SOUND_SPEED_CM + ' s');
-        console.log('ZC = ' + ZC*2/SOUND_SPEED_CM + ' s');
-
-        let dZH = makeDelay(ZH*2/SOUND_SPEED_CM);
-        let dZE = makeDelay(ZE*2/SOUND_SPEED_CM);
-        let dZG = makeDelay(ZG*2/SOUND_SPEED_CM);
-        let dZA = makeDelay(ZA*2/SOUND_SPEED_CM);
-        let dZC = makeDelay(ZC*2/SOUND_SPEED_CM);
-
-        let damp =  1/8; // 1/8 should be at same volume as before
-
-        hb.chain(resonator.input, hb.makeGain(damp*2), dZH, resonator.output);
-        hb.chain(resonator.input, hb.makeGain(damp), dZE, resonator.output);
-        hb.chain(resonator.input, hb.makeGain(damp), dZG, resonator.output);
-        hb.chain(resonator.input, hb.makeGain(damp*2), dZA, resonator.output);
-        hb.chain(resonator.input, hb.makeGain(damp*2), dZC, resonator.output);
-
-        return resonator;
-    }
-
     KarplusStrong = function() {
         var me = {};
         // default params:
         me.noise_lpf = 10000;
         me.feedback = 0.997;
-        me.damp = true;
+        me.silence_strings = false;
+        me.buffer_size = 4096;
 
         // internals:
         me.commonNoise = hb.makeNoiseOsc();
@@ -387,28 +358,42 @@
 
         me._makeVoice = function(nn) {
             var vox = {};
-            vox.karplus = makeKarplusStrongNode(hb.midi2cps(nn), me.feedback);
+            vox.karplus = makeKarplusStrongNode(hb.midi2cps(nn), me.feedback, me.buffer_size);
+            vox.allpass = hb.makeFilter('allpass', hb.midi2cps(nn));
+            vox.env = hb.makeGain(1);
 
-            hb.chain(me.filteredNoise, vox.karplus, me.output);
-            vox.noteOff = function () {
-                // silence string if dampen
+            hb.chain(me.filteredNoise, vox.karplus, vox.allpass, vox.env, me.output);
+            vox.noteOff = function (now = false) {
+                if (now) {
+                    hb.setNow(vox.env.gain, 0);
+                } else {
+                    hb.moveTo(vox.env.gain, 0, 0.05);
+                }
+
             };
-
             me._voices[nn] = vox;
+
+            setTimeout(function (){
+                // clean old voices to force some GC
+                hb.unchain(me.filteredNoise, vox.karplus, vox.allpass, vox.env, me.output);
+                if (me._voices[nn]===vox) delete me._voices[nn];
+            }, 5000);
 
             return vox;
         };
 
         me.noteOn = function(nn) {
             if (me._voices[nn]) {
-                me._voices[nn].noteOff();
+                me._voices[nn].noteOff(true); // previous string gets silenced anyway
             }
             me._voices[nn] = me._makeVoice(nn);
         };
 
         me.noteOff = function(nn) {
             if (!me._voices[nn]) return; // už není
-            me._voices[nn].noteOff();
+            if (me.silence_strings) {
+                me._voices[nn].noteOff();
+            }
             delete me._voices[nn];
         };
 
@@ -437,6 +422,8 @@
         synth = KarplusStrong();
         hb.chnget(synth, 'noise_lpf', 'noise_lpf');
         hb.chnget(synth, 'feedback', 'feedback');
+        hb.chnget(synth, 'silence_strings', 'silence_strings');
+        hb.chnget(synth, 'buffer_size', 'buffer_size');
 
         var safetyValve = hb.makeGain(1);
 
