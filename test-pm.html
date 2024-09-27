@@ -210,6 +210,41 @@
         return osc;
     };
 
+    // from https://github.com/luciopaiva/karplus/
+    function makeKarplusStrongNode(frequencyInHz, maxAmplitude = 1) {
+        const pluckPeriodInMillis = 1000;
+        const impulseDurationInSeconds = 0.0005; // volume
+        const impulseDurationInSamples = Math.round(impulseDurationInSeconds * hb.ac.sampleRate);
+        let impulseCountdownInSamples = impulseDurationInSamples;
+        const karplusStrongNode = hb.ac.createScriptProcessor(4096, 0, 1);
+        const delaySizeInSamples = Math.round(hb.ac.sampleRate / frequencyInHz);
+        const delayBuffer = new Float32Array(delaySizeInSamples);
+        let delayBufferIndex = 0;
+        const gain = 0.997; // decay time
+        let nextPluckTime = Date.now() + 1;
+
+        karplusStrongNode.addEventListener("audioprocess", (event) => {
+            const now = Date.now();
+            if (now >= nextPluckTime) {
+                //nextPluckTime = now + pluckPeriodInMillis;
+                //impulseCountdownInSamples = impulseDurationInSamples;
+            }
+
+            const output = event.outputBuffer.getChannelData(0);
+            for (let i = 0; i < event.outputBuffer.length; i++) {
+                const noiseSample = (--impulseCountdownInSamples >= 0) ? (Math.random() * 2 - 1) : 0; // TODO - filtered noise from external source to change color of sound
+                delayBuffer[delayBufferIndex] = noiseSample + gain *
+                    (delayBuffer[delayBufferIndex] + delayBuffer[(delayBufferIndex + 1) % delaySizeInSamples]) / 2;
+                output[i] = delayBuffer[delayBufferIndex];
+                if (++delayBufferIndex >= delaySizeInSamples) {
+                    delayBufferIndex = 0;
+                }
+            }
+        });
+
+        return karplusStrongNode;
+    }
+
     // see https://github.com/web-audio-components/comb/tree/master
 
     Natural = function() {
@@ -225,31 +260,10 @@
 
         me._makeVoice = function(nn) {
             var vox = {};
-            var noise = makeNoice();
-            var env = hb.makeGain(0);
-            vox.env= env;
-
-
-            //console.log('flen=' + me.flen + ' fdepth='+me.fdepth + ' freq='+me.freq);
-
-            //var ping = hb.makeOsc('sawtooth', hb.midi2cps(nn));
-
-            var delay = hb.ac.createDelay(1/hb.midi2cps(nn));
-            var feedback = hb.makeGain(me.fdepth);
-
-            var prefilter = hb.makeFilter('lowpass', me.freq);
-
-            //var filter2 = hb.makeFilter('lowpass', me.freq2);
-            //hb.setNow(filter2.Q, 0.3);
-
-            //hb.chain(ping, env);
-
-            // TODO - https://itnext.io/algorithmic-reverb-and-web-audio-api-e1ccec94621a
-
-            hb.chain(noise, prefilter, env, delay, me.output)
-            hb.chain(delay, feedback, delay)
-
+            vox.karplus = makeKarplusStrongNode(hb.midi2cps(nn), 1);
+            hb.chain(vox.karplus, me.output);
             vox.noteOff = function () {};
+
             me._voices[nn] = vox;
 
             return vox;
@@ -263,7 +277,7 @@
         me.noteOn = function(nn) {
             // console.log('on ' + nn);
             if (me._voices[nn]) {
-                me._restartVoice(nn);
+                //me._restartVoice(nn);
                 return;
             } // už je
             me._voices[nn] = me._makeVoice(nn);
