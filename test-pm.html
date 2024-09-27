@@ -16,8 +16,8 @@
     <script src="js/heartbeat.js"></script>
     <style>
         body {
-            font-family: "Lucida Console", monospace;
-            background: url("img/1280px-Tsunami_by_hokusai_19th_century.jpg") plum no-repeat fixed top center/cover;
+            font-family: "Georgia", "Times New Roman", serif;
+            background: url("img/cigar-box-history.jpg") black repeat;
         }
 
         footer {
@@ -71,6 +71,8 @@
         .presets a {
             display: inline-block;
         }
+
+        .dimensions input { width: 4em; text-align: right; }
     </style>
 </head>
 <body>
@@ -90,77 +92,38 @@
     <form class="ub-form ub-hidden" id="form">
         <div class="ub-box">
             <div class="ub-cols">
-                <div class="big-buttons">
-                    <button id="panic_button">PANIC!</button>
-                </div>
-                <div>
-                    noise LPF:<br><input type="range" min="80" max="20000" step="1" id="noise_lpf" value="20000">
-                </div>
-                <div>
-                    noise HPF:<br><input type="range" min="80" max="20000" step="1" id="noise_hpf" value="80">
-                </div>
-                <div>
-                    noise test:<br><input type="range" min="0" max="1" step="0.001" id="noise_test" value="0">
-                </div>
-                <div>
-                    feedback depth:<br><input type="range" min="0.7" max="0.999" step="0.001" id="fdepth">
-                </div>
-                <div>
-                    freq2:<br><input type="range" min="80" max="20000" step="1" id="freq2" value="20000">
-                </div>
-                <div>
-                    resonator:<br><input type="range" min="0" max="1" step="0.001" id="resonator" value="0">
-                </div>
-                <div>
-                    <button id="ping_resonator">ping</button>
-                </div>
-            </div>
+                <div><img src="img/cigar-box-guitar.png"> </div>
+                <div style="width: 100%">
+                    <h1>Cigar box synth <small>(original handmade)</small></h1>
+                    <div>
+                        <strong>String:</strong>
+                    </div>
+                    <div>
+                        nylon <input type="range" min="1000" max="10000" step="1" id="noise_lpf" value="10000" style="width: 80%"> steel
+                    </div>
+                    <div>
+                        <strong>String tension:</strong>
+                    </div>
+                    <div>
+                        high <input type="range" min="0.960" max="0.999" step="0.001" id="feedback" value="0.997" style="width: 80%"> normal
+                    </div>
+                    <div>
+                        <strong>Resonator dimensions:</strong> (see diagram at left side)
+                        <table class="dimensions">
+                            <tr><td>height:</td><td><input id="height" value="70" min="1" max="3001" type="number"> cm</td></tr>
+                            <tr><td>width:</td><td><input id="width" value="14" min="1" max="3001" type="number"> cm</td></tr>
+                            <tr><td>hole height:</td><td><input id="hole_height" value="11" min="1" max="1501" type="number"> cm</td></tr>
+                        </table>
+                        <p>Don't be afraid to use some crazy dimensions.</p>
+                        <p><button id="ping_resonator">Hit resonator</button> to test how it sounds.</p>
+                    </div>
 
-            <div class="ub-cols">
-                <div class="ub-same">
-                    PRE
+                    <div>
+                        Use computer keyboard or following widget:<br/>
+                        <div id="keyboard3"></div>
+                        or MIDI input: <select id="select_midi_in3"></select>
+                    </div>
                 </div>
-                <div class="ub-same">
-                    EQ HI <input type="range" min="-20" max="20" step="0.01" value="0" id="pre_hi">
-                </div>
-                <div class="ub-same">
-                    EQ MID <input type="range" min="-20" max="20" step="0.01" value="0" id="pre_mid">
-                </div>
-                <div class="ub-same">
-                    EQ LOW <input type="range" min="-20" max="20" step="0.01" value="0" id="pre_low">
-                </div>
-                <div class="ub-same">
-                    REVERB <input type="range" min="0" max="1" step="0.01" value="0.3" id="pre_reverb">
-                </div>
-            </div>
-
-            <div class="ub-cols">
-                <div class="ub-same">
-                    POST
-                </div>
-                <div class="ub-same">
-                    EQ HI <input type="range" min="-20" max="20" step="0.01" value="0" id="post_hi">
-                </div>
-                <div class="ub-same">
-                    EQ MID <input type="range" min="-20" max="20" step="0.01" value="0" id="post_mid">
-                </div>
-                <div class="ub-same">
-                    EQ LOW <input type="range" min="-20" max="20" step="0.01" value="0" id="post_low">
-                </div>
-                <div class="ub-same">
-                    REVERB <input type="range" min="0" max="1" step="0.01" value="0.3" id="post_reverb">
-                </div>
-            </div>
-
-
-
-
-
-
-            <div>
-                Use computer keyboard or following widget:<br/>
-                <div id="keyboard3"></div>
-                or MIDI input: <select id="select_midi_in3"></select>
             </div>
         </div>
 
@@ -236,38 +199,13 @@
         };
     }
 
-    makeNoice = function(startAt) {
-        if (!startAt) startAt = hb.ac.currentTime;
-        // adapted from https://noisehack.com/generate-noise-web-audio-api/
-        // important - noise must be longer than 2s to be perceived as noise
-        var bufferSize = 30 * hb.ac.sampleRate,
-            noiseBuffer = hb.ac.createBuffer(1, bufferSize, hb.ac.sampleRate),
-            output = noiseBuffer.getChannelData(0);
-        for (var i = 0; i < bufferSize; i++) {
-            output[i] = Math.random() * 2 - 1;
-        }
 
-        var osc = hb.ac.createBufferSource();
-        osc.buffer = noiseBuffer;
-        osc.loop = true;
-        osc.start(startAt);
-
-        return osc;
-    };
-
-    function makeFilter(type, frequency, gain) {
-        const filter = hb.ac.createBiquadFilter();
-        filter.type = type;
-        filter.frequency.value = frequency;
-        filter.gain.value = gain;
-        return filter;
-    }
-
-    // TODO - https://www.dsprelated.com/freebooks/pasp/Karplus_Strong_Algorithm.html
-
-    // from https://github.com/luciopaiva/karplus/
-    function makeKarplusStrongNode(frequencyInHz, maxAmplitude = 1) {
-        const pluckPeriodInMillis = 1000;
+    // Karplus-Strong-like webaudio node originaly implemented by Lucio Paiva.
+    //
+    // I just modified it to accept external noise to be able to shape sound more.
+    //
+    // See https://github.com/luciopaiva/karplus/
+    function makeKarplusStrongNode(frequencyInHz, feedback = 0.997) {
         const impulseDurationInSeconds = 0.0005; // volume
         const impulseDurationInSamples = Math.round(impulseDurationInSeconds * hb.ac.sampleRate);
         let impulseCountdownInSamples = impulseDurationInSamples;
@@ -275,21 +213,13 @@
         const delaySizeInSamples = Math.round(hb.ac.sampleRate / frequencyInHz);
         const delayBuffer = new Float32Array(delaySizeInSamples);
         let delayBufferIndex = 0;
-        const gain = 0.997; // decay time
-        let nextPluckTime = Date.now() + 1;
+        const gain = feedback; // decay time
 
         karplusStrongNode.addEventListener("audioprocess", (event) => {
-            const now = Date.now();
-            if (now >= nextPluckTime) {
-                //nextPluckTime = now + pluckPeriodInMillis;
-                //impulseCountdownInSamples = impulseDurationInSamples;
-            }
-
             const output = event.outputBuffer.getChannelData(0);
             const input = event.inputBuffer.getChannelData(0);
             for (let i = 0; i < event.outputBuffer.length; i++) {
-                // (Math.random() * 2 - 1)
-                const noiseSample = (--impulseCountdownInSamples >= 0) ? input[i] : 0; // TODO - filtered noise from external source to change color of sound
+                const noiseSample = (--impulseCountdownInSamples >= 0) ? input[i] : 0;
                 delayBuffer[delayBufferIndex] = noiseSample + gain *
                     (delayBuffer[delayBufferIndex] + delayBuffer[(delayBufferIndex + 1) % delaySizeInSamples]) / 2;
                 output[i] = delayBuffer[delayBufferIndex];
@@ -308,6 +238,84 @@
         hb.setNow(delay.delayTime, time);
         return delay;
     }
+
+    BoxResonator = function () {
+        let me = {};
+
+        // default params:
+        me.width = 100; // width in cm
+        me.height = 100; // height in cm
+        me.hole_height = 33;  // height to hole in cm
+        me.amplification = 1/8; // 1/8 - no change in volume -> loud as hell
+
+        // This is completely my invention and thus it's crazy.
+        // Basically it simulates echoes inside boxy resonator.
+        // Simulation is very primitive though.
+        me.input = hb.makeGain(1);
+        me.output = hb.makeGain(1);
+
+        // This is network of echoes:
+        me.dZH = hb.ac.createDelay();
+        me.dZE = hb.ac.createDelay();
+        me.dZG = hb.ac.createDelay();
+        me.dZA = hb.ac.createDelay();
+        me.dZC = hb.ac.createDelay();
+        hb.chain(me.input, hb.makeGain(1), me.dZH, me.output);
+        hb.chain(me.input, hb.makeGain(0.5), me.dZE, me.output);
+        hb.chain(me.input, hb.makeGain(0.5), me.dZG, me.output);
+        hb.chain(me.input, hb.makeGain(1), me.dZA, me.output);
+        hb.chain(me.input, hb.makeGain(1), me.dZC, me.output);
+
+        me.param = function(name, val) {
+            me[name] = val;
+            if (name=='width' || name=='height' || name=='hole_height') {
+                me.resize();
+            }
+        };
+
+        me.resize = function () {
+            const SOUND_SPEED_CM = 34300;
+            // This calculates sizes of resonator...
+
+            let w = me.width;
+            let h = me.height;
+            let d = me.hole_height;
+
+            let ZH = w / 2; // from soundhole to side
+            let ZE = d; // from soundhole down
+            let ZG = h - d; // from soundhole up
+            let ZA = Math.sqrt(Math.pow(w/2,2)+Math.pow(d,2)); // diagonal from soundhole down
+            let ZC = Math.sqrt(Math.pow(w/2,2)+Math.pow(h-d,2)); // diagonal from soundhole up
+
+            console.log('Resized resonator:')
+
+            console.log('ZH = ' + ZH + ' cm');
+            console.log('ZE = ' + ZE + ' cm');
+            console.log('ZG = ' + ZG + ' cm');
+            console.log('ZA = ' + ZA + ' cm');
+            console.log('ZC = ' + ZC + ' cm');
+
+            console.log('ZH = ' + ZH*2/SOUND_SPEED_CM + ' s');
+            console.log('ZE = ' + ZE*2/SOUND_SPEED_CM + ' s');
+            console.log('ZG = ' + ZG*2/SOUND_SPEED_CM + ' s');
+            console.log('ZA = ' + ZA*2/SOUND_SPEED_CM + ' s');
+            console.log('ZC = ' + ZC*2/SOUND_SPEED_CM + ' s');
+
+            // and thus how long echoes should be...
+
+            // Scary stuff, isn't it?
+            hb.setNow(me.dZH.delayTime, ZH * 2 / SOUND_SPEED_CM);
+            hb.setNow(me.dZE.delayTime, ZE * 2 / SOUND_SPEED_CM);
+            hb.setNow(me.dZG.delayTime, ZG * 2 / SOUND_SPEED_CM);
+            hb.setNow(me.dZA.delayTime, ZA * 2 / SOUND_SPEED_CM);
+            hb.setNow(me.dZC.delayTime, ZC * 2 / SOUND_SPEED_CM);
+        }
+
+        me.resize(); // sets initial size
+
+        return me;
+    }
+
 
 
     // this is my invention and it's crazy
@@ -354,18 +362,20 @@
         return resonator;
     }
 
-    Natural = function() {
+    KarplusStrong = function() {
         var me = {};
+        // default params:
+        me.noise_lpf = 10000;
+        me.feedback = 0.997;
+        me.damp = true;
+
+        // internals:
         me.commonNoise = hb.makeNoiseOsc();
         me.filteredNoise = hb.makeFilter('lowpass', 10000);
         hb.chain(me.commonNoise, me.filteredNoise);
 
-        me.noiseTest = hb.makeGain(0);
-
         me._voices = {};
         me.output = hb.makeGain(0.3);
-
-        hb.chain(me.filteredNoise, me.noiseTest, me.output);
 
         me.param = function(name, val) {
             me[name] = val;
@@ -373,42 +383,30 @@
             if (name=='noise_lpf') {
                 hb.setNow(me.filteredNoise.frequency, val);
             }
-            if (name=='noise_test') {
-                console.log('noise_test', val);
-                hb.setNow(me.noiseTest.gain, val);
-            }
-
-            console.log(name, val);
         };
 
         me._makeVoice = function(nn) {
             var vox = {};
-            vox.karplus = makeKarplusStrongNode(hb.midi2cps(nn), 1);
+            vox.karplus = makeKarplusStrongNode(hb.midi2cps(nn), me.feedback);
 
             hb.chain(me.filteredNoise, vox.karplus, me.output);
-            vox.noteOff = function () {};
+            vox.noteOff = function () {
+                // silence string if dampen
+            };
 
             me._voices[nn] = vox;
 
             return vox;
         };
 
-        me._restartVoice = function (nn) {
-            var env = me._voices[nn].env;
-            hb.adsrStart(env.gain, {attack: 0.001, decay: 0.004});
-        };
-
         me.noteOn = function(nn) {
-            // console.log('on ' + nn);
             if (me._voices[nn]) {
-                //me._restartVoice(nn);
-                return;
-            } // už je
+                me._voices[nn].noteOff();
+            }
             me._voices[nn] = me._makeVoice(nn);
         };
 
         me.noteOff = function(nn) {
-            // console.log('off ' + nn);
             if (!me._voices[nn]) return; // už není
             me._voices[nn].noteOff();
             delete me._voices[nn];
@@ -436,60 +434,43 @@
         ub.gebi('form').reset();
         hb.start();
 
-        /*
-        pre = hb.MixStrip();
-        hb.chnget(pre, 'hi', 'pre_hi');
-        hb.chnget(pre, 'low', 'pre_low');
-        hb.chnget(pre, 'mid', 'pre_mid');
-
-         */
-
-        synth = Natural();
-        hb.chnget(synth, 'fdepth', 'fdepth');
+        synth = KarplusStrong();
         hb.chnget(synth, 'noise_lpf', 'noise_lpf');
-        hb.chnget(synth, 'noise_test', 'noise_test');
-        hb.chnget(synth, 'freq2', 'freq2');
+        hb.chnget(synth, 'feedback', 'feedback');
+
         var safetyValve = hb.makeGain(1);
 
-        /*
-        post = hb.MixStrip();
-        hb.chnget(post, 'hi', 'post_hi');
-        hb.chnget(post, 'low', 'post_low');
-        hb.chnget(post, 'mid', 'post_mid');
-        hb.chnget(post, 'reverb', 'post_reverb');
-         */
+        var resonator = BoxResonator();
+        hb.chnget(resonator, 'width', 'width');
+        hb.chnget(resonator, 'height', 'height');
+        hb.chnget(resonator, 'hole_height', 'hole_height');
 
-        var resonator = makeBoxResonator(14, 70, 11);
+        hb.chain(synth.output, resonator.input, resonator.output, safetyValve, hb.ac.destination);
 
-        var resonatorDry = hb.makeGain(1);
-        var resonatorWet = hb.makeGain(0);
-        hb.chain(synth.output, resonator.input, resonator.output, resonatorWet, safetyValve);
+        let stul = "UklGRiRUAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQBUAAAAAP\/\/AQD+\/wMA\/f8DAP\/\/AwABAAEAAwAEAAIAAQAEAAQA\/f8FAAAA\/\/\/7\/\/r\/+f\/6\/\/r\/+f\/7\/\/b\/\/P\/5\/\/r\/+f8CAPH\/CAD\/\/\/v\/BAAGAAAADAATAAkADAALAAkABgAKAAwABAABAA4AAwADAAQACQAXAA8ADQAFAPz\/AgABAAMAHAADAAwAHgAQABIAEgAYACgAFAAPAC8AHgAqADgAGAAcACgAKwASAAUAMQATAOH\/MAAmAOX\/EgAAAOH\/9\/\/L\/7X\/sf+1\/9z\/AAAdAEgAQABNAGMAPgAvABAA3v\/4\/wgAt\/\/F\/\/P\/pP++\/\/T\/f\/+e\/x4A5\/\/w\/6AAyAB8AI4AtgBXACUAdwA+AP\/\/GwALAC0AdAA+AEMANwAsAC4A0v+3\/+v\/t\/\/U\/+f\/z\/\/t\/6T\/w\/\/8\/4\/\/BQBuALr\/\/f8zANf\/QgBKAOr\/QAAMAK7\/x\/+y\/9v\/WgB7AF8AJwANAOv\/qP90\/1v\/Yv85\/xf\/7P6c\/on+hv6Z\/vj+\/\/4g\/13\/Sv9t\/6j\/wf8gAGEAXQBqAJIAvQBxAMEAbgE2ASwBbQEgAUcBVgGkAB8A5P+V\/wT\/qv6c\/m7+Z\/6Y\/tb+9P77\/mr\/kv\/\/\/gv\/Av+O\/nT+Mf5C\/pr+ev4I\/8n\/8f82AJ0A3gCxAIUAyADhAOwABwHdAN4ApwA5AMr\/Q\/\/D\/+r\/tv\/JABUB6QATAQwA3v\/8\/9j+fv4D\/o\/90P1y\/bz9C\/4m\/hj\/Tf\/s\/20ACADPAGkAm\/+PANv\/NP\/s\/7P\/YP8m\/4j\/CwCQ\/\/L\/tf8t\/\/7\/R\/8n\/yUAsP\/H\/7v\/Yf9o\/0L+0P0m\/s79F\/4h\/pL+Hv9Z\/mz+w\/7O\/m\/\/6P\/nACUBpQHfAicCbAJ+A4kCFQMvAwECLQKEAe4A3QD8\/5b\/UP5R\/Xr8EfuH++T6O\/rA+yb7k\/vU\/N\/7PP0y\/hr9Y\/06\/aP9cP4r\/xgBvgGtAoEDzALQA6AD3AL0AwsDtAINAo8AbQFNABz\/NgAQANz\/f\/7\/\/dP+3fwt\/Uv+ev0L\/kT9u\/3P\/rv9u\/8DAGj\/+wBH\/+j\/HwFW\/9wAkwAdACcBbf9LAXMBx\/\/cAbf\/lP+yAOb9lP\/m\/vD9CAAo\/rn\/h\/5a\/IX\/ufva\/Gb+\/vkgANL9tvt0An78rP9W\/XD5iQrV9t72Dx8T\/AjstRQB+QHq1wHM96v\/uQNo\/K0M6\/5j+D0Jq\/hE+r4HbvuxAcMFhPwZAi8BL\/0C\/xn8iPpd9yr0IPNf8DDzl\/UQ9kH7S\/7H\/38CgwXgBrEDagQ1B40FUwieDfEPmxDiDW4LSAjtAv8AggHTAZ8AcwAtA+r\/tPsN\/iX9\/fvC\/pz\/OwIPBoAGQQehCZsLYwqdCEYKWwp0CKcJqAoFCHkE6gKPAYf\/df9VADkAfP\/h\/CX5m\/Vl8n3vruxn6pLoX+Zh5InjL+TL5BPmSeoC7gjwXfMi9qH2S\/aj93v5HPmf+mH+2f\/yAc0FtAfQCEQKNQqHCIsITwl4CDoJlgnqCHsLwwztDI8QChIUEsITaBSnFYQWkhbaF7cXrBcBGEEWRBXVE5MQhw47DHIKPAqmCn8Mhg7QEMISvxDCDScLyQWlALH9I\/sX+jD6+Pn5+qf7Kvrr+Z76Bfjd9Ff0sfQ09o34uvuSALwDbwYZCuYKigu6DUwOFQ+qED8S6ROxFEYW7RdoF6cWSBSSEN8MygdUBKIBTfzx93fzj+2J6E\/iNtyX2OjTnM97zRbKzsWMw4rDT8NRwizE5ccgyHHHucqozIDKbsq\/y7TLcs7F02PYc97b5ofvR\/ZA+0YAeANJBGgFkAfxCqQNpA4REQgUmRX+F30aLBwUHskeHh68HScd1xubGn4b+RwmG9AYhBeHE1UQyA+HDTkMwAw\/CxQLqwyrDCsN0Q1CDYMMYQp\/CPkG3AMuAj0B1f42\/Ur7i\/k1+U\/4e\/d+9nz0J\/MC8QfvV+8l8DDxYvJL9Bj3FPhi+WP7f\/rs+mb9Ef64\/8sCuwQ8BswHygkpC0YMyQ5SEBkRDhMlFKUUDBUhFR4X+BkzHOgeZCAtH9YcnBpUGIAW1hX5FVMW7xbdF2UY7xfaFqQVeROiEM4ODw70DI8MXA0ODbgMDg5LDmMNpAy2CmgIjwW+AhYB7f2v+mv5KvdY9aP1u\/Rk8k7wXe9g7yPvj++b8ILxvfKm8wT1Uvel+Pj50PxiABYEuwhpDgcTXxdsHQIjCyibLc4xtjSBNmE3gDihOLA3yDaxNAQynzCJLzUtcCp1KPollSJRH6scGRp\/FsETUBL\/DsUMmQ32DIMLiAsTC9EI4QTqANr8R\/c\/8ort3Ofv4uLeetsH2MnTbtBHzWbJr8XlwQ+\/tLyLuXS3VrY2tTG14bXStt+4rbtWvtrAe8TEyZrQHNiA3\/bmLu3L8eH2pPpM\/C\/+lv+fAOYC7wQUBn0HnQjECFAJRwofCWgHigbLA5oA0P0z+nr3NPWO83zzPfL58CHw1uyn6jjrFOtJ6ujpKOrQ6fvosulH6g7qqeo\/6xbsU+0Y7onvcfAb8GHwavBN77LuTe8e8JjwxvFd8zz0efSv9Mz1M\/eW9zf5LPvL+0r+EgEWAf0BvQMFA5cCDASYBH8EWAUMBrgFegVcBeMEzAMrAuEA+f64+jL2yfJL7wvsMOmn5RriCt8y26PWpNLozlnLXsm5yJLIT8mMynXLl8yHzvjQrNOL1jjZ99u53tvgF+JS4wnlTOZr58fp3+sq7WzvovGw8\/L2Jvqw\/dsB1gTsB9ILBg9JEnMVdhjGG3wePyGIJCgnFiqVLagwDTSHN5Q6kj02QClCN0NnQ51CkkA+Pug7CDk5Nho0hDIYMU0vuS2qLH8rOirRKecptikpKiMr9isvLXouFC81MIUxQzImM5UysDAbL+EsdCrLKOwmOCWGI8Qg9h0BG\/MWDBMVEGENZQspCrYIUgdvBXkCywDC\/2L9J\/zo+2f6JPk3+NP20\/Wl9Az0FvT281n0nfQI9Vn2JffU+A38\/\/0aAMgCwQN+BB8GAweTBwMJaArHClkL4AvvCtcJ6gjMBzEHaAZ6BSgFVwREA3gCAgGB\/+7+5\/5z\/vr9+f1i\/Wr8Nfwe\/DP8I\/2R\/v7\/6gGHBO0GdAl\/DIUOxRCbEwUVQRfIGUAa6htJHk8e\/B6vIHshmiKxJLUmNigYKlksWi0ALn4vZzCwMO4wejHnMakxUjIcM14y5THpMKUuzSyQKoEntSQdIt8fnR0TG+0Y9RaZFAsSDhAvDswLkAqeChIKowlcCXsIGwc7BQMDsgCK\/v78\/fp8+BH24fN28ojx4fA\/8dvxLPLR8nXzKvQT9dT1yfZO+M75UPup\/I\/9W\/4l\/9b\/UQHgAhIErQVEB54IhgrsC9oM9A2NDl4OKA7LDYsMYQs2C70KWwpcCp0J9AguCFIGLgWHBM0D4QN5BE0FXAXrBFUF4wQrBC0EjgPqA7wEdgTLBJ8EDgSMBPkDEwPkAiICfgF0ACH\/\/\/6I\/pD9PP1H\/SL94fxA\/fv98f6pAJUC8wOpBK0EXwRbA38CPAKHAVMBFAKlAvECBAM+A3UDewJwAT4Axv3z+jj4svUq8y7wju206ifndeTA4a3eYNzC2jHZkdee1lHWjdXT1HfUzNMP03LSo9GT0ITPVc5gzMnKtskHyG7GpsVUxLrCj8Gzvxu9brr+tj2zZ7C3rQCr7ajVppmkOqOWoj6iQ6JEo6+k7qXXp+Gprau6raCvbLEgs\/20\/raEuLK6Ub0gv+fBG8X6xlPJysttzSLPkNAG0mzTJdT91MfV+9Xl1UrVmtSC0wDSENGM0CvQVc92zpjON85lzV7NYs0TzbTMdMy7zMrM9sypzTzOyM4oz8TP9tBZ0ffRpNOH1GvVjNb91nnXBNii2APab9u03CreXd9v4CziSuRg5oDoxuqp7NrtS+878bHy9fO79Uf3qfhM+nX7l\/wx\/rP\/BQFDAvADhQV4BsUHowiBCCwJWgl2CHkIrghSCBcIpAeqBi0FgANYAkwBkgBiAKL\/sf7m\/Yj8OPtU+v74yfcO96z1B\/T78qPxQ\/CK7zLurOwO7Onqcun96JnoEOhj6Bfpoekl6ifrOezD7E3t++1C7o\/uuu7L7vnumu5I7mDu2e2T7bftYO0O7bLsOewW7KnrFOvR6inqiulW6TTpvOg+6Cvo2Oc15\/jmeOaw5SvlxOTl5HLlJuY\/5xzoeOjw6Ibp\/elt6rHrgu2s7jbwCfIF81X08PWy9qT37vjq+RH7Zvy7\/Vf\/KQHUAlYEJwb0BzsJ8QrZDCIO4A8MEjkTtxTJFnIYJRoZHLwdiR\/+IGkiPiSPJaUmDSiWKTUrxCxdLkMwtzHDMg00\/jSCNX42ujdDOKc4zTl8Ors6dTvHO907CT04Pt8+GEAIQYdBREIEQ6ZDSESdRDFFR0ZER2BIsUn+Sk9Mnk3cTr5PClCOUDxRilGoUdxRE1IaUg9S41HnURBS01G6UfZRlFFdUehR1lHfUXxSCVOkUzlU2lSyVYpWqVfAWMlZwlpPW3pczV2FXo9fb2D4YMxho2IUZOVlCGe+aERqJ2skbERtKG6lbppvCHEgcfdwIHFvcEFwcnBqcBBxjnHFcdpxP3ECcUVwUm\/\/bsht+WznbJZrqGrbaQ5ow2baZc5k62MPY69iEWISYWhgkl+oXtBd1lwVXDFbaVpIWddXxlbIVcdUtFNOUphRbFAvTsJM\/Uo\/SE1GEUQxQec+njwVOlM32DS7Mi8wdS0SK2sosiUdI4og8x0dG1AYBRZfE8QQ1Q6cDE8Kvgi\/BpkEBQOXAaoANgBM\/4n+5v0F\/Rz8O\/uM+sv5zPhe+L73\/fal9sr1zPQX9C7zffLV8VTxGvGn8Abwmu8r77ruD+537QTtHOxe69Dqpemp6B\/obOdP5lXlT+QG48bh7uBG4MHfF99p3oHdDtyR2g7ZS9dE1nHVl9Qx1KfT79Iv0hvRXNB+zyfOXc1izFHLTcsky7\/K88qUyqfJLMltyJDH1MZFxhLGzsWMxSjG2MYnx5\/HGsgAyNvHGcgMyD\/H5MYmx9PGbcZMxgvGwsWTxRzFmMT9w+7CeMEhwJ++1Lx1uzG6pLhDt+y1lbRjs2Oy37ElsU+wYrAgsB2vg67cre2sM6yQq1uraatGq\/mqdaryqYqpHKnNqF6osqdZpwenPKbApdWlgqXPpJCkDKQIoxOiKKEUoDafvJ7YntyepJ6HnhOeJ50GnAGbDZqZmD6XlpadlaqUg5QHlECTuJILkjuRZZDkjwSQIpCHkIWRWJKjkhuTtpNYlFaVVpb\/liqYGJn5mY+bZJy1nGqeS6DWoeqj9qXlp9mpuqsXrm6wtrIKtUK3sbn5uw6+csCnwuHEZMfUyafMTc+s0THUX9Yn2NfZp9uo3Qjfn+Ca4tnjIeWg5r\/nQOmW6n7s2u5b8PTx1\/M69Tj3FvnX+iv90\/5vAE8CsQODBT0HgAg5CtELDw0BDuIOQRAJEbAR4RJiEwUUCBW3FaQWRBe1F6sY+hhEGUEa2RpOGxMc4xzbHd4eByBRITAivyKHIz4kRCQ9JPAkiCWnJWYmGyepJ24oLilPKnkrHCy7LEItei23Le4tcC4QL4kvazDxMPowVDGlMfExbTLPMjQzvTNQNAI1uzWqNsU3iTgtOXI5bzm0Oc855DlROpg66jo7O0A7bjsuO7c6WDo3Oe03VzdKNg81XzSmM8syyzHMMCowPi9QLv0tTC1wLEssHSytK4Qrhiu9K9wrxSvvK6crNitwK0Ir7ipBKywr3yrLKg4qcCkgKccooCgmKLYnbSd6JgsmtyWuJEwk4yPNIt8hlyBIH9Qd6Ru8GkgZTRcMFj0UJRLIEPwOWA30CxEKswh\/B\/cF1ATMAwEDMQILAYcAQwAs\/07+9\/1e\/Xn8xfsM+3b6C\/o5+Yf4NfhH9wP3T\/fP9tX2xfbn9a31KfVT9Gz00\/PI8sHyr\/Jv8q\/yH\/Nk81zzhfPX8\/Hz7\/O78+TzIfT\/8\/HzO\/Se9Jn0NPRB9E70FfQE9L7zevN289ny9PGN8THxCPG08Jvwv\/Cz8NTwJPET8UXxufES8mLy0\/KY81H0xvQf9XH1IPYa95L3qPcC+HX4tfgI+Xv57fm9+tH7qvyB\/Vn+T\/9RALEAvgEgA9oD2gQkBswGqweXCF4JAQqfClcLrwvxC1AMGwxcDA0N4QwqDegN9A0aDlgOfw7cDs8O3w4uDzwPig\/dD+UPShCqEBoRoBHCEfQRfxLkEjUTmBMSFJQUABVfFcYVQRamFp4WpBb2Fu8WkxZVFuAVTxXvFIQUOhQgFCUUZhSTFNMUBhWyFGQUdBRpFIYUwBQHFWcVvxVNFsEWsRY0F8QXwhcsGNUY9BhRGZkZxRkjGl4aQBowGjoaxhktGRIZ5Bg5GNEXxxeVF1kXgxfNF5IXKBchFxAX5xbVFiMXshdAGMgYSBmxGV0a1xrTGhgbTxt3G\/obURy6HHcd2x38HS0eEB4NHtkdQR3WHFEcgRsCGzoaWBluGXYZCRktGSoZdhgmGDgYFhhQGAsZaRmZGfYZ\/Rm5GcUZRxmrGKoYfBg9GG0YjBhTGMsX4BbzFe8UuxOWEqcR0BA5EL8PNA+SDicOoQ3JDOELKwsoClIJ7gg5CIIHOgelBuUFRAWhBB8EBwMzAiYCGgEcADQAl\/\/a\/uH+cf7E\/Wb9Dv2O\/CP8M\/zc+0f7P\/sd+\/r69vpi+r\/5XvnR+B34kvc592322fW+9f30K\/QI9JXz6fJq8jfyGPLQ8f7xIPIG8j3yTPJS8nryLvJe8ljyz\/Hx8eXxyPHx8bHxsvHf8afx2PEN8iDyV\/JG8gPysPFE8cbwAvCo707vmO5P7vDtWe3e7ETsLuwh7GLrFuu66uDpqemj6Srp\/OjR6CLoLeeA5uXlK+U55FTjPuJE4eXgb+AR4E3gA+Bb3xXfbd6c3R7dldwk3Lfbbtt\/2zDb69re2u3a+NrD2r\/aDNs024\/b+Nt73Prc8Nwf3YDdpN0J3mvent6Z3g3e6t263e\/co9xD3LbbSttv2qbZDdkc2GHX0dZP1qfVKdUe1ZTUFNRW1CXUXNQZ1UTV2tWE1sXWK9ef1zTY7Ng22bnZH9o\/2m\/afdpv2m\/aw9r02r\/a+Not2+\/a\/tr72q3agdon2ubZntk92WjZTtlL2ejZBdoF2sbaq9tb3DrdTt5t35PgwuH34hjkMeUq5innd+iX6Xrqf+uM7ETtIu5w75PwsPHA8trzBfXE9Xn2bvdf+Ef5KPrt+tb7vvyn\/a\/+CABhAYACyQMWBRAGNQdpCGwJsQq6C+gMMA7gDusPVhEjEuMS2xOBFAUVZBXZFVgW3BaEFyEYjRgKGYUZExqTGjYbJRzLHHUdgB5AH\/AfBiHbIboiryOJJE0lCCalJkknkCe1Jw4oRShiKIwopijaKMUopyjJKMoonSioKHgoGij0J8cnRCcBJzAn\/ya7Js4moCZHJtslWCUfJZIkyCOnI3cjOSMeI6wiPSKoId8gQiBrH8Iebh7EHTwdKB3aHKMceRw7HBoc1xuEG1QbRRtGGy4bCRsMG6YaLhoMGr8ZWxkKGaEYRRjHFw4XehYBFngV9RR0FO4TdBPtEmISMRIPEscRuxF1Ec0QchABEB8Plw4\/DqMNUQ0aDY0MHAzLC1ULzgpKCsMJOAnMCJsIMgj5B98HUwcNB\/IGYAYXBvoFgwU6BfYEqARxBDEECAS3Ax8D6AKYAs4BIwGbAP3\/pP9k\/wD\/rP5F\/sj9Yv3t\/Iz8LPyu+w\/7rfpb+sn5MvnN+Cf4kPcp93r2vfVl9Rv1pfRg9DD06fOP8x3zyPJ+8kLyGvIA8sDxd\/H\/8JfwPfC17z\/v2+5l7v7to+1A7c7sXOzh62zr5upZ6pPp7+i06E3o2ee\/53PnKedJ53TnZOdY51rngeeT557n8ecz6IHoHul16ePpRep16vDqZOtu69\/rPexm7MTs8uw07Zrtp+3F7ent4e0M7vntzu3u7RDuM+6Y7sLuse6k7svu2O7s7krvSO8p72\/vf+9778vv5O\/f7+rvC\/D675vvpe+275Dv2+8p8BjwafCk8Lnw\/PA88ZXx8vFh8qfy4\/JE81\/zAfMB8zXzaPOG87HzM\/SD9Jj0LfWR9ar1N\/a+9vT2P\/d597D37\/dV+Lf4A\/ln+cn59fk2+qz6+fol+4f73Pv6+1P8sPz7\/Gz9rv3S\/VL+4f4T\/0r\/5\/+CALcAIQGQAaUBvAH7ASkCOgJ3AtoC\/AI2A8cDDARLBMAE\/gRJBYMFkQXEBf8FXAafBq4G1wbZBuUGLgcsBzIHOgf2BuYGuAabBqoGbQY7BjEG8AX1BbkFagWoBbAFigXbBTMGjgb0BkQHtAcSCFYIiwj0CFMJiQnzCUIKVQrrCn8L4AtoDMkMJg2ZDcEN4Q1cDo0O1Q5TD2EPeg8yEJIQgxAJEW8RQRFYEZERkRHDESsSohLMEvQSTxNsE3kT5hNKFIEUqhQDFVYVYRWXFekVHhZEFlkWpRbGFpQWpRZ\/FjQWHhbgFX8VZBVTFfsUgBRaFC0UhxP6EoUS\/xG2ERMRoBCNED4Q6Q\/SD6cPew9qDxsP4A7RDqsOcA5IDu8NfA0+DeoMpgx3DP0LZgsBC38KGAqWCd4IZwi2B78GSAbhBfAEJgTwA0kDYAK0ARUBZgDj\/3n\/Lf\/W\/oD+Rv4I\/qn9Pf3V\/GT89\/u0+4X7T\/sy+\/z61Pq8+rn65Prj+sf67Prt+sf6sfqq+sH6qfql+vD6CfsM+yb7Y\/t3+zv7J\/tI+yD7MvtI+1z7nPuT+6r7t\/uS+6D7aPtn+9H7kPti+6X7bftp+3b7u\/v7+7z7rfu9+yz7D\/sr+\/j6+\/ri+sX6zfql+oT6IvqH+Tj5uPhX+P33gvcQ93z2+\/WX9Qf1UPSl8+zyLPJv8f\/wi\/De74DvOe\/b7qXuiO5b7h3ux+137RLt0ux+7F7sb+xT7FbsjOx57IDsi+xN7Hzsq+yw7Ajtbu2t7QDuWu6X7u7uUO+U7+XvU\/CU8LfwAPFW8YzxufEQ8l\/yuPIk84nzv\/P681n0r\/Qd9Yv13PUz9nb2tPYc91T3YPeU97T3x\/fz9wX4TPh9+Hz48Phi+bX5RvqX+uP6VPt7+877SfyQ\/AT9h\/3j\/Vb+xf4O\/27\/7P9oAOMAGgFIAaIB7wEcAnECwQIrA28DnQP\/Ay4ELASdBOkEMwWPBasF7wU\/BnwGDQd9B+IHYQi6CAMJMwlsCcEJswnvCYAKrAoSC6QLGAzKDEUNrA0yDnUOvw5SD54PBRChEAcROxGhERoSUBJ4EqESaBJ7ErAS0hIkE0YTOhNsE48TqxPqE\/8TCBQcFPUT4BMRFCAU+hPzEx4UPBQeFBEU+xPBE64TphNOE\/YSxhKnEmESCBLzEeMRihFPER8R3BCSEFUQLBDgD4MPXQ8wDwoP2g6yDuIO4w6fDqYOiA4bDuUN0A3CDYgNXg2ODUkNtAyLDFUM7Qt0CzkLMgvYCm4KUQr+CagJgQlMCd8ImghHCNMHXQfyBngGDgaJBewEfwTyA14D6gJhAvgBpQE\/AfsAogAdAND\/jv8t\/6\/+T\/4Y\/rX9Uv0e\/ZT8Jfz0+3n7EPvH+kj66Pl9+Qb5vPg7+Ob3tfc79wr3Dfer9oT2T\/YJ9vP12PV69Wb1WPUu9TL1YvVQ9Sz1LvUF9c\/0vvSU9Jr0n\/Ro9Jj0yfSq9Lf0xvTZ9ML0jvSp9KP0RvQ\/9AP0tPPx8\/XzwfPk8wH0w\/PW89zzfPNh85fzdPNu83\/zZPNl80DzKvM380TzMPMi80rzavMw80XzjvOe89zzJPRy9LT0rfTr9C31DvX29AH1+PQB9ev03vTE9H30dfR19DD0HPQ19Ff0P\/Q49Fr0a\/RI9GX0g\/SF9J707PQ69W71iPWS9c\/17\/XR9QH2XPZb9lv2Z\/Zl9lT2KPY89kr2SfZ29rb2v\/bW9gr3UfdV92\/3nPeF94X3j\/eY96z3fPd998D3zPfn9y\/4SPhb+IP4wvjf+BX5bfmW+Yn5ovn1+Tf6Jfoy+on6hvqA+ur6FPsP+yr7WvuQ+7T79ftR\/Hn8p\/zm\/PD87Pzz\/Ar9Jf1f\/a391\/39\/U\/+o\/7V\/hb\/Iv8s\/4H\/x\/\/a\/xwAnwDfADEBewHWARgCOwJ1AvQCEgNAA8MD\/wM1BJoE2gQMBTIFPwVPBWYFvwW4BaEF6QX+BeQFLgZqBnsGewavBtgGqAbIBgMH3AYPB0sHJwcoBzwHNwcuB2UHmAeJB50H0wd3B3MHiAdhB5IHlgd\/B8MHmwd3B4kHQAdDBykH9gbgBtIGyQaaBlsGjAZ0BikGLgYaBhYGFgbgBfcF7AXiBRgGIAZKBoEGawZwBmUGVQZ2BlAGLwYtBhcGKwYYBioGUgZCBiQGAQbGBbQFfgVGBXwFYAUpBR8FGgXhBKkEkQR1BD0EJwQZBAIE2gO0A7IDqwOGA3UDTgMJA+8CvwJ4Al0CMQICAvIBxgGIAVIB7wCMAD4A8\/\/h\/9L\/tf+m\/4j\/av+e\/4P\/b\/+K\/1b\/R\/+A\/3L\/qv\/O\/67\/w\/\/z\/\/f\/3v\/C\/woAOgAhAEAASgAbABYAEwATAPr\/1P\/i\/8z\/1P\/Y\/8r\/yP\/G\/8n\/wP+K\/2j\/b\/9b\/17\/Qf81\/1j\/L\/8N\/yD\/Bf8E\/9v+e\/5c\/i7+7v3r\/av9YP1M\/Tb95fzG\/LD8cfwu\/Cv8DPzg+8r7r\/vN++f7x\/vV+877w\/vR+6\/7s\/vX+8T7y\/vg+9P7x\/u9+7z7vvup+337H\/v3+hX78fqs+nH6PPoQ+tb5q\/mY+Uv5+fib+Ej4QfgP+ND33PeZ9y\/37\/al9mX2F\/bQ9bL1hfVh9Sn14PTZ9Lj0dfRY9DD0G\/QC9Nnz2fPf89DzqPON83vzM\/Mk8zXzC\/MV8xPz7fIS8wzz7PL28tfy8vL58vHyLPMy8zbzevN085Dz4fMU9HH0s\/T29F71n\/W\/9Rb2a\/ab9u\/2Yvdn95f3IvhJ+In48Pge+YL56flt+vj6LPu9+0D8YfwW\/Yv9wv1z\/tT+Nf+7\/xwAuwBRAawBXQL8AmoD4QNdBPsEeAUSBroGKAepBzMIjQgaCa0J6QlFCtoKSgusCyMMggzbDCgNeg3yDUAOQw6iDgsPTA+FD7gPEBBdEJQQ8BDrEOcQXhFgEWERthHAEcwRCBIKEgMSIRJdEl8SSRJUEjUSVxJgEi8STxI+EgMSLBICEuMRERK9EaIRzhGGEWwRVxEIEQgR7xCpEI0QeRBwEEwQOBA9EP0P2Q\/iD8APrA++D7UPtA\/HD9YPtw+uD7oPpQ\/fD9gPkw\/AD8UPiA\/VD98Pww8LEBgQ0w+tD4UPTw8qDxQP\/A7TDuYOyw6FDokOSA4YDv0NvA1mDRUNzwzdDKsMZAxADAkMpAtPCwILvgpqCgsKrglTCf8IpQhDCMMHXQcNB64GZgb5BWEFGgWpBO8DuQNmA64CMQLZAW0B8QBfAPT\/i\/\/X\/lP+Av6G\/fH8cPwR\/M77avu5+lH6EvqV+Sr59\/jC+HT4LPgV+Pr30Pfg96D3Pvc59xj33\/b39uj21vb99gr3+\/bv9gr3GPcY9xf3Nvdg94H3f\/fa9yX4Jfhe+If4kPi0+LT4oPjV+Pb48PgB+SP5Ofk7+U75PPks+Tf5Evn0+B35Kfkb+fL42fjj+AL5DvkO+ff4E\/kr+RD59vgF+fL41Pjd+NL4qPiM+I74Xfgs+BP48\/fw9873nvec96b3fvdd90n3TPcu9wr3DfcI99D2zPa\/9q32kPZZ9lT2YvZM9jj2SfZJ9ln2d\/au9rj2w\/bq9gP3Dfcw9033gves98n3C\/g7+Gz4kfh\/+Kf4xfjX+A\/5CPkO+Xj5jfmN+aP5tvmp+af5qPnH+bD5rvnO+d353Pn9+fL56vkh+jz6SfqG+rT61\/o0+3X7sfv3+zz8Uvxh\/LH8Cf1N\/Zj9vf3z\/Sr+Vv6W\/r3+1\/7i\/tL+\/v4g\/+3+9v7g\/qz+w\/6n\/pH+nP5W\/lf+iP5R\/kX+L\/4S\/hH+BP76\/e79w\/3E\/Y39W\/1\/\/Vr9O\/1p\/Tv9JP0d\/dv81\/zr\/ML8pfyi\/Ir8afxR\/EP8Ifw0\/Dv8EPwg\/CL8HvwQ\/Bv8OPwg\/AL8UPx3\/HL8zfwL\/ST9Rv14\/bP9zv0V\/mD+nf7s\/g7\/Jf9c\/1T\/a\/+v\/6H\/7f8ZAAAAJwBDAEQAcQCNALsA7QALAU0BcwF9AcIB2QHCAeoBJgJtAngCnQK7AtACBQM0AzsDaQOTA4EDtwPqA\/EDFwQdBDQEdwSVBKgEzwTmBP0EBwX5BBgFHQUrBVoFdQWIBawFpgW6Be8F1QXABfUFEQYUBj0GcgZ3Bp0GsgaHBpcGxQa8BpkGjAahBq4Gqwa4BrQGqgaUBl0GUQZpBicGBAb4BbYFigV4BT0F8ASeBHMEUgQMBNsDvgOMA2cDHAPhAtYCjgJHAjIC2AGEAZMBcwE9ATgBAAG+AK0AjABiAD0ADADM\/6\/\/eP9P\/zP\/KP8W\/\/\/+4P7d\/t\/+pP6J\/mv+Gv7+\/dX9mv2D\/Wr9VP1O\/S79Df3r\/Mn8tvyW\/Hz8fPxN\/Ev8RPwh\/B38C\/zi+7L7j\/ty+y37A\/v1+sn6vvrU+sT6oPqS+n\/6ifp\/+lX6Sfph+kX6J\/oJ+tn59vkC+u\/5C\/r++fT5CPrr+QX6Kfo2+kL6V\/pa+oL6nfqq+tf6\/Poc+y37Oftd+3n7hPuX+577qfvb++b7CPxB\/FH8VfzE\/PH82fwD\/TT9PP2I\/cr9zv3c\/Sf+av6F\/r3+7P4d\/17\/b\/+V\/9v\/8v9MAJ8AigC5AAQB9wADAUMBcQGWAaUB0QEaAhwCDAJUAnACaQJ9Ao8CpALWAtwC4gIAAwQD9QL\/Ag0DIgMhA0MDaANOAyQDOwM4Ay4DKwMkAxwDSAM9AyYDMAM2AzEDPgMZAwID\/ALjAr4CmQJ5AnECaQJXAlUCSwJKAmQCdAJ8AnICXAJgAoACgwJsAo0CowLFAgoDIwMkA2YDhAN+A5sDygP3AyIELQRABFsETARFBFUEYQRrBHcEgwSoBM4EtQTNBAQFAgUEBSIFUgVKBTEFRQVNBUoFTwVeBV0FPAUsBU8FMAXcBNgEwgSwBMUEsgSNBHIEVgQmBAcECgQPBMgDxAMNBPcDywPpA\/8D9gP2Aw0EDAQjBF0EYQRXBHoEdARrBFwEXgR6BG0EWARZBE4ERwQ6BCsEMQQcBBkEIgTpA8MDvAOPA5gDmgOAA4MDegNfAzwDGQMJA\/EC0AKPAlACMgIbAvwBAQK6AWQBVAEwAfUAvgCQAHYAYAArABUA9\/+3\/6T\/lf+I\/2D\/Hv8X\/w3\/sf6M\/nr+V\/5K\/jr+8f3z\/fD9zv3b\/b79kf1h\/Tv9Nv0O\/dP8t\/yW\/Hr8dvxH\/Dz8HPwI\/BL8\/vvd+\/L72vvT+9H7n\/uW+7n7mvuO+3H7U\/tc+1r7Rvtx+2b7SftK+1f7WftO+yD7Gvvy+un6CvsA+8z6yfrO+r36v\/rc+rj6p\/qn+pX6g\/qL+mv6bfqX+pr6u\/rn+u\/6Afse+0X7W\/tu+377sfvs+\/j7Cfw\/\/FT8Xvxt\/IP8n\/yo\/Mj8FP0L\/Rb9c\/2A\/YL9vf3h\/RL+K\/5Z\/qf+qf6p\/vr+JP8u\/2z\/i\/+K\/6T\/u\/\/L\/9X\/5P8DADkAMQAgAGcAdgCPAM4AuwCvAMkAwwDPANIA2QDlAOwA8AAFATMBPgE7AUUBTgFAAW0BbQFTAWcBZwFCAVEBUQFaAWgBZAFPAVQBOQFTAXoBYAFWAXMBaQFiAXkBmwGmAX8BiQGnAXABiQGmAYUBmwG0AakBxAHVAecBGAISAiECOwJxApoCjAKXAq8CqQLjAvwC4QL4AhcD\/wLlAukCEwMjAzADKgMpAyQDIAMzA1ADSwM8A1oDYQNjA2oDhAN8A3EDkQOCA2wDjgOWA34DmgOpA6cDrQO2A88DtAOQA5ADiQOPA5YDfwM7A0UDQAMoAwwD6AKrAo8CaQJHAjwCGQL1AdIB0wHvAcYBwAHWAcABwAGzAZgBqQG3AaoBpgGIAZcBdgF1AZkBdAE7AVUBYwFuAYIBegGLAYwBigHDAcABrQGyAcMBuAGeAZsBpwG5Ab0BsAGZAa0BqAGHAX4BkAFwAU8BdgFvAWwBegFzAX0BkQGBAZgBmQF8AY0BlAGVAbQB1AHiAeEB4wH9ASwCPQJDAmACigKLAo0ChQJ3Ap0CpwKkArYClwKNAo4CkAKaAoECbAKKAoQCbgKGApwCwwKqAo4CsgKeAoQCnAKLAoYCpgKaAogChAKAAo8CcAJTAk0CLQINAvUB3wHBAbcBoQFuAToBFgHvAMQAowBwAG0AWgAsABYA6v+x\/5n\/eP9k\/0P\/Ev\/p\/sn+pv6C\/k\/+I\/78\/d79v\/2Z\/WD9Kv0H\/d78pPyP\/E38\/\/vy+7\/7jPuH+1n7Lfsd++\/62vqU+k76RPo2+iP6DvoM+gz6+\/n9+Qf69fkH+hz6CfoH+h\/6KPox+ln6fvp++or6pPqZ+pz6zvrG+qX6wPrd+qH6bvpz+mj6PvoX+gz6DPr3+QL6Jfr1+eb59\/nG+bv5z\/mK+YT5dvk9+TH5S\/k\/+Q35APkG+ej42fjF+KL4yfjT+Lr4vPii+Jv4qviB+Hz4mviF+GH4QPhL+GH4Pvgu+Cf4EPgf+Eb4MPgp+DL4JPgf+BT4IPhQ+D\/4N\/ha+Gv4X\/hY+Er4bfih+KT4sPiu+LP4xPjM+BH5Lfkc+VD5d\/lx+a\/50Pnl+Sf6Mfo2+ov6nfqv+tD69\/ou+0L7e\/us+7375vsg\/Dv8bPyV\/Kv85\/wu\/Vr9fv2h\/db9+\/1D\/n7+n\/67\/uH++v4V\/yH\/LP9L\/1L\/bf+L\/5T\/p\/\/N\/8L\/3v\/9\/9D\/w\/\/U\/8v\/1v8AAAIAHAArACUATQBzAG8AggCMAKwA0wDoABsBTwFgAaUB4AHcAfgBJQIwAkYCdwKTAp0C4wIeAzIDQQNmA5oDxAPsAxUETAR4BJ0EuQTSBO0E\/QQlBVwFcQWHBasFuQXmBSEGQQZABk4GSwZhBosGlAaOBpgGngaDBnEGbAaGBnoGXgZJBmsGYAZMBlYGUAY7BiYGIwZCBiUGBQYLBgkG9gX1BdYF0wXbBcMFowWZBYUFiQWKBaEFrgWUBX8FlQWCBVUFVwVoBVYFSQVJBToFOgVDBSIFBAXpBLIEmQRyBDgEJwQtBAcE0QOyA6wDrAN3A0YDMgMLA\/YCBQP8AukCzQKqAsMClQJsAmwCVAIzAkMCTAJQAjUCEgIuAhMC\/wH1Ac0ByAHaAcYBwAGfAXcBggFmAVoBUAEGAeIA3gCJAJMAfAAzAFAATQAAAPn\/9v+5\/8v\/yv+N\/5b\/ef9g\/3P\/Vf9C\/z7\/Jf8o\/0T\/NP9B\/zX\/M\/8w\/x3\/Gv8r\/yb\/FP8I\/\/v++\/7k\/sr+6f70\/uX+4f7T\/uH++P7l\/un+Bv8F\/\/j+7f73\/v\/+8v70\/uf+3v4C\/xX\/Ef8X\/zT\/PP8s\/0L\/Xf9H\/1L\/af9J\/23\/lv+I\/57\/rf+d\/63\/0P\/b\/8z\/3P\/5\/\/n\/HAAuABsAXAB+AGgAiwCdAKYA2gDkAO8AAAETASoBRAFJAVQBfwGYAYMBnQHXAdYB4gHpAesBBAIGAv8BIgI1AkYCVAJlAp8ChwJqApUCkwKaArgClAKOArICpQKQArECtQKpArACtgKyArcCxwLLAswC7gL9AusC1AK+AscC2wK+AsEC2ALJAsACwwLWAgoDHAMaA\/8C5gIOAzEDHwMZAy4DKAMzAzADIgNIA18DXwNsA5sDsAOgA6oDwAOzA64D4wMRBBoEGQQaBCsEZQReBFMEeASSBJMEsgSaBIkEhASNBKAEsgSkBLEEwwT0BA0F+gQJBRMF9wQHBRsFCQURBR8FGwUiBR4FFwUKBQMFFgX3BL0EywTSBKsEtgTVBKsEigSFBFMEGAQBBNwDlwNoA1IDQQMJA9cCrQKJAnICTQIMAvAB3QG6AbEBhQFaAYIBVwEPAS4BQwEfARcB7AACASMB4gDZAOAAlQChAMkApACsAJMAgACPAG8AYwB9AFUARgAzABAAFQD2\/+D\/8P\/V\/7T\/lP93\/27\/T\/8o\/xX\/GP\/4\/tH+5\/7K\/oj+lf6A\/l3+aP45\/hr+If4P\/v395\/3Q\/dD9w\/2\/\/an9iP2b\/ZL9Tv1I\/Uz9Ov1B\/TH9DP38\/AL96PzU\/L38q\/yz\/Kr8f\/x6\/G78Wfwq\/BH8IPwJ\/Nf7yvvZ+8f7vvun+4T7bft++4P7cftJ+1b7XftG+zr7KfsW+yv7DPvM+t76vfqf+qT6ePpV+mX6RPou+hv6Efow+jH6Ivoe+gz6Fvr++bf5tfma+XH5ifmG+Wv5UvlC+S35Bvn3+OT4yvi9+Lb4pfiW+H74d\/he+DL4E\/gV+Bv4Jvgn+Bn4GPgH+MP3pfew9633tveq94D3ifeM93L3a\/dr91z3Svc592P3hfeH93P3j\/ee95D3tvfi9+T34\/fh9wL4EPgA+AL4J\/g4+E34Tfhk+Hz4aPhx+I\/4u\/jG+Lv43vjr+Mr47fjy+O34A\/np+Af5QvlR+Vf5Wvl2+Z35kPnC+dX51vkg+jb6I\/pR+nD6kfqj+qv62vrn+vT6J\/tN+1n7cPui+7L7qvvx+x\/8P\/yK\/K\/8wfwI\/SX9Rf1r\/XP9ov3b\/QH+J\/5I\/mv+o\/7M\/gv\/PP9a\/4T\/tf\/M\/\/j\/QgBpAIIArADCAPAAHwFKAXgBfgGJAcwB+AEPAjICXQKjAsoCtALFAgUDGgMjA1QDbAN5A4cDlAPNA\/4DBwQ9BFEEXQSPBK0EtgTdBPwEEgUTBScFTwVgBWsFkAVmBV8FeQV1BWMFjwWHBYYFkQVyBVQFfwVzBXYFgQVyBYwFjAVvBYgFqwWhBaQFmAWMBYkFhwWZBaoFngWUBZEFjAWOBaMFxAWwBbUFqQWABYYFpwWsBbQFogWFBYIFcQV0BW0FXwVBBUAFUAU3BTMFPwVBBUIFRAUpBRwFHQUHBRkFJwUZBSkFJAXyBPcE9wTlBPsE+QTBBOQE+QT9BPwE8wTsBOoE6ATRBMYEwAS3BKsEsASpBJEEhASfBK0EmgSABGwEcARXBFgETwRNBCkEJAQWBPwD\/APgA7sDtgOLA2UDTQMqAx8DAAPTAtIC0wKqAoMCYwJZAlwCOQICAu8B1gGyAYgBhwF4AXIBSwEmAfsA+wD\/ANoAxAC8AJcAlACSAGwAfQCEAGMAbgB4AFMAVgBjAGIASgBRAE0AQABJAEwAQAA1AEgARgAuACsAJgAnAE8AUAA2AFsAWABpAJgAewBdAHYAagByAGQAagB9AHIAcQB7AHEAdABrAGUAYgBOAFUAWwB0AHoAYgBkAHYAZABkAFIARwBNADcAMgAbABcAKQAjACwANAAuACsAJgAkADsAJQAYACcAFAAiADkAOwBIAEAAIgAtADsAJQArAFEAQgAzAGEAawBqAHMAcgBTAEgATwA1ADwAQgArACYAGQDp\/\/7\/+\/\/O\/9P\/wf\/D\/9P\/1P\/o\/+f\/1\/\/P\/9H\/4\/\/i\/83\/7P\/d\/9H\/8P\/4\/wkA9\/\/X\/w4AGAARADYAMAAWADkAVABhAGQAkwCjAKgAqgCnAKEAvAC8ALgArwDGANgAvACvAMkA4QDnALcAtwC6AKwAwACYAHwAlwCAAGwAgwBkAGkAeQBkAFkASQBOAEIAIAA8AFMALwAXAA4ABwDo\/9T\/vf+d\/5\/\/pv+b\/5H\/eP93\/2r\/OP9S\/2D\/HP\/3\/gn\/Af\/l\/sD+t\/6i\/oT+cf5l\/nH+Uf46\/kX+OP4b\/ib+L\/4d\/v798f3+\/Qv+H\/4X\/hT+FP76\/Qn+Lv4h\/jD+WP5D\/jP+R\/5L\/jz+SP5N\/lL+W\/5Z\/kr+ZP4r\/iL+ZP5k\/nD+cf5O\/mX+cv5m\/nP+jP6c\/pT+jP6Z\/p\/+uP6\/\/rP+1\/7b\/s3+5v7x\/s7+1f7K\/tz+3\/7N\/tf+3v7f\/tD+yP7J\/s7+9\/7x\/sT+0v7u\/uv+4v69\/rz+1P6h\/nb+f\/6M\/oj+b\/5E\/kP+Zv5t\/mn+bv56\/mn+Uv5h\/lP+TP5P\/nf+c\/5o\/mb+V\/5L\/in+Jf4z\/j7+Sv44\/kX+Y\/5K\/jj+Yv5S\/lH+aP5L\/mT+cv5t\/ov+cf5x\/pP+gv5o\/lL+Pf5d\/mv+X\/6C\/p7+jP6R\/ov+h\/6H\/o7+o\/6h\/qf+sP6o\/rP+0P7q\/vj+7v7f\/u7+Ef8I\/xb\/KP8a\/yP\/Mv80\/yH\/HP8x\/zv\/PP9M\/0\/\/M\/8h\/yf\/Nv8u\/y7\/D\/\/q\/gD\/D\/\/h\/uP+4P7e\/vT+3P6z\/sX+x\/66\/rL+rf6c\/pL+of6z\/pj+of6O\/mz+jP6Q\/nv+hv5w\/mf+Y\/48\/kT+RP4o\/kL+MP4x\/kj+Nv4U\/vr9+\/0j\/vj94f0c\/gb++v0l\/hf+Bv4T\/g\/+G\/4R\/jL+M\/4I\/gz+Ev7d\/Rb+Ov4T\/i\/+P\/5G\/k3+Pf4k\/if+SP5X\/jn+Tv5Q\/ln+c\/5i\/kz+kv6J\/or+oP6d\/qP+wf7b\/u7+zf7e\/vr+5f7o\/vn+8P73\/vb++\/5F\/0b\/RP88\/03\/V\/9n\/27\/hv99\/3r\/nf+q\/8L\/5v\/V\/9v\/\/v\/y\/\/3\/AADm\/\/n\/CwDi\/\/L\/MgAvABMAHQA6ADgATQBXAEgAYABoAGYAlQCXAIkAnQCwAO4A8wDsABgBKAELARMBHAEzAWEBUQFPAW0BcQGAAbUBugG+Ad0B1gHgARUCKwI+Al0CWwJmAoUCigKBAoYCkgKaApwChQKTArACwAK0AsYC0ALhAvwC\/wIIAxgDCQP8AgwDBgMRAyoDIgMkAywDLQMoAyQDJQMqAx0DKgM+AzYDLQMtA0gDWgNPAzkDWANXA0QDdQOMA1sDZANYAzQDUwNhAzIDHgMrAxwDEgMyA0IDMwNCAzsDEwMaAxoD+wL+AuoCzwLpAucC7gL9AuYC0gK9Ar0CsAKEAo0CoAKCAnkCbwJjAnMCVwJNAlMCRAJJAkgCOAIxAiUCGgIZAg0CDwLuAeQB6wHOAa0BngGbAa0BnQGcAYwBawGCAW8BVgFsAWIBSwFTASQBAgEFAS4BEgEFAQoBAAHrAPoA1AC0AMYAsACyAK0AdwBvAGQAZgBXADwAOwAxABUAMQAvABMAEwAgAAsA7\/\/z\/+v\/3P\/Q\/83\/3v\/Z\/7n\/xf\/Q\/77\/rf+o\/43\/dP9n\/3b\/bf9S\/1n\/bv9K\/yr\/Rf9A\/0H\/R\/8j\/wz\/LP8q\/y3\/Kf8i\/zn\/Jv8W\/yn\/JP83\/zj\/DP8Y\/yX\/Gv8M\/xH\/DP\/6\/hz\/PP8s\/y\/\/Qv9M\/3H\/ev9k\/zj\/Kf9D\/0T\/J\/8t\/0T\/V\/9b\/2f\/hP9q\/3j\/nv+A\/3T\/jv+R\/7H\/tv+2\/8z\/pP+y\/9r\/1f\/B\/8P\/yv\/N\/87\/y\/\/D\/8v\/yf\/S\/9\/\/4f\/j\/+7\/+\/8gABgAFgAqABkAHQAwABIAGAANAAoANwAlABYAPgAeAAoAIAAHAAUAHQAyAC8ACgASACMALQBJAEsANQAlACIAFQALAAEA6\/\/Q\/97\/8P\/h\/+L\/3f\/S\/8v\/rv+i\/67\/sP\/A\/7n\/k\/90\/3r\/j\/+1\/83\/vf+n\/7b\/vP+4\/5v\/rv+s\/6X\/pf+l\/6H\/vv+x\/5z\/kf+Z\/4\/\/hP+J\/4j\/a\/97\/3L\/c\/+X\/5v\/d\/9r\/17\/f\/9x\/2D\/Z\/9f\/1L\/VP9H\/07\/UP9B\/0T\/UP9R\/1f\/Wf9Q\/yH\/Mf9O\/zv\/U\/90\/07\/Wf9q\/0b\/Tf9i\/0f\/Sv9Z\/y7\/PP9u\/2H\/Vf9l\/2L\/Xv9r\/5L\/lv9+\/5n\/o\/+h\/6H\/hP9p\/2\/\/YP9Y\/1n\/XP9c\/13\/Y\/90\/17\/S\/88\/1j\/W\/9S\/13\/dP9p\/3j\/cf9i\/2L\/kf+X\/3r\/ef+a\/4\/\/hP+A\/6r\/p\/+T\/7P\/tP+g\/6n\/mv\/K\/9r\/nP+i\/6j\/nP+w\/6f\/lv+3\/6b\/sf+x\/5z\/uf+4\/7P\/nv+d\/83\/wP+r\/9j\/1v+z\/6\/\/wf\/A\/8r\/0f\/R\/77\/tP+\/\/9D\/4v\/k\/8\/\/wP\/D\/73\/1\/\/b\/9z\/3\/\/k\/\/z\/AgDy\/\/P\/7f\/O\/+3\/4f\/H\/\/n\/3P+c\/7r\/r\/+6\/7T\/mP+m\/7j\/r\/+g\/5n\/rv+d\/5P\/rP9+\/4T\/lv+T\/6H\/n\/9m\/2r\/Zf9r\/1r\/R\/9S\/zz\/Lv8w\/\/X++v4J\/+b+Ev8J\/97+4f7N\/sj+0P60\/qH+rv68\/r7+sv6b\/pj+mf6e\/ob+f\/6I\/of+eP59\/of+bf5G\/mz+X\/5N\/mH+Zf5F\/jb+Mv4u\/jf+OP41\/jn+H\/4g\/i7+Lf44\/lL+Sv5O\/kf+I\/4y\/kj+T\/46\/hr+G\/4a\/gz+Gf4b\/hb+JP4W\/uj9C\/4q\/hT+\/\/0b\/hL+\/f0B\/uP95P0H\/vj95\/3t\/QP++v3Y\/dL94f3O\/eP9GP4J\/uD95\/0F\/uz90P35\/Q7+EP4t\/iT+H\/4m\/jH+KP4s\/i\/+SP5S\/lD+X\/5w\/nT+pP6T\/qH+0\/6\/\/sr+2f7I\/gf\/F\/\/6\/ib\/K\/8g\/13\/Y\/9h\/43\/lv+w\/+H\/7f\/g\/+7\/JQA2ACYAMQBBAGgAeQB7AJsArQCsALUAyADmANUA0QAJAQsBBgE0ATYBQAFgAX4BewFqAYsBoQGgAbsB0wHRAdsB5wHsAeUB9QEOAg8CLgIkAgsCLQI1AiECNwI7AkUCVQJgAnECewJ5ApECkwKLApYCowKtArMC0QK5AqkC2gLpAuMC9QLmAu0CFAMpAyQDJgMeAwkDBwMfAyEDHwMpAxAD+wI0A0cDHQMkAyQDCQMjAygDBgMeAz4DSQNKAzEDMAMmAxQDMgNBAzADJwMdAzwDNAMRAxYDCgPnAukC4gL5Av0C3wLLAr8CtQLAArECtwLJAqUCfAJ9Am0CYAJwAlkCSQJLAj0CSAI8AjICIAILAg0CAALgAfEB2QHBAbABnAGSAX8BXwFsAUcBHQE0ASQBGgEbAfAA3ADUANIA1gC2AK8AvwClAIgAhQB\/AHUAbABmAEUAEQAiACoADgABAM3\/s\/\/I\/7n\/sf+9\/5n\/if98\/2f\/aP9m\/1T\/Rv89\/0T\/Nv8l\/zD\/NP8i\/w\/\/A\/\/+\/ur+3\/7n\/vP+8v7t\/ub+0v7E\/tb+y\/7C\/tP+2P6s\/pr+s\/6l\/o7+nv6s\/q7+ov6J\/of+eP59\/o\/+k\/6A\/mP+aP6K\/m\/+W\/5d\/mL+aP6B\/mf+bv50\/l\/+Wf5w\/nL+Yf5F\/mD+g\/52\/nH+f\/58\/nb+gP6A\/n3+Z\/5w\/oD+kf6M\/of+h\/6J\/pb+r\/69\/pb+hP6S\/rH+vf7B\/sb+tv6z\/tL+rv6e\/sT+yP7A\/sr+3\/7m\/tn+3v7t\/sv+2P78\/vH+6v72\/vn+8v7v\/vD++f4k\/y7\/Fv81\/zD\/H\/9U\/2H\/Vf9a\/1j\/bv9b\/0H\/W\/9w\/27\/dv9p\/3P\/fP+E\/5H\/pv+s\/7v\/sv+1\/9b\/5P\/Z\/+n\/AwADAPz\/EgAOAP3\/HQA0ACsAGgArAC8AGwAiACcAGQAjACQANwBNAEcANwAwADMAPABWAFUALgAkADgAHwAQACIARAA8ADYAPAA0ACcAQAArACYASgAsADEAQQAmAEcATAA0AF0APAA+AHoAZgAsAFAAVwBbAEUAMAAyACQAHwAuADQAKQAgABEAGgAnACwAQQBJAEUAPABeAFgALAA5AFkASAA3ACkAEwANAAIACgAWAAoACQAPAA8AFAAcABoACQD3\/+X\/6\/\/r\/+v\/\/f\/u\/9\/\/2\/\/J\/8b\/3v\/K\/8f\/1f\/m\/+v\/8P\/5\/97\/vv\/Y\/9\/\/wP\/j\/\/j\/9f\/p\/9X\/0f\/v\/\/D\/9v8CAAwABwAAACUAHAAGAAgAGQAPABUACwAAABIAHAAtACcAKwBAAEcAWgBYAGcAeABzAFQARABfAGgARwA0AFcAPgBfAGkAXQBvAHkAbQB9AGsAaAB4AGQAYABjAE8AVACCAI8AawB4AIUAgACWALIAawBeAIcAgACHAJUAiACMAJoAmQCoAKcAuAC7AKYAqwClAJ0AqACvAJcAeQB0AIkAbQBcAGUAZABtAG0AewCdAHYAZwCfAHwAawCZAJ0AfwCUAIsAcQB0AG0AXAA+ADcAVwBpAFcAUwBaAE0ALQA0ADMARAA6AEAANgAdACMANQAPABgALwAZAAwAFAAFAAQADQAHAPv\/BwAJAPj\/7v\/h\/9r\/4f\/F\/7j\/yf\/h\/9P\/0\/\/X\/8H\/m\/+q\/8z\/pf+m\/7z\/of+j\/7f\/pf+f\/5P\/jf+S\/5\/\/m\/+O\/4v\/nf+R\/4L\/iP95\/4n\/l\/+X\/4j\/jf+T\/4j\/j\/+b\/5v\/fv9x\/3z\/hv99\/3f\/dv90\/43\/iP98\/5X\/iv97\/4z\/k\/+M\/5b\/iP+S\/5D\/gv+M\/4\/\/dP+L\/57\/jv+L\/5n\/gv+N\/5X\/of+R\/5b\/q\/+z\/8r\/v\/+q\/7L\/uP\/L\/9z\/2f\/f\/9r\/zf\/f\/9X\/wf\/S\/9P\/4\/\/+\/\/v\/8v8DAPn\/+P8QACIAPwAkABUAGwAwACkAHwAVABoAIwAfADIASAAhACQARQAvABAAJQA4ACoAKAA\/AEkAQwBLAFgAVgBvAIUAcgBgAGQAZQB6AJ8AqwCWAI4AjgCPAJ4ApACgAJgAoQCdAIsAjgCIAJQAjgCAAHwAkQB9AH8AiABkAH4AmAB+AH8AigCQAJEAagBXAHQAdgBrAFgATgByAG4AbQBjAFEAUwBnAGMAYABUAFIARgBQAF4ATAA2ADsARAAzAEAAMwBLAEoAOgBBAEoANAAuAEEATQA0ADcAKQAgADYALAAnABsAGAATAAsACgAHAO\/\/6v\/+\/+X\/5v\/n\/+D\/zv\/Q\/9H\/wP+h\/7H\/sP+W\/5f\/jv+k\/6v\/mf+z\/6f\/nP+9\/5P\/jf+w\/5r\/hf+V\/4X\/f\/9t\/2r\/Zv9M\/1T\/WP8\/\/0H\/NP8p\/y7\/Hf8k\/y7\/Iv82\/zD\/KP8a\/w\/\/LP8m\/wv\/Bf\/7\/vD++f7p\/vD+5f7h\/u\/+6\/7z\/ub+3v72\/u3+6P7q\/tP+3P7b\/rD+w\/7W\/t7+8v7M\/sv+zv7a\/vX+5P7H\/tz+4f7k\/t7+2v7q\/un+7\/77\/u3+7\/7i\/tr+AP\/3\/uX+6v7f\/vD++P72\/hT\/Af\/i\/tr+7v4F\/wT\/Af8H\/+\/+H\/8t\/\/z+EP8K\/wP\/Mv80\/xn\/J\/8b\/xT\/DP8L\/x3\/Jf8U\/xf\/I\/8x\/zL\/JP8l\/yv\/I\/8e\/yX\/Kv8Y\/y3\/P\/8v\/zD\/SP84\/z\/\/Y\/9S\/1b\/dP93\/4v\/p\/+g\/6j\/rf+p\/53\/qP+9\/8P\/of+m\/6f\/jP+i\/6\/\/vf+t\/7z\/xP\/C\/8X\/6v\/y\/\/X\/8P\/v\/+7\/6f\/8\/\/X\/8f8RABsAAgAPABAADAAkACUAKQA3AEgAWABSAEYAXQBQADQAUwBmAHEAXQA7AEsAeQB6AGQAXABeAHQAfQB4AH4AeACZAIUAfgCOAJYAlwCVAJIAuACzAJgAugDEAMsA0wDCALQAxAC4AK4AtwC1AKkAlwCfAJ0AqACrAIcAlADFALQAowCnAKcAvQDAALYAxAC9AKIApQCwAMYAxgCpAJcAlwClAKAAowC2AMEAsgCyAMQAsQCyAMMAuwCkALoAtQCgAJ8AlQCOAK8AsACoAKoAnACVAKsAuAC4AKYAsgCyALEAtgC9AL0AqQCyALQAtQCmALYAvAC6AKYArgCqAJgArQCdAKYAxQC+ALAAtwCpALcAtwCoAMsAuwCoAK0AlwCZAK8AtQDHALgApgCfAJAAlACrAKQAqgClAJoAqQCeAIoAmwCoAJcAjgCkAK0AqACcAJQAowCtALQAqAClAKQAogCLAJ4AnAClALcAogClAK0AsAC2AK8ApACsAKkApgDFANMAuQCzAMMA0wDCAL0AygDPANUA1ADBAKwAsQC5AKsAsQDQANEAwgC2ALsA0ADPALwAwwC5AMAA3wDFAMkA2QDEALoAyQC+ALsAvACqAJgAoQCgAKgAtgDGAMYAqwCqALMAqgCWAJMApQCvAJ8AqwCrAKUAuACkAIQAoQCUAIsAhQB1AHMAfwByAIQAiAB4AG4AWgBZAGsAZgBZAFkAWgBKAEoATABHAEUASwA7ADUAOQA1AFEAPgAqACUACwANAC0AJwANAAIA\/P8XAA8A\/f8IAA0ABQD9\/\/H\/7\/\/2\/wAA9v\/0\/+n\/4P\/s\/\/H\/7f\/V\/97\/4v\/K\/77\/yP\/O\/7r\/xP+l\/6b\/uv+p\/6j\/lv+V\/5f\/mP+T\/5D\/o\/+J\/4v\/jv9\/\/33\/e\/9x\/5P\/nf91\/3n\/iv+T\/5D\/lv+X\/5b\/hv+e\/5j\/jP+L\/5f\/iv+h\/5T\/lv9y\/4b\/of+i\/5b\/i\/9+\/5\/\/ov+R\/5b\/i\/+M\/6n\/ov+U\/5P\/oP+j\/6f\/pf+h\/6T\/lv+D\/5b\/lP+G\/4f\/l\/+g\/6\/\/m\/+b\/6n\/m\/+e\/6n\/r\/+y\/5z\/q\/+\/\/7L\/u\/+w\/7n\/x\/\/H\/9L\/2\/\/b\/9P\/y\/\/c\/9X\/3f\/0\/+X\/0\/\/e\/93\/zv\/c\/\/D\/8v\/g\/+n\/9f\/q\/+3\/+\/\/t\/+f\/+\/8HAAQA7f\/\/\/wsAAgD0\/wcAEQD5\/+r\/BAAQAAIADgAxABkA\/\/8QAAwABQAhAB4ADwARAAsAHAAaABMAEAAVABIAFwAWACcAMAAsADUAKAAuADIAGAAaABEAGAAaABMAIQAeAAgAGgAZAB8AKAAeABAAFwAdABYAEwAZAC0AGQANAAUAEwAOAAkADADx\/+v\/9v\/k\/9b\/\/f\/n\/+X\/6f\/r\/+f\/7\/\/v\/+j\/4\/\/g\/93\/4v\/k\/93\/6\/\/m\/+P\/8v\/e\/9f\/zv\/g\/\/D\/2\/\/S\/+n\/1\/\/N\/+P\/1v\/b\/9r\/vv\/I\/8D\/xP\/U\/8r\/vf\/D\/8X\/vf+6\/7\/\/r\/+h\/7P\/uf+7\/6P\/pf+o\/6f\/qf+m\/5v\/l\/+P\/4b\/ef+E\/3r\/ev93\/4H\/gv+E\/3X\/Yf95\/2\/\/Zf9v\/3j\/Zf9r\/2P\/Z\/9s\/2r\/W\/9V\/2H\/Wf9B\/z7\/Qv8+\/1T\/V\/8\/\/z3\/QP87\/0X\/Tf9N\/0r\/SP9J\/0f\/PP9B\/0r\/Qf8+\/0D\/RP86\/zz\/PP86\/0D\/Nv9A\/0\/\/RP8y\/zn\/Wv9L\/0D\/N\/9S\/07\/S\/9G\/1j\/Wf9G\/0X\/Qf9C\/0j\/Of9A\/13\/Sf9F\/1P\/U\/9V\/03\/R\/9S\/1P\/Vf9h\/1L\/cP92\/2L\/Zv9n\/2f\/d\/98\/33\/gP+E\/37\/bf90\/3X\/ff+O\/4P\/hP+S\/4X\/i\/+F\/4D\/hP+O\/5T\/nv+j\/6r\/o\/+c\/6L\/pv+u\/63\/rf\/F\/7z\/tv\/C\/8n\/xP\/P\/8r\/wf++\/7j\/u\/\/O\/9T\/4\/\/Z\/9P\/7P\/v\/+P\/4v\/z\/\/z\/9P\/r\/\/\/\/BQAFAAMAAQAXABwADwAaACQAFAAaABUAIAArACEAGgASACkAMQAmABwAKAAgAB4ANAArACgAMAAuAB4AKAAzADEAMQA4ADsASwBGAC0AMwA4ADsAPAAuADUALwA2ADUALgA1AC4AMQA\/ADQAOABXAEcAPQBMAEYAPgBNAEkASwBOAEsAVQBVAFoAYABNAEoAUQBJAEcAUwBdAE0ARABZAE0APwBUAGMAXQBlAGIAUQBUAFMAYQBWAEcATwBbAEwAVABKAE8ASwBFAFkASwBEAEwARABBAFcAVgBRAFwAUwA+AEMAVQA+ADcAQwA8ADcASQBDAEQATgBMAFMATgBEAEoAUQBKAE0AWABPAFMAVwBaAFkATgBaAHIAXQBOAFYATQBLAEYAPwBQAEwASwBOAEIANgBKAEEARwBIAD0APgBNAE4ARgBKAD8APgBIAEIAOQBBAD4AUABOAEgARQBVAEsASgA8AFEATwBGAFYAUwBAAEQAPwA9AFQASgBOAEYAMgA7AEIASABEAEMAQgBEAEwASgBSAFAAXQBOAEYAQgBOAFMATABGAFcAUgA+AEEAQwBJAE0ASQBJAEsASQBBAEQAQAA2ADQAQwBLAEcAVgA\/AD8ATgBEAEIASQBBADwAQgA4ADgAQQAxADcAQwBBADoAQwBCADUAQQBFAD4ALwA3AEgAPwA4ADIAMgBAAEkAOgA2ADcAPAA2ADMAOgA7ADoAOgA8AD0AMAAmABkAKQAoACMAIgAnABsAFAAjAB8AHAAcACEAGQAXACIAFQAVABoAGgAVABkAGAAuABcAGQAjABsAHAAlAB4ACQANAA8AGQATABsAEQADAAoADwACAA8ABQAGAA0A+f8CABAABAAHAAkAAQAOABMACQAHAP7\/\/P8HABMACwD5\/wcACwAFAO7\/9v8GAPj\/9\/\/7\/\/r\/8\/\/t\/\/D\/\/P\/v\/+n\/9\/\/t\/+j\/6f\/y\/\/L\/8v\/v\/\/f\/9\/\/c\/\/L\/+v\/y\/\/X\/8\/\/n\/+3\/9\/\/2\/+n\/5f\/o\/\/3\/9P\/5\/\/X\/6v\/o\/+z\/8f\/+\/\/\/\/\/f\/0\/\/f\/8P\/z\/\/X\/6P\/z\/\/z\/7f\/0\/\/v\/8\/\/9\/\/r\/5\/\/t\/\/X\/+\/\/v\/\/r\/\/v\/7\/\/b\/8f\/5\/\/b\/9v8AAP\/\/5P\/t\/\/n\/+\/8AAPr\/+f\/3\/\/\/\/+\/\/6\/\/v\/\/f8EAP3\/9v\/t\/\/P\/7P\/y\/\/n\/\/P\/5\/\/7\/\/P\/9\/\/3\/+v8FAAUA+f8EAAQABgAHAA8A\/P8OAAQACgAGAA8A\/f\/\/\/\/v\/+v\/8\/\/D\/9\/\/t\/+r\/9v\/z\/+z\/9P\/u\/\/T\/7\/\/w\/+r\/9v\/i\/9n\/5f\/q\/+v\/9P\/s\/+\/\/7\/\/y\/+n\/8v\/q\/+3\/6f\/l\/\/L\/6\/\/l\/+r\/8P\/n\/+r\/8P\/q\/+v\/7f\/x\/+X\/4\/\/q\/+r\/6P\/r\/+v\/8f\/g\/+X\/6v\/d\/+T\/2P\/a\/+3\/4v\/f\/9f\/3f\/r\/9z\/5P\/i\/93\/1P\/X\/8X\/0\/\/J\/8r\/1P\/F\/8j\/0v\/J\/9L\/0f\/T\/9j\/3P\/j\/9T\/1\/\/d\/9\/\/2v\/h\/+L\/5v\/V\/9b\/0\/\/W\/9n\/2P\/L\/9\/\/2\/\/Z\/9H\/1P\/V\/93\/1f\/X\/9T\/3v\/T\/9r\/1f\/e\/9H\/zf\/Y\/9P\/z\/\/P\/9j\/0f\/Z\/9P\/2P\/V\/9f\/4v\/b\/8\/\/0f\/Q\/9P\/1\/\/Y\/9H\/3v\/c\/9z\/3P\/f\/+T\/1f\/N\/9j\/1\/\/V\/9P\/0P\/S\/9P\/2v\/b\/9\/\/2P\/c\/9r\/4P\/l\/+L\/5f\/k\/+X\/4P\/o\/+D\/5\/\/h\/+P\/5f\/m\/+v\/6f\/u\/+z\/9P\/x\/\/f\/9f\/3\/\/L\/7P\/5\/\/T\/\/f\/5\/\/X\/\/\/\/6\/\/L\/8\/\/8\/\/n\/CQAFAAgABwD\/\/wQAAQAOAP3\/+f\/\/\/wAA+\/8BAAMAAwAIAAkAEQAKAA4AFAAQAA4ADQALABIADwAUABQAGAASABIAGQARAA8AHwAcABAAEgAeABkAIgAcABYAEQAZABwAGQAdACAAGwAfACcAFwAbABEAEgAbAB0AGAAWAAwAIAAeAB8AIQAfAB8AHwAkAB8AIwAaABsAHAAeABYAGAAeABsAFwAfAB4AHwAXABoAFAARABwAHgAZABcAFQAhACYAIAAdABwAFAAVABEAEgAXABMACgARABUACwAPAA8ABAANABAAEQATABIAFAARABUAFAAfABwAFQAZABwAGwAfABIAFgAWABEAEAAMABIAFQAVAA8ACgAYABcADAAUAA8ACQANABIABgANABUAEwATAAoACwAOAAwAEQAKAAsABwALAAUACQAFAAcABgAEAAsAAwAFABIADAAQABIABwAUAA8ADAAKAA4AAQALAAYACQABAAsA\/v8GAP\/\/BQAAAAcA\/P8BAAUABgAIAAEAAwD4\/wsA\/P8CAPz\/+f\/+\/\/f\/AwADAAMA9\/\/4\/\/\/\/+v\/+\/\/b\/AAD4\/\/v\/+f\/+\/\/r\/+v\/+\/\/n\/\/v\/6\/\/j\/\/\/\/8\/\/n\/+v\/9\/\/n\/+v8BAPz\/AQD2\/\/7\/\/\/8BAPn\/AQD9\/\/v\/AgD4\/wIA+v8AAPz\/+\/\/9\/\/7\/AQD7\/wIA+P\/+\/\/n\/\/P\/0\/\/n\/+\/\/8\/\/v\/\/v\/7\/wIA\/\/8DAAAA\/P8DAPn\/AwD7\/wMA\/f8AAP7\/BwD9\/\/n\/\/f8CAP7\/AQD+\/\/z\/+\/\/5\/wIABQACAP7\/AgAEAPz\/BgAAAAIA\/v8BAPz\/+\/\/7\/\/r\/+v\/+\/\/z\/9f\/3\/\/b\/\/v\/9\/\/7\/\/\/8AAPv\/+v\/z\/\/z\/9P\/z\/\/f\/+\/\/1\/\/f\/9v\/7\/\/X\/+f\/0\/\/f\/9\/\/z\/\/T\/8f\/w\/\/b\/8f\/x\/\/H\/9\/\/y\/\/f\/9P\/9\/\/X\/8v\/y\/\/j\/8f\/y\/+z\/7\/\/y\/\/b\/7\/\/x\/\/X\/8v\/1\/\/H\/9P\/0\/\/P\/8v\/y\/\/f\/9P\/t\/\/L\/9\/\/3\/\/H\/9f\/v\/\/T\/7\/\/w\/\/P\/9f\/w\/\/H\/8\/\/z\/\/b\/8P\/3\/\/D\/9\/\/1\/\/b\/9\/\/5\/\/j\/9\/\/4\/\/f\/+\/\/8\/\/X\/9P\/7\/\/j\/+f\/0\/\/f\/\/P\/1\/\/f\/+P\/2\/\/j\/+\/\/3\/\/j\/9v\/6\/\/3\/+\/\/8\/\/v\/\/P\/6\/\/7\/+f8EAPT\/AAD6\/\/j\/\/P\/7\/\/3\/+f\/8\/\/r\/+P\/8\/\/3\/AAD9\/wMA\/v\/\/\/\/7\/AQD4\/wIA+\/\/\/\/wAA\/\/8CAP3\/AwD9\/wQA\/f8CAPj\/AQD7\/wAA\/v\/+\/wAA\/f8CAPz\/AQAEAP3\/\/\/8CAPz\/AQABAAMAAQACAAEAAgD8\/wIA\/f8EAAMAAAACAAAAAgD+\/wIAAQAAAAEAAgAAAAUABAAGAAgACQAGAAcACAAHAAgABQAHAAoAAAAMAAQABgACAAcAAAAHAAEAAwAAAAEAAAABAAIABAABAAIABAADAAIABAD\/\/wIA\/v8BAP\/\/BQACAP\/\/AAABAP\/\/AQD+\/\/7\/AAD+\/wAAAwD9\/wEAAgABAAEA\/v8AAAMAAgADAAQAAQAGAAMAAwAFAAAAAwD\/\/wMAAAD\/\/wEAAgACAAEAAgD\/\/wEAAgABAAMA\/\/8AAAEA\/\/\/\/\/\/7\/AgD9\/wIA\/v8CAPz\/BAD8\/wIA\/v\/+\/\/3\/AwD7\/wUA\/v8BAP3\/AAD\/\/wQA\/\/8CAAEAAQAAAAAAAQD\/\/wMA\/f8EAP7\/AAD\/\/\/7\/AgD7\/wAA\/P8EAP3\/AQD+\/wAA\/\/8AAP7\/AgD8\/wMA\/f8DAP\/\/AgD+\/wEA\/v8BAP3\/AAD8\/\/\/\/AAAAAP\/\/AQD\/\/wIA\/\/8AAP\/\/AAAAAP7\/AAAAAP\/\/AAABAP3\/AQD+\/wAAAAAAAP\/\/AgD+\/wMA\/v8DAP\/\/AgD\/\/wEAAQD\/\/wEAAAAAAAEAAQAAAAEAAgD+\/wMAAQD+\/wMA\/\/8BAAMA\/f8DAP3\/AwD+\/wMA\/v8CAAAAAQABAAEAAAAAAAIAAQAAAAMA\/f8FAP7\/BAD+\/wQA\/\/8DAAAAAgAAAAIAAAADAP\/\/BQD9\/wQAAAAAAAMA\/v8CAAEA\/\/8CAP\/\/AgD\/\/wIAAAAAAAEAAQD\/\/wEAAAD\/\/wIA\/\/8=";
 
-        ub.on('resonator', 'input', function (ev) {
-           // console.log('wet='+ev.target.value + ' dry= '+(1-ev.target.value));
-           hb.setNow(resonatorWet.gain, ev.target.value);
-           hb.setNow(resonatorDry.gain, 1-ev.target.value);
+        function _base64ToArrayBuffer(base64) {
+            var binary_string = window.atob(base64);
+            var len = binary_string.length;
+            var bytes = new Uint8Array(len);
+            for (var i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        let samples = {};
+        hb.ac.decodeAudioData(_base64ToArrayBuffer(stul), function (buffer) {
+            samples.stul = buffer;
         });
 
-        // to test how resonator affects sound
         ub.on('ping_resonator', 'click', function (ev){
             ub.stop(ev);
-            var testNoise = hb.makeOsc('sine', 220);
-            var testEnv = hb.makeGain(0);
-
-            hb.adsrStart(testEnv.gain, {attack:0.01, decay: 0.01, max:1});
-
-            hb.chain(testNoise, testEnv, resonator.input);
-        })
-
-        hb.chain(
-            synth.output,
-            resonatorDry,
-            safetyValve,
-            hb.ac.destination
-        );
-
-        ub.on('panic_button', 'click', function (ev){ub.stop(ev); hb.setNow(safetyValve.gain, 0); ub.addClass('panic_button', 'red');  });
+            //var testNoise = hb.makeOsc('sine', 220);
+            //var testEnv = hb.makeGain(0);
+            // hb.adsrStart(testEnv.gain, {attack:0.01, decay: 0.01, max:0.6});
+            hb.chain(hb.makeDrumOsc(samples.stul), resonator.input);
+        });
 
         keyboardMidiWrap('keyboard3', 'select_midi_in3', synth);
         hb.enableWebMidiLink(synth);
