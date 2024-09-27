@@ -94,16 +94,61 @@
                     <button id="panic_button">PANIC!</button>
                 </div>
                 <div>
-                    freq:<br><input type="range" min="80" max="10000" step="1" id="freq" value="10000">
+                    noise LPF:<br><input type="range" min="80" max="20000" step="1" id="noise_lpf" value="20000">
                 </div>
                 <div>
-                    feedback len:<br><input type="range" min="0.001" max="0.5" step="0.001" id="flen" value="0.001">
+                    noise HPF:<br><input type="range" min="80" max="20000" step="1" id="noise_hpf" value="80">
+                </div>
+                <div>
+                    noise test:<br><input type="range" min="0" max="1" step="0.001" id="noise_test" value="0">
                 </div>
                 <div>
                     feedback depth:<br><input type="range" min="0.7" max="0.999" step="0.001" id="fdepth">
                 </div>
                 <div>
                     freq2:<br><input type="range" min="80" max="20000" step="1" id="freq2" value="20000">
+                </div>
+                <div>
+                    resonator:<br><input type="range" min="0" max="1" step="0.001" id="resonator" value="0">
+                </div>
+                <div>
+                    <button id="ping_resonator">ping</button>
+                </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same">
+                    PRE
+                </div>
+                <div class="ub-same">
+                    EQ HI <input type="range" min="-20" max="20" step="0.01" value="0" id="pre_hi">
+                </div>
+                <div class="ub-same">
+                    EQ MID <input type="range" min="-20" max="20" step="0.01" value="0" id="pre_mid">
+                </div>
+                <div class="ub-same">
+                    EQ LOW <input type="range" min="-20" max="20" step="0.01" value="0" id="pre_low">
+                </div>
+                <div class="ub-same">
+                    REVERB <input type="range" min="0" max="1" step="0.01" value="0.3" id="pre_reverb">
+                </div>
+            </div>
+
+            <div class="ub-cols">
+                <div class="ub-same">
+                    POST
+                </div>
+                <div class="ub-same">
+                    EQ HI <input type="range" min="-20" max="20" step="0.01" value="0" id="post_hi">
+                </div>
+                <div class="ub-same">
+                    EQ MID <input type="range" min="-20" max="20" step="0.01" value="0" id="post_mid">
+                </div>
+                <div class="ub-same">
+                    EQ LOW <input type="range" min="-20" max="20" step="0.01" value="0" id="post_low">
+                </div>
+                <div class="ub-same">
+                    REVERB <input type="range" min="0" max="1" step="0.01" value="0.3" id="post_reverb">
                 </div>
             </div>
 
@@ -210,13 +255,23 @@
         return osc;
     };
 
+    function makeFilter(type, frequency, gain) {
+        const filter = hb.ac.createBiquadFilter();
+        filter.type = type;
+        filter.frequency.value = frequency;
+        filter.gain.value = gain;
+        return filter;
+    }
+
+    // TODO - https://www.dsprelated.com/freebooks/pasp/Karplus_Strong_Algorithm.html
+
     // from https://github.com/luciopaiva/karplus/
     function makeKarplusStrongNode(frequencyInHz, maxAmplitude = 1) {
         const pluckPeriodInMillis = 1000;
         const impulseDurationInSeconds = 0.0005; // volume
         const impulseDurationInSamples = Math.round(impulseDurationInSeconds * hb.ac.sampleRate);
         let impulseCountdownInSamples = impulseDurationInSamples;
-        const karplusStrongNode = hb.ac.createScriptProcessor(4096, 0, 1);
+        const karplusStrongNode = hb.ac.createScriptProcessor(4096, 1, 1); // optimize/switch buffer size for CPU power / responsivity
         const delaySizeInSamples = Math.round(hb.ac.sampleRate / frequencyInHz);
         const delayBuffer = new Float32Array(delaySizeInSamples);
         let delayBufferIndex = 0;
@@ -231,8 +286,10 @@
             }
 
             const output = event.outputBuffer.getChannelData(0);
+            const input = event.inputBuffer.getChannelData(0);
             for (let i = 0; i < event.outputBuffer.length; i++) {
-                const noiseSample = (--impulseCountdownInSamples >= 0) ? (Math.random() * 2 - 1) : 0; // TODO - filtered noise from external source to change color of sound
+                // (Math.random() * 2 - 1)
+                const noiseSample = (--impulseCountdownInSamples >= 0) ? input[i] : 0; // TODO - filtered noise from external source to change color of sound
                 delayBuffer[delayBufferIndex] = noiseSample + gain *
                     (delayBuffer[delayBufferIndex] + delayBuffer[(delayBufferIndex + 1) % delaySizeInSamples]) / 2;
                 output[i] = delayBuffer[delayBufferIndex];
@@ -245,23 +302,90 @@
         return karplusStrongNode;
     }
 
-    // see https://github.com/web-audio-components/comb/tree/master
+    function makeDelay(time)
+    {
+        let delay = hb.ac.createDelay();
+        hb.setNow(delay.delayTime, time);
+        return delay;
+    }
+
+
+    // this is my invention and it's crazy
+    function makeBoxResonator(w, h, d)
+    {
+        let resonator = {};
+        resonator.input = hb.makeGain(1);
+        resonator.output = hb.makeGain(1);
+
+        const SOUND_SPEED_CM = 34300 / 1;
+
+        let ZH = w / 2;
+        let ZE = d;
+        let ZG = h - d;
+        let ZA = Math.sqrt(Math.pow(w/2,2)+Math.pow(d,2));
+        let ZC = Math.sqrt(Math.pow(w/2,2)+Math.pow(h-d,2));
+
+        console.log('ZH = ' + ZH + ' cm');
+        console.log('ZE = ' + ZE + ' cm');
+        console.log('ZG = ' + ZG + ' cm');
+        console.log('ZA = ' + ZA + ' cm');
+        console.log('ZC = ' + ZC + ' cm');
+
+        console.log('ZH = ' + ZH*2/SOUND_SPEED_CM + ' s');
+        console.log('ZE = ' + ZE*2/SOUND_SPEED_CM + ' s');
+        console.log('ZG = ' + ZG*2/SOUND_SPEED_CM + ' s');
+        console.log('ZA = ' + ZA*2/SOUND_SPEED_CM + ' s');
+        console.log('ZC = ' + ZC*2/SOUND_SPEED_CM + ' s');
+
+        let dZH = makeDelay(ZH*2/SOUND_SPEED_CM);
+        let dZE = makeDelay(ZE*2/SOUND_SPEED_CM);
+        let dZG = makeDelay(ZG*2/SOUND_SPEED_CM);
+        let dZA = makeDelay(ZA*2/SOUND_SPEED_CM);
+        let dZC = makeDelay(ZC*2/SOUND_SPEED_CM);
+
+        let damp =  1/8; // 1/8 should be at same volume as before
+
+        hb.chain(resonator.input, hb.makeGain(damp*2), dZH, resonator.output);
+        hb.chain(resonator.input, hb.makeGain(damp), dZE, resonator.output);
+        hb.chain(resonator.input, hb.makeGain(damp), dZG, resonator.output);
+        hb.chain(resonator.input, hb.makeGain(damp*2), dZA, resonator.output);
+        hb.chain(resonator.input, hb.makeGain(damp*2), dZC, resonator.output);
+
+        return resonator;
+    }
 
     Natural = function() {
         var me = {};
         me.commonNoise = hb.makeNoiseOsc();
+        me.filteredNoise = hb.makeFilter('lowpass', 10000);
+        hb.chain(me.commonNoise, me.filteredNoise);
+
+        me.noiseTest = hb.makeGain(0);
+
         me._voices = {};
         me.output = hb.makeGain(0.3);
 
+        hb.chain(me.filteredNoise, me.noiseTest, me.output);
+
         me.param = function(name, val) {
             me[name] = val;
+
+            if (name=='noise_lpf') {
+                hb.setNow(me.filteredNoise.frequency, val);
+            }
+            if (name=='noise_test') {
+                console.log('noise_test', val);
+                hb.setNow(me.noiseTest.gain, val);
+            }
+
             console.log(name, val);
         };
 
         me._makeVoice = function(nn) {
             var vox = {};
             vox.karplus = makeKarplusStrongNode(hb.midi2cps(nn), 1);
-            hb.chain(vox.karplus, me.output);
+
+            hb.chain(me.filteredNoise, vox.karplus, me.output);
             vox.noteOff = function () {};
 
             me._voices[nn] = vox;
@@ -312,14 +436,58 @@
         ub.gebi('form').reset();
         hb.start();
 
+        /*
+        pre = hb.MixStrip();
+        hb.chnget(pre, 'hi', 'pre_hi');
+        hb.chnget(pre, 'low', 'pre_low');
+        hb.chnget(pre, 'mid', 'pre_mid');
+
+         */
+
         synth = Natural();
-        hb.chnget(synth, 'flen', 'flen');
         hb.chnget(synth, 'fdepth', 'fdepth');
-        hb.chnget(synth, 'freq', 'freq');
+        hb.chnget(synth, 'noise_lpf', 'noise_lpf');
+        hb.chnget(synth, 'noise_test', 'noise_test');
         hb.chnget(synth, 'freq2', 'freq2');
         var safetyValve = hb.makeGain(1);
-        hb.chain(synth.output, safetyValve, hb.ac.destination);
 
+        /*
+        post = hb.MixStrip();
+        hb.chnget(post, 'hi', 'post_hi');
+        hb.chnget(post, 'low', 'post_low');
+        hb.chnget(post, 'mid', 'post_mid');
+        hb.chnget(post, 'reverb', 'post_reverb');
+         */
+
+        var resonator = makeBoxResonator(14, 70, 11);
+
+        var resonatorDry = hb.makeGain(1);
+        var resonatorWet = hb.makeGain(0);
+        hb.chain(synth.output, resonator.input, resonator.output, resonatorWet, safetyValve);
+
+        ub.on('resonator', 'input', function (ev) {
+           // console.log('wet='+ev.target.value + ' dry= '+(1-ev.target.value));
+           hb.setNow(resonatorWet.gain, ev.target.value);
+           hb.setNow(resonatorDry.gain, 1-ev.target.value);
+        });
+
+        // to test how resonator affects sound
+        ub.on('ping_resonator', 'click', function (ev){
+            ub.stop(ev);
+            var testNoise = hb.makeOsc('sine', 220);
+            var testEnv = hb.makeGain(0);
+
+            hb.adsrStart(testEnv.gain, {attack:0.01, decay: 0.01, max:1});
+
+            hb.chain(testNoise, testEnv, resonator.input);
+        })
+
+        hb.chain(
+            synth.output,
+            resonatorDry,
+            safetyValve,
+            hb.ac.destination
+        );
 
         ub.on('panic_button', 'click', function (ev){ub.stop(ev); hb.setNow(safetyValve.gain, 0); ub.addClass('panic_button', 'red');  });
 
