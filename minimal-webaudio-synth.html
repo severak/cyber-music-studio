@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Minimal WebAudio synth</title>
+  <style>
+    body { background-color: darkgray; box-sizing: border-box; }
+    .box { max-width: 60em; margin: auto; background-color: white; padding: 1em; }
+    .control input { width: 80%; }
+
+    .keyboard {
+      padding: 0;
+      overflow: auto;
+      border-left: 1px solid darkgray;
+      margin: 1em 0;
+      display: inline-block;
+    }
+
+    .keyboard .key {
+      float: left;
+      display: inline-block;
+      width: 2em;
+      height: 6em;
+      border: 1px solid darkgray;
+      border-left: none;
+      margin: 0;
+      padding: 0;
+    }
+    .keyboard .key.black {
+      background-color: black;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Minimal WebAudio synth</h1>
+    <p><small>This is example implementation of minimal usable WebAudio synth without any external dependencies.</small></p>
+    <button id="power">POWER ON</button>
+    <div class="control">
+      <label>volume</label> <input type="range" id="volume" min="0" max="1" value="0.5" step="0.001">
+    </div>
+    <div class="control">
+      <label>cutoff</label> <input type="range" id="cutoff" min="0" max="20000" value="20000" step="1">
+    </div>
+    <div class="control">
+      <label>waveform</label>
+      <select id="waveform">
+        <option>sawtooth</option>
+        <option>sine</option>
+        <option>square</option>
+        <option>triangle</option>
+      </select>
+    </div>
+    <div class="keyboard" id="keyboard">
+      <div class="key" data-midi="60"></div>
+      <div class="key black" data-midi="61"></div>
+      <div class="key" data-midi="62"></div>
+      <div class="key black" data-midi="63"></div>
+      <div class="key" data-midi="64"></div>
+      <div class="key" data-midi="65"></div>
+      <div class="key black" data-midi="66"></div>
+      <div class="key" data-midi="67"></div>
+      <div class="key black" data-midi="68"></div>
+      <div class="key" data-midi="69"></div>
+      <div class="key black" data-midi="70"></div>
+      <div class="key" data-midi="71"></div>
+      <div class="key" data-midi="72"></div>
+      <div class="key black" data-midi="73"></div>
+      <div class="key" data-midi="74"></div>
+      <div class="key black" data-midi="75"></div>
+      <div class="key" data-midi="76"></div>
+      <div class="key" data-midi="77"></div>
+      <div class="key black" data-midi="78"></div>
+      <div class="key" data-midi="79"></div>
+      <div class="key black" data-midi="80"></div>
+      <div class="key" data-midi="81"></div>
+      <div class="key black" data-midi="82"></div>
+      <div class="key" data-midi="83"></div>
+    </div>
+  </div>
+  <script>
+    // determines freq of current MIDI note
+    function midi2cps(midi) {
+      const A4 = 440;
+      return A4 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    // only complex piece of - moving AudioParams
+    function moveAudioParamTo(ac, audioParam, target, time)
+    {
+      var curr = audioParam.value;
+      var now = ac.currentTime;
+      audioParam.cancelScheduledValues(now); // you need to stop any scheduled values frist
+      audioParam.setValueAtTime(curr, now); // stop ENV at current point
+      audioParam.linearRampToValueAtTime(target, now + time); // move to target at now + time
+    }
+
+    document.getElementById('power').addEventListener('click', function (event){ // you need to click on something to be able to construct AudioContext
+      event.preventDefault(); // to not submit form
+      document.getElementById('power').setAttribute('disabled', true); // to prevent clicking it again
+
+      let ac = new AudioContext(); // create audio context to work on
+
+      let osc = ac.createOscillator(); // oscillator
+      osc.frequency.value = 440;
+      osc.type = 'sawtooth';
+      osc.start(ac.currentTime); // start oscillator
+
+      let filter = ac.createBiquadFilter(); // filter
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(0, ac.currentTime);
+      filter.frequency.linearRampToValueAtTime(20000, ac.currentTime + 0.5);
+
+      let vca = ac.createGain(); // VCA
+      vca.gain.value = 0;
+
+      let amp = ac.createGain(); // final volume knob of synth
+      amp.gain.value = 0.5;
+
+      osc.connect(vca).connect(amp).connect(filter).connect(ac.destination);
+
+
+      // keyboard playing:
+      document.getElementById('keyboard').addEventListener('mousedown', function (event){ // user pressed an key (mouse up)
+        moveAudioParamTo(ac, osc.frequency, midi2cps(event.target.getAttribute('data-midi')), 0.001); // change freq of OSC
+        moveAudioParamTo(ac, vca.gain, 1, 0.001); // open VCA up
+      });
+
+      document.getElementById('keyboard').addEventListener('mouseover', function (event){ // user slide to another
+        if(event.buttons == 1 || event.buttons == 3){ // but only if they have pressed button before
+          moveAudioParamTo(ac, osc.frequency, midi2cps(event.target.getAttribute('data-midi')), 0.001); // change OSC freq
+        }
+      });
+
+      document.getElementById('keyboard').addEventListener('mouseup', function (event){ // user depressed an key (mouse up)
+        moveAudioParamTo(ac, vca.gain, 0, 0.001); // close VCA
+      });
+
+      document.getElementById('keyboard').addEventListener('mouseleave', function (event){ // user moved out of keyboard
+        moveAudioParamTo(ac, vca.gain, 0, 0.001); // close VCA
+      });
+
+      // volume handling
+      document.getElementById('volume').addEventListener('input', function (event){
+        moveAudioParamTo(ac, amp.gain, event.target.value, 0.001);
+      });
+
+      // moving filter
+      document.getElementById('cutoff').addEventListener('input', function (event){
+
+        // filter.frequency.setValueAtTime(event.target.value, ac.currentTime); // <- this should work, but doesn't. Why?
+        moveAudioParamTo(ac, filter.frequency, event.target.value, 1); // This only works when time > 1, else filter is stuck. Why?
+      });
+
+      // changing waveform
+      document.getElementById('waveform').addEventListener('change', function (event) {
+        osc.type = event.target.value;
+      });
+    });
+  </script>
+</body>
+</html>
