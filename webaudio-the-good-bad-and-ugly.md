@@ -16,25 +16,13 @@ The fact that I can write [basic synth](https://severak.github.io/cyber-music-st
 
 You don't need to study any DSP magic and all the building blocks are right now in your browser! In fact - it's short of the miracle!
 
-## The bad
-
-But the implementation details are... Well... 
-
-How to say it politely? Interesting...
-
-Say for example you want to implement basic synth as I did before. You discover some ancient example but it does not make any sound in 2024 anymore. 
-
-(https://noisehack.com/how-to-build-monotron-synth-web-audio-api/)
-
-Why? Well, that's [because now](http://www.holovaty.com/writing/chrome-web-audio-change/) you need to create `AudioContext` only after user clicked on something because otherwise scam ad banners would go full air raid siren on you! 
-
-OK. That makes sense, so all you code has now `let ac = new AudioContext()` on the beginning and you now need to carry that `AudioContext` everywhere because (I guess) it's possible you have two of these on one page somehow.
-
-*API is somewhat talkative but browser APIs tend to be in this way...*
+Say for example you want to implement basic synth as I did before. You discover some ancient example but it does not make any sound in 2024 anymore.
 
 *Osc? OK! Filter? IIRFilterNode? WTF? Biquad then OK... Gain OK.*
 
 (https://developer.mozilla.org/en-US/docs/Web/API/IIRFilterNode/IIRFilterNode)
+
+## The bad
 
 Example - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Simple_synth - there is the reason for square. Switch to sine and you hear clicks.
 
@@ -42,7 +30,7 @@ Example - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Simple_
 
 *There is no (built-in) ADSRNode.*
 
-## The really, really awful parts
+## The really awful parts
 
 *Rant about buggy filter in Chrome 109 and debugging what's bad.*
 

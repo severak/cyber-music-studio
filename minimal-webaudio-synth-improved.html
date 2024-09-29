@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Minimal WebAudio synth</title>
+    <title>Improved Minimal WebAudio synth</title>
   <style>
     body { background-color: darkgray; box-sizing: border-box; }
     .box { max-width: 60em; margin: auto; background-color: white; padding: 1em; }
@@ -34,11 +34,17 @@
 <body>
   <div class="box">
     <form id="form">
-    <h1>Minimal WebAudio synth</h1>
+    <h1>Improved Minimal WebAudio synth</h1>
     <p><small>This is example implementation of minimal usable WebAudio synth without any external dependencies.</small></p>
     <button id="power">POWER ON</button>
     <div class="control">
       <label>volume</label> <input type="range" id="volume" min="0" max="1" value="0.5" step="0.001">
+    </div>
+    <div class="control">
+      <label>attack</label> <input type="range" id="attack" min="0.001" max="1" value="0.001" step="0.001">
+    </div>
+    <div class="control">
+      <label>decay</label> <input type="range" id="decay" min="0.001" max="1" value="0.5" step="0.001">
     </div>
     <div class="control">
       <label>cutoff</label> <input type="range" id="cutoff" min="0" max="20000" value="20000" step="1">
@@ -92,6 +98,17 @@
       return A4 * Math.pow(2, (midi - 69) / 12);
     }
 
+    // only complex piece of machinery - slowly moving AudioParams
+    function moveAudioParamTo(ac, audioParam, target, time)
+    {
+      time = Number(time);
+      var curr = audioParam.value; // first getting current value of it
+      var now = ac.currentTime; // then current time
+      audioParam.cancelScheduledValues(now); // you need to stop any scheduled values first
+      audioParam.setValueAtTime(curr, now); // stop ENV at current point
+      audioParam.linearRampToValueAtTime(target, now + time); // move to target at now + time
+    }
+
     document.getElementById('power').addEventListener('click', function (event){ // you need to click on something to be able to construct AudioContext
       event.preventDefault(); // to not submit form
       document.getElementById('power').setAttribute('disabled', 'disabled'); // to prevent clicking it again
@@ -115,41 +132,43 @@
 
       osc.connect(vca).connect(amp).connect(filter).connect(ac.destination);
 
+
       // keyboard playing:
       document.getElementById('keyboard').addEventListener('mousedown', function (event){ // user pressed an key (mouse up)
-        osc.frequency.value = midi2cps(event.target.getAttribute('data-midi')); // change freq of OSC
-        vca.gain.value = 1; // open VCA up
+        moveAudioParamTo(ac, osc.frequency, midi2cps(event.target.getAttribute('data-midi')), 0.001); // change freq of OSC
+        moveAudioParamTo(ac, vca.gain, 1, document.getElementById('attack').value); // open VCA up
       });
 
       document.getElementById('keyboard').addEventListener('mouseover', function (event){ // user slide to another
         if (event.buttons == 1 || event.buttons == 3){ // but only if they have pressed button before
           if (!event.target.hasAttribute('data-midi')) return; // to prevent triggering from 1px left border with no data-midi
-          osc.frequency.value = midi2cps(event.target.getAttribute('data-midi')); // change OSC freq
+          moveAudioParamTo(ac, osc.frequency, midi2cps(event.target.getAttribute('data-midi')), 0.001); // change OSC freq
         }
       });
 
       document.getElementById('keyboard').addEventListener('mouseup', function (event){ // user depressed an key (mouse up)
-        vca.gain.value = 0; // close VCA
+        moveAudioParamTo(ac, vca.gain, 0, document.getElementById('decay').value); // close VCA
       });
 
       document.getElementById('keyboard').addEventListener('mouseleave', function (event){ // user moved mouse out of the keyboard
-        vca.gain.value = 0; // close VCA
+        moveAudioParamTo(ac, vca.gain, 0, document.getElementById('decay').value); // close VCA
       });
 
       document.getElementById('keyboard').addEventListener('mouseenter', function (event){ // user moved mouse into the keyboard
         if(event.buttons == 1 || event.buttons == 3) { // so if they have pressed button before
-          vca.gain.value = 1; // open VCA
+          moveAudioParamTo(ac, vca.gain, 1, document.getElementById('attack').value); // open VCA
         }
       });
 
       // volume handling
       document.getElementById('volume').addEventListener('input', function (event){
-        amp.gain.value = event.target.value;
+        moveAudioParamTo(ac, amp.gain, event.target.value, 0.001);
       });
 
       // moving filter
       document.getElementById('cutoff').addEventListener('input', function (event){
-        filter.frequency.value = event.target.value;
+        // filter.frequency.setValueAtTime(event.target.value, ac.currentTime); // <- This should work in Chrome 109 but doesn't. Why? In Firefox 115 this is OK.
+        moveAudioParamTo(ac, filter.frequency, event.target.value, 0.001); // This only works in Chrome 109 when time > 1
       });
 
       // changing waveform
