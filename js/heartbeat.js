@@ -16,7 +16,7 @@ hb.start = function() {
 // common functions
 
 hb.now = function() {
-    hb.ac.currentTime;
+    return hb.ac.currentTime;
 };
 
 hb.clamp = function(min, v, max) {

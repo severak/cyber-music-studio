@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PD test / Cyber Music Studio™</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uboot.css">
+    <link rel="stylesheet" href="css/gh-fork-ribbon.css">
+    <script src="js/bluescreen.js"></script>
+    <script src="js/uboot.js"></script>
+    <script src="js/JZZ.js"></script>
+    <script src="js/JZZ.input.Kbd.js"></script>
+    <script src="js/JZZ.gui.Select.js"></script>
+    <script src="js/wavy-jones.js"></script>
+    <script src="js/wave-encoder-polyfill.js"></script>
+    <script src="js/heartbeat.js"></script>
+    <script src="js/heartbeat.gm.js"></script>
+    <style>
+        body {
+            font-family: "Lucida Console", monospace;
+            background-color: plum;
+            background-image: url("img/carpet.jpg");
+        }
+
+        footer {
+            margin-top: 1em;
+            background-color: whitesmoke;
+        }
+
+        .ub-box {
+            background-color: lightgray;
+        }
+
+        #box_welcome { width: 30em; margin: auto; }
+
+        a { color: black; text-decoration-style: dashed; text-decoration-thickness: 1px; }
+
+        #power {
+            font-weight: bold;
+            font-size: 200%;
+        }
+
+        .ub-container {
+            max-width: 60em !important;
+        }
+
+        .is-blinking {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .big-buttons button, .big-buttons label, .big-select {
+            width: 98%;
+            font-weight: bold;
+            font-size: x-large;
+        }
+
+        #tape_menu {
+            width: 400px;
+            height: 250px;
+
+        }
+
+        .scope {
+            width: 100%;
+            height: 50px;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+
+<a class="github-fork-ribbon" href="https://github.com/severak/cyber-music-studio" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+
+<div class="ub-container">
+    <br><br>
+
+    <div class="ub-box" id="box_welcome">
+        <img src="img/preview.png" class="ub-fit-img">
+        <p>As Cyber Music Studio™ is not finished yet I wanted to make something already usable. This one is test of attempt to implement phase distortion synthesis.</p>
+        <p>Feel free to test it and report bugs <a href="https://github.com/severak/cyber-music-studio/issues" target="_blank">here</a>.</p>
+        <center><button id="power" class="ub-button">OK</button></center>
+    </div>
+
+    <form class="ub-form ub-hidden" id="form">
+        <div class="ub-box" id="box_traveller">
+            <h1>phase distortion experiment</h1>
+            <div class="scope" id="scope1"></div>
+            <label for="distort">distort</label><input type="range" min="0" max="6" value="0" step="0.01" id="distort">
+            <div class="scope" id="scope2"></div>
+            <p>PD final:</p>
+            <div class="scope" id="scope3"></div>
+        </div>
+
+        <footer>Part of <a href="index.html">Cyber Music Studio™</a> by <a href="http://tilde.town/~severak/">Severák</a>.</footer>
+
+    </form>
+</div>
+
+<script>
+
+
+    ub.on("power","click",  function(ev){
+        ub.stop(ev);
+        ub.addClass("box_welcome", 'ub-hidden');
+        ub.delClass("form", 'ub-hidden');
+
+        ub.gebi('form').reset();
+        hb.start();
+
+        //var saw = hb.makeOsc('sawtooth', 220, hb.now());
+        var sawbuff = hb.generateWaveformBuffer(hb.generators.saw);
+        var saw = hb.makeSamplerLoopOsc(sawbuff, 880);
+
+        var oscope = new WavyJones(hb.ac, 'scope1');
+        oscope.lineColor = '#00ff00';
+        oscope.lineThickness = 2;
+        saw.connect(oscope);
+
+        let offset = hb.makeConstantOsc(0);
+
+        let gain1 = hb.makeGain(1);
+        ub.on('distort', 'input', function (){
+           let dv= ub.gebi('distort').value;
+           gain1.gain.value = dv;
+           offset.offset.value = (dv>1 ? -dv : 0);
+        });
+        hb.chain(offset, gain1);
+        hb.chain(saw, gain1);
+
+        var oscope2 = new WavyJones(hb.ac, 'scope2');
+        oscope2.lineColor = '#00ff00';
+        oscope2.lineThickness = 2;
+        gain1.connect(oscope2);
+
+        let ws1 = hb.ac.createWaveShaper();
+        var curve = new Float32Array(512);
+        for (let i = 0; i < curve.length; i++) {
+            let n = i/curve.length;
+            curve[i] = hb.generators.sin(n);
+        }
+        ws1.curve = curve;
+
+        let lp1 = hb.makeFilter('lowpass', 2000);
+        hb.chain(gain1, ws1, lp1);
+
+        let gain3 = hb.makeGain(0.3);
+        hb.chain(lp1, gain3);
+
+        var oscope3 = new WavyJones(hb.ac, 'scope3');
+        oscope3.lineColor = '#00ff00';
+        oscope3.lineThickness = 2;
+        gain3.connect(oscope3);
+
+        var gain2 = hb.makeGain(0.3);
+        hb.chain(lp1, gain2, hb.ac.destination);
+
+    });
+</script>
+
+<script src="//million.svita.cz/millions_v1.js"></script>
+</body>
+</html>
