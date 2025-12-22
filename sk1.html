@@ -137,6 +137,19 @@
                 <input type="file" accept="audio/wav" id="choose_sample">
             </div>
 
+            <div><strong>EQUATION SYNTHESIS</strong></div>
+            <div>
+                amp(x) = <input type="text" id="equation" value="Math.sin(x * Math.PI * 2)" style="width: 60%"> <button id="equation_load">LOAD</button>
+                <!---
+                another nice ones:
+                 = Math.sin(Math.pow(x,2) * Math.PI * 2)
+                 = Math.sin(x*x*x*x*5.05*Math.PI)
+                 = Math.tan((x-0.5)*2)/2
+                 = (Math.sin((x/2*(x*93)))*x)
+                 = Math.sin(x*x*x*14.3*Math.PI)*x*x
+                -->
+            </div>
+
             <div><strong>COMMON</strong></div>
 
             <div class="ub-cols">
@@ -534,6 +547,19 @@
             }, hb.midi2cps(60) * 2);
             sk.once = false;
             showWave(sk.buffer);
+        });
+
+        ub.on('equation_load', 'click', function (ev) {
+            ub.stop(ev);
+            var equationCode = ub.gebi('equation').value;
+            try {
+                var equationFun = eval('function genf() { return function(x) { var y=' + equationCode + '; return hb.clamp(-1, y, 1); }}; genf()');
+                sk.buffer = hb.generateWaveformBuffer(equationFun);
+                sk.once = false;
+                showWave(sk.buffer);
+            } catch (e) {
+                alert('Error in your equation:\n' + e);
+            }
         });
 
         ub.on('choose_sample', 'change', function (ev) {
