@@ -64,7 +64,6 @@
         }
 
         .big-buttons button, .big-buttons label, .big-select {
-            width: 98%;
             font-weight: bold;
             font-size: x-large;
         }
@@ -72,6 +71,7 @@
         button.active { background-color: yellow; }
 
         .ub-box { padding-left: 0; padding-right: 0; }
+        .inline-block { display: inline-block; }
 
         .device summary { font-weight: bold; }
         .device .nobold { font-weight: normal; }
@@ -121,8 +121,8 @@
             <div class="device">
                 <div class="ub-cols ub-same">
                     <div>
-                        <h1>Severák's ideal groovebox</h1>
-                        <p>BPM: <input type="number" min="20" max="160" step="1" id="bpm" value="90" id="bpm"> <button id="start">start</button> <button id="stop">stop</button></p>
+                        <h1 class="inline-block">Severák's ideal groovebox</h1>
+                        <p class="inline-block big-buttons"><button id="play">▶</button> BPM: <input type="number" min="20" max="160" step="1" id="bpm" value="90" id="bpm"></p>
                     </div>
                 </div>
 
@@ -356,6 +356,18 @@
                         <li>file format is subject of change.</li>
                         </ul>
                         </p>
+
+                        <details>
+                            <summary>example patterns</summary>
+                            <div class="lpad">
+                                <p>Der Mussolini (by DAF):
+<textarea style="width: 99%">
+{"cyber_music_studio":"groovebox","bpm":"80","drum_patterns":{"A":[{"t":0,"c":144,"n":67,"g":1,"v":100},{"t":1,"c":144,"n":64,"g":1,"v":100},{"t":2,"c":144,"n":67,"g":1,"v":100},{"t":3,"c":144,"n":64,"g":1,"v":100},{"t":4,"c":144,"n":67,"g":1,"v":100},{"t":5,"c":144,"n":64,"g":1,"v":100},{"t":6,"c":144,"n":67,"g":1,"v":100},{"t":7,"c":144,"n":64,"g":1,"v":100},{"t":8,"c":144,"n":67,"g":1,"v":100},{"t":9,"c":144,"n":64,"g":1,"v":100},{"t":10,"c":144,"n":67,"g":1,"v":100},{"t":11,"c":144,"n":64,"g":1,"v":100},{"t":12,"c":144,"n":67,"g":1,"v":100},{"t":13,"c":144,"n":64,"g":1,"v":100},{"t":14,"c":144,"n":67,"g":1,"v":100},{"t":15,"c":144,"n":65,"g":1,"v":100}],"B":[],"C":[],"D":[],"E":[],"F":[],"G":[],"H":[]},"bass_patterns":{"A":[{"t":0,"c":144,"n":47,"g":1,"v":100},{"t":1,"c":144,"n":52,"g":1,"v":100},{"t":2,"c":144,"n":47,"g":1,"v":100},{"t":3,"c":144,"n":62,"g":1,"v":100},{"t":4,"c":144,"n":47,"g":1,"v":100},{"t":5,"c":144,"n":59,"g":1,"v":100},{"t":6,"c":144,"n":47,"g":1,"v":100},{"t":7,"c":144,"n":47,"g":1,"v":100},{"t":8,"c":144,"n":59,"g":1,"v":100},{"t":9,"c":144,"n":47,"g":1,"v":100},{"t":10,"c":144,"n":59,"g":1,"v":100},{"t":11,"c":144,"n":47,"g":1,"v":100},{"t":12,"c":144,"n":59,"g":1,"v":100},{"t":13,"c":144,"n":57,"g":1,"v":100},{"t":14,"c":144,"n":47,"g":1,"v":100},{"t":15,"c":144,"n":59,"g":1,"v":100}],"B":[],"C":[],"D":[],"E":[],"F":[],"G":[],"H":[]},"general_patterns":{"A":[],"B":[],"C":[],"D":[],"E":[],"F":[],"G":[],"H":[]}}
+</textarea></p>
+
+                            </div>
+                        </details>
+
                     </div>
                 </details>
             </div>
@@ -751,25 +763,26 @@ ub.on("power","click",  function(ev){
         step = (step + 1) % 16;
     });
 
-    ub.on('start', 'click', function (ev) {
+    ub.on('play', 'click', function (ev) {
         ub.stop(ev);
-        metro.setBpm(ub.gebi('bpm').value);
-        step = 0;
-        metro.start();
-        drum_sequencer.start();
-        bass_sequencer.start();
-        general_sequencer.start();
-    });
+        if (metro._running) {
+            ub.delClass('play', 'active');
+            metro.setBpm(ub.gebi('bpm').value);
+            step = 0;
+            metro.stop();
+            drum_sequencer.stop();
+            bass_sequencer.stop();
+            general_sequencer.stop();
+        } else {
+            ub.addClass('play', 'active');
+            metro.setBpm(ub.gebi('bpm').value);
+            step = 0;
+            metro.start();
+            drum_sequencer.start();
+            bass_sequencer.start();
+            general_sequencer.start();
+        }
 
-    ub.on('stop', 'click', function (ev) {
-        if (step==0) { prevStep=15 } else { prevStep = step-1;}
-        ub.stop(ev);
-        metro.stop();
-        //ub.delClass(ub.gebi('drum_sequencer').querySelectorAll('tr.index td')[prevStep], 'active');
-        drum_sequencer.stop();
-        bass_sequencer.stop();
-        general_sequencer.stop();
-        step = -1;
     });
 
     ub.on('load_patterns', 'click', function (ev){
@@ -790,6 +803,7 @@ ub.on("power","click",  function(ev){
            return;
        }
        if (pats.cyber_music_studio && pats.cyber_music_studio=='groovebox') {
+            ub.gebi('bpm').value = pats.bpm;
             drum_sequencer.setPatterns(pats.drum_patterns);
             bass_sequencer.setPatterns(pats.bass_patterns);
             general_sequencer.setPatterns(pats.general_patterns);
