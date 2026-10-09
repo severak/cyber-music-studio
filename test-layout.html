@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mockup / Cyber Music Studio™</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uboot.css">
+    <link rel="stylesheet" href="css/gh-fork-ribbon.css">
+    <script src="js/bluescreen.js"></script>
+    <script src="js/uboot.js"></script>
+    <script src="js/JZZ.js"></script>
+    <script src="js/JZZ.input.Kbd.js"></script>
+    <script src="js/JZZ.gui.Select.js"></script>
+    <script src="js/wavy-jones.js"></script>
+    <script src="js/heartbeat.js"></script>
+    <script src="js/wave-encoder-polyfill.js"></script>
+    <script>
+        WebAudioControlsOptions={
+            // useMidi:1,
+            knobDiameter: 32,
+            knobColors: "#fc0;#000;#fc0"
+        };
+    </script>
+    <script src="js/webaudio-controls.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gidole&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: Gidole; }
+        .app { font-size: 12px; }
+        .panel { background-color: lightgray; padding: 0.25em; }
+        .panel div { display: inline-block; }
+        .panel .section { padding-right: 0.5em; border-right: 1px solid grey; }
+        .instrument { display: flex; flex-direction: row; background-color: darkviolet; border-bottom: 1px solid yellow; }
+        .instrument div { padding: 0.25em; }
+        table.sequencer { border-collapse: collapse; }
+        table.sequencer td, table.sequencer tr { border: 1px solid white; min-width: 1em; padding: 0.25em; }
+        .drum-tones { text-align: center; }
+        .drum-tones .knobs td { padding-bottom: 0; }
+        .drum-tones .knob-labels td  { padding-bottom: 0.5em; }
+
+        .tall-placeholder { height: 15em; border: 1px dashed hotpink; color: hotpink; font-family: cursive; }
+    </style>
+</head>
+<body>
+    <div class="app">
+
+    <div class="panel">
+        <div class="section">
+            <strong>Cyber Music Studio</strong>
+        </div>
+        <div class="section">
+            BPM: <input type="number" value="120" min="30" max="180" step="1">
+            <button>▶</button>
+        </div>
+        <div class="section">
+            This is just a mockup of future standalone Cyber Music Studio.
+        </div>
+    </div>
+
+    <div class="instrument">
+        <div>
+            Drum machine
+        </div>
+        <div>
+            <span class="pattern-selector" id="drum_patterns"><button class="current">A</button> <button>B</button> <button>C</button> <button>D</button> <button>E</button> <button>F</button> <button>G</button> <button>H</button></span>
+            <table class="sequencer">
+                <tr><th>Kick</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><th>Snare</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><th>OH</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><th>CH</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><th>Clap</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><th>Crap</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><th>Crap 2</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><th>Crap 3</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            </table>
+        </div>
+        <div>
+            <table class="drum-tones">
+                <tr>
+                    <td id="dr_name_1" class="name">---</td>
+                    <td id="dr_name_2" class="name">---</td>
+                    <td id="dr_name_3" class="name">---</td>
+                    <td id="dr_name_4" class="name">---</td>
+                    <td id="dr_name_5" class="name">---</td>
+                    <td id="dr_name_6" class="name">---</td>
+                    <td id="dr_name_7" class="name">---</td>
+                    <td id="dr_name_8" class="name">---</td>
+                </tr>
+                <tr>
+                    <td id="dr_change_1"><button>LOAD...</button></td>
+                    <td id="dr_change_2"><button>LOAD...</button></td>
+                    <td id="dr_change_3"><button>LOAD...</button></td>
+                    <td id="dr_change_4"><button>LOAD...</button></td>
+                    <td id="dr_change_5"><button>LOAD...</button></td>
+                    <td id="dr_change_6"><button>LOAD...</button></td>
+                    <td id="dr_change_7"><button>LOAD...</button></td>
+                    <td id="dr_change_8"><button>LOAD...</button></td>
+                </tr>
+                <tr class="knobs">
+                    <td><webaudio-knob id="dr_tune_1" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_tune_2" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_tune_3" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_tune_4" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_tune_5" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_tune_6" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_tune_7" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_tune_8" value="0" min="-600" max="600" step="1"></webaudio-knob></td>
+                </tr>
+                <tr class="knob-labels">
+                    <td>tune</td>
+                    <td>tune</td>
+                    <td>tune</td>
+                    <td>tune</td>
+                    <td>tune</td>
+                    <td>tune</td>
+                    <td>tune</td>
+                    <td>tune</td>
+                </tr>
+                <tr class="knobs">
+                    <td><webaudio-knob id="dr_pan_1" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_pan_2" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_pan_3" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_pan_4" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_pan_5" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_pan_6" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_pan_7" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_pan_8" value="0" min="-1" max="1" step="0.1"></webaudio-knob></td>
+                </tr>
+                <tr class="knob-labels">
+                    <td>pan</td>
+                    <td>pan</td>
+                    <td>pan</td>
+                    <td>pan</td>
+                    <td>pan</td>
+                    <td>pan</td>
+                    <td>pan</td>
+                    <td>pan</td>
+                </tr>
+                <tr class="knobs">
+                    <td><webaudio-knob id="dr_vol_1" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_vol_2" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_vol_3" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_vol_4" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_vol_5" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_vol_6" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_vol_7" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                    <td><webaudio-knob id="dr_vol_8" value="0.5" min="0" max="1" step="0.01"></webaudio-knob></td>
+                </tr>
+                <tr class="knob-labels">
+                    <td>vol</td>
+                    <td>vol</td>
+                    <td>vol</td>
+                    <td>vol</td>
+                    <td>vol</td>
+                    <td>vol</td>
+                    <td>vol</td>
+                    <td>vol</td>
+                </tr>
+                <tr>
+                    <td><button id="dr_play_1">PLAY</button></td>
+                    <td><button id="dr_play_2">PLAY</button></td>
+                    <td><button id="dr_play_3">PLAY</button></td>
+                    <td><button id="dr_play_4">PLAY</button></td>
+                    <td><button id="dr_play_5">PLAY</button></td>
+                    <td><button id="dr_play_6">PLAY</button></td>
+                    <td><button id="dr_play_7">PLAY</button></td>
+                    <td><button id="dr_play_8">PLAY</button></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="instrument">
+        <div>Sampler</div>
+        <div>
+            <div class="tall-placeholder">here will be sequencer</div>
+
+        </div>
+        <div>
+
+        </div>
+    </div>
+
+    <div class="panel">
+        Add:
+        <button>Drums</button>
+        <button>Sampler</button>
+    </div>
+
+
+
+    </div>
+
+</body>
+</html>
